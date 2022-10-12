@@ -40,5 +40,5 @@ jobs:
     - name: "Upload coverage data"
       uses: actions/upload-artifact@v3
       with:
-        name: htmlcov
-        path: .
+        name: coverage_report
+        path: htmlcov
