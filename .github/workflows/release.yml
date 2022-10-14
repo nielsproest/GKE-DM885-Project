@@ -1,7 +1,9 @@
 name: Pre-Release
 on:
   workflow_run:
-    workflows: ["Test"]
+    branches:
+    - release
+    workflows: [ "Test" ]
     types:
       - completed
 
