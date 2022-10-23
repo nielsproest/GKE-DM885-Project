@@ -46,7 +46,7 @@ jobs:
       with:
         token_format: 'access_token'
         workload_identity_provider: 'projects/989249715975/locations/global/workloadIdentityPools/my-pool/providers/dm885-provider'
-        service_account: 'my-service-account@my-project.iam.gserviceaccount.com'
+        service_account: '989249715975-compute@developer.gserviceaccount.com'
 
     # Alternative option - authentication via credentials json
     # - id: 'auth'
