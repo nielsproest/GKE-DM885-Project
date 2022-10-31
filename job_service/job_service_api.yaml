@@ -1,0 +1,254 @@
+openapi: 3.0.3
+info:
+  title: DM885 Project API
+  description: |-
+    API specification for JobService
+  version: 1.0.0
+tags:
+  - name: job
+    description: Everything about your Jobs
+paths:
+  /job:
+    post:
+      tags:
+        - jobs
+      summary: Create job
+      description: |-
+        Creates a job.
+      operationId: createJob
+      requestBody:
+        description: Created job
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JobCreate'
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+    get:
+      tags:
+        - jobs
+      summary: Gets jobs
+      description: Retrieves a list of the users jobs
+      operationId: getJobs
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Job'
+  /job/{jobid}:
+    get:
+      tags:
+        - job
+      summary: Gets information of job
+      description: Gets information of job
+      operationId: getJob
+      parameters:
+        - name: jobid
+          in: path
+          description: The job id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+    delete:
+      tags:
+        - jobs
+      summary: Deletes a job
+      description: Stops and deletes a job
+      operationId: deleteJob
+      parameters:
+        - name: jobid
+          in: path
+          description: The job id
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+    patch:
+      tags:
+        - jobs
+      summary: Kills a specific solver of a job
+      description: Kills a specific solver of a job
+      operationId: killSolver
+      parameters:
+        - name: jobid
+          in: path
+          description: The job id
+          required: true
+          schema:
+            type: string
+        - name: solver
+          in: query
+          description: The name of the solver to kill
+          required: true
+          schema:
+            type: string
+      responses:
+        default:
+          description: successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Job'
+
+
+components:
+  schemas:
+    File:
+      type: object
+      properties:
+        id:
+          type: string
+          example: 213
+        name:
+          type: string
+          example: job.mzn
+    Files:
+      type: array
+      items:
+        $ref: '#/components/schemas/File'
+    Solver:
+      type: object
+      properties:
+        name:
+          type: string
+          example: gecode
+    Solvers:
+      type: array
+      items:
+        $ref: '#/components/schemas/Solver'
+    Job:
+      type: object
+      allOf:
+      - $ref: '#/components/schemas/JobCreate'
+      - properties:
+          status:
+            type: string
+            enum: [succeeded, suboptimal, inprogress, failed]
+            example: inprogress
+      xml:
+        name: user
+    JobCreate:
+      type: object
+      properties:
+        solver:
+          type: array
+          items:
+            properties:
+              id:
+                type: string
+                description: The solver id
+                example: 123
+              cores:
+                type: integer
+                example: 2
+              ram:
+                type: integer
+                description: In megabytes
+                example: 64
+        mzn:
+          type: string
+          description: The file id
+          example: 123
+        dzn:
+          type: string
+          description: The file id
+          example: 123
+        timeout:
+          type: integer
+          description: In seconds
+          example: 120
+      xml:
+        name: user
+    UserCreate:
+      type: object
+      properties:
+        username:
+          type: string
+          example: theUser
+        email:
+          type: string
+          example: john@email.com
+        password:
+          type: string
+          example: '12345'
+      xml:
+        name: user
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        username:
+          type: string
+          example: theUser
+        email:
+          type: string
+          example: john@email.com
+        permissions:
+          $ref: '#/components/schemas/Permissions'
+      xml:
+        name: user
+    Permissions:
+      type: object
+      properties:
+        #MB limit for fs usage?
+        cores:
+          type: integer
+          format: int64
+          example: 10
+        ram:
+          type: integer
+          description: in megabyte
+          format: int64
+          example: 64
+        maxtimeout:
+          type: integer
+          description: in seconds
+          format: int64
+          example: 10
+      xml:
+        name: permissions
+    ApiResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+        type:
+          type: string
+        message:
+          type: string
+      xml:
+        name: '##default'
+  securitySchemes:
+    bearerAuth:            # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
