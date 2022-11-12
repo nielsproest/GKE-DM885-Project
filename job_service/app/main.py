@@ -1,30 +1,13 @@
 import uuid
-from enum import Enum
 
-from typing import Union
-from typing import List
-from xmlrpc.client import Boolean
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 
-class Solver(BaseModel):
-    id: str
-    vcpus: int = 1
-    ram: int = 1024
+from app.model import *
+from app.auth.auth_bearer import JWTBearer
+from app.auth.auth_handler import signJWT
 
-class CreateJob(BaseModel):
-    solver_list: List[Solver]
-    mzn: str
-    dzn: Union[str, None] = None
-    timeout: int = 60
-    status: str
-
-class Status(Enum):
-    IN_PROGRESS = 1
-    SUCCEEDED = 2
-    SUBOPTIMAL = 3
-    FAILED = 4
 
 db = [{
     "job_id": "f3b8921c-3f0c-442e-82f4-8286e24bb50c",
@@ -75,6 +58,7 @@ db = [{
 
 app = FastAPI()
 
+#@app.get("/job/{job_id}", dependencies=[Depends(JWTBearer())])
 @app.get("/job/{job_id}")
 def get_job(job_id: str):
     #TODO: Check if user is authenticated
@@ -214,11 +198,3 @@ def get_job_of_user(job_id, user_id):
     if job["user_id"] != user_id:
         raise HTTPException(status_code=403)
     return job
-
-
-'''
-Test POST with curl:
-
-curl -X POST http://localhost:8000/job -H 'Content-Type: application/json' -d '{"solver_list": [{"id": "chuffed","vcpus": 2,"ram": 64}],"mzn": "123","dzn": "123","timeout": 120,"status": "inprogress"}'
-
-'''

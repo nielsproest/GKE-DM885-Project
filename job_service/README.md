@@ -10,7 +10,7 @@ pip install "uvicorn[standard]"
 Start web server.
 
 ```
-uvicorn main:app --reload
+uvicorn app.main:app --reload
 ```
 
 Access it at localhost:8000.
