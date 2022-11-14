@@ -23,6 +23,7 @@ spec:
                 name: fs-postgres-config
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
+              subPath: dumbaf #Fix some bug
               name: postgredb
           resources: #Asks google kindly for ram
             limits:
