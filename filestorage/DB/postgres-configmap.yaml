@@ -1,0 +1,11 @@
+#Holds the database secrets
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fs-postgres-config
+  labels:
+    app: fs-postgres
+data:
+  POSTGRES_DB: postgresdb
+  POSTGRES_USER: admin
+  POSTGRES_PASSWORD: psltest
