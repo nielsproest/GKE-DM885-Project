@@ -9,4 +9,5 @@ class File(Base):
 
 	id = Column(Integer, Identity("always"), primary_key=True, index=True)
 	name = Column(String, index=True)
-	owner = Column(String) #TODO: Unknown
+	owner = Column(String) #GUID
+	size = Column(Integer) #Bytes
