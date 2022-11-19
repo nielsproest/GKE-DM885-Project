@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fs-postgres  # Sets Deployment name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fs-postgres
+  template:
+    metadata:
+      labels:
+        app: fs-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:latest # Sets Image
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432  # Exposes container port
+          envFrom:
+            - configMapRef:
+                name: fs-postgres-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              subPath: dumbaf #Fix some bug
+              name: postgredb
+          resources: #Asks google kindly for ram
+            limits:
+              cpu: "1"
+              memory: "4Gi"
+            requests:
+              cpu: "1"
+              memory: "4Gi"
+      volumes:
+        - name: postgredb
+          persistentVolumeClaim:
+            claimName: fs-postgres-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fs-postgres # Sets service name
+  labels:
+    app: fs-postgres # Labels and Selectors
+spec:
+  type: NodePort # Sets service type
+  ports:
+    - port: 5432 # Sets port to run the postgres application
+  selector:
+    app: fs-postgres
