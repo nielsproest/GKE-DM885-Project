@@ -27,7 +27,7 @@ async def create_new_user(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
         )
 
-    if len(payload.get("username")) < config(
+    if len(username) < config(
         "USERNAME_MIN_LENGTH", cast=int, default=3
     ):
         raise HTTPException(
@@ -41,7 +41,7 @@ async def create_new_user(
         )
 
     # TODO: Better password validation
-    if len(payload.get("password")) < config(
+    if len(password) < config(
         "PASSWORD_MIN_LENGTH", cast=int, default=8
     ):
         raise HTTPException(
@@ -94,7 +94,7 @@ async def login_user(
     # Check if Credentials are correct
 
     # Generate a JWT token for the user TODO : sign with more than username
-    token = sign_jwt(payload["username"])
+    token = sign_jwt(username)
 
     return {"token": token}
 
