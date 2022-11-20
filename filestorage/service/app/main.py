@@ -39,44 +39,44 @@ async def write(user_id: str, file: UploadFile, db: Session = Depends(get_db)):
 	if (usage != None and usage + fs_size > a_hundred_mb):
 		raise HTTPException(status_code=413, detail="Not enough space")
 
-	db_write = crud.create_file(db, file.filename, fs_size, user_id) #TODO: Ownership
-	if not db_write:
+	qry = crud.create_file(db, file.filename, fs_size, user_id) #TODO: Ownership
+	if not qry:
 		raise HTTPException(status_code=500, detail="Unknown error")
 
-	with open(join(OS_DIR, str(db_write.id)), "wb") as f:
+	with open(join(OS_DIR, str(qry.id)), "wb") as f:
 		f.write(fs)
 
 	return {
 		"message": "OK", 
-		"id": db_write.id
+		"id": qry.id
 	}
 
 @app.get("/{user_id}/list")
 async def lst(user_id: str, db: Session = Depends(get_db)):
 	#TODO: Check file owner permission (and role)
-	db_fil = crud.get_files(db, user_id)
-	if not db_fil:
-		raise HTTPException(status_code=404, detail="File not found")
+	qry = crud.get_files(db, user_id)
+	if not qry:
+		raise HTTPException(status_code=404, detail="No files available")
 
 	return {
 		"message": "OK", 
-		"lst": db_fil
+		"lst": qry
 	}
 
 @app.get("/{user_id}/{item_id}")
 async def read(user_id: str, item_id: int, db: Session = Depends(get_db)):
-	db_del = crud.get_file(db, item_id)
-	if not db_del:
+	qry = crud.get_file(db, item_id)
+	if not qry:
 		raise HTTPException(status_code=404, detail="File not found")
 
 	#TODO: Check file owner permission (and role)
 
-	return FileResponse(join(OS_DIR, str(item_id)))
+	return FileResponse(join(OS_DIR, str(item_id)), filename=qry.name)
 
 @app.patch("/{user_id}/{item_id}")
 async def update(user_id: str, item_id: int, file: UploadFile, db: Session = Depends(get_db)):
-	db_upd = crud.get_file(db, item_id)
-	if not db_upd:
+	qry = crud.get_file(db, item_id)
+	if not qry:
 		raise HTTPException(status_code=404, detail="File not found")
 
 	#TODO: Limit size to prevent exploitation
@@ -90,7 +90,7 @@ async def update(user_id: str, item_id: int, file: UploadFile, db: Session = Dep
 
 	#TODO: Check file owner permission (and role)
 
-	with open(join(OS_DIR, str(db_upd.id)), "wb") as f:
+	with open(join(OS_DIR, str(qry.id)), "wb") as f:
 		f.write(fs)
 
 	return {
@@ -100,8 +100,8 @@ async def update(user_id: str, item_id: int, file: UploadFile, db: Session = Dep
 @app.delete("/{user_id}/{item_id}")
 async def delete(user_id: str, item_id: int, db: Session = Depends(get_db)):
 	#TODO: Check file owner permission (and role)
-	db_del = crud.delete_file(db, item_id)
-	if not db_del:
+	qry = crud.delete_file(db, item_id)
+	if not qry:
 		raise HTTPException(status_code=404, detail="File not found")
 
 	remove(join(OS_DIR, str(item_id)))
