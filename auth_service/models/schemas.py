@@ -9,4 +9,5 @@ class User(Base):
 
 	id = Column(Integer, Identity("always"), primary_key=True, index=True)
 	username = Column(String, index=True)
+	password = Column(String)
 	permissions = Column(JSON) 

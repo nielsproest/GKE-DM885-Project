@@ -39,8 +39,7 @@ def sign_jwt(user_id: str, payload: dict = None) -> str:
         str: The signed JWT token
     """
 
-    new_payload = {"user_id": user_id, "expiration": str(time.time() + SESSION_TIME), "permissions": payload}
-
+    new_payload = {"user_id": user_id, "expiration": str(time.time() + SESSION_TIME), "permissions": payload or {}}
     token = jwt.encode(new_payload, PRIVATE_KEY, algorithm="RS256")
 
     return token
@@ -55,6 +54,7 @@ def decode_jwt(token: str) -> str:
     Returns:
         str: The decoded token
     """
+
 
     return jwt.decode(token, PUBLIC_KEY, algorithms=["RS256"])
 
@@ -76,7 +76,12 @@ def validate_token(token: str) -> bool:
         if time.time() > float(payload["expiration"]):
             return False
 
+    # Multiple exceptions for later logging purposes
     except jwt.exceptions.InvalidSignatureError:
+        return False
+    except KeyError:
+        return False
+    except:
         return False
 
     return True

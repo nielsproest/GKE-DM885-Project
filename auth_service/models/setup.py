@@ -1,41 +1,32 @@
-import os
+""" Initialize Postgres Database """
 
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
 from decouple import config
 
-POSTGRES_USER = config("POSTGRES_USER")
+POSTGRES_DB       = config("POSTGRES_DB")
+DATABASE_HOST     = config("DATABASE_HOST")
+DATABASE_PORT     = config("DATABASE_PORT")
+POSTGRES_USER     = config("POSTGRES_USER")
 POSTGRES_PASSWORD = config("POSTGRES_PASSWORD")
-POSTGRES_DB = config("POSTGRES_DB")
-DATABASE_HOST = config("DATABASE_HOST")
-DATABASE_PORT = config("DATABASE_PORT")
 
-#TODO: For debugging, remove when confirmed working
-print("User", POSTGRES_USER)
-print("Password", POSTGRES_PASSWORD)
-print("DB", POSTGRES_DB)
+SQLALCHEMY_DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{DATABASE_HOST}:{DATABASE_PORT}/{POSTGRES_DB}"
 
-print("postgresql://{}:{}@{}:{}/{}".format(POSTGRES_USER,POSTGRES_PASSWORD,DATABASE_HOST,DATABASE_PORT,POSTGRES_DB))
+engine = create_engine(
+	SQLALCHEMY_DATABASE_URL
+)
 
-#Expected to run in same cluster
-SQLALCHEMY_DATABASE_URL = "postgresql://{}:{}@{}:{}/{}".format(POSTGRES_USER,POSTGRES_PASSWORD,DATABASE_HOST,DATABASE_PORT,POSTGRES_DB)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-#engine = create_engine(
-#	SQLALCHEMY_DATABASE_URL
-#)
-#SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-#
-#Base = declarative_base()
-
+Base = declarative_base()
 
 def get_database():
-	return 1
+	""" Get database connection """
 
-#def get_database():
-#	db = SessionLocal()
-#	try:
-#		yield db
-#	finally:
-#		db.close()
+	db = SessionLocal()
+	try:
+		yield db
+	finally:
+		db.close()
