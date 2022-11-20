@@ -8,6 +8,6 @@ class File(Base):
 	__tablename__ = "files"
 
 	id = Column(Integer, Identity("always"), primary_key=True, index=True)
-	name = Column(String, index=True)
-	owner = Column(String) #GUID
+	name = Column(String)
+	owner = Column(String, index=True) #GUID
 	size = Column(Integer) #Bytes

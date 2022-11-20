@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from sqlalchemy.sql import functions
+from sqlalchemy import func
 
-from . import models, schemas
+from . import models
 
 
 def get_file(db: Session, file_id: int):
@@ -11,8 +11,8 @@ def get_files(db: Session, skip: int = 0, limit: int = 100):
 	return db.query(models.File).offset(skip).limit(limit).all()
 
 def get_user_usage(db: Session, owner: str):
-	return 0
-#	return db.query(models.File).filter(models.File.owner == owner).all(functions.sum(models.File.size))
+	qry = db.query(func.sum(models.File.size).label("sum")).filter(models.File.owner == owner)
+	return qry.scalar()
 
 def create_file(db: Session, name: str, size: int, owner: str):
 	db_user = models.File(name=name, size=size, owner=owner)
@@ -22,4 +22,6 @@ def create_file(db: Session, name: str, size: int, owner: str):
 	return db_user
 
 def delete_file(db: Session, id: int):
-	return db.query(models.File).filter(models.File.id == id).delete()
+	db_del = db.query(models.File).filter(models.File.id == id).delete()
+	db.commit()
+	return db_del
