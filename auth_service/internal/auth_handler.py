@@ -1,4 +1,8 @@
-""" Custom authentication handler for our RSA256 JWT tokens """
+""" Custom authentication handler for our RSA256 JWT tokens 
+losely based on Abdulazeez Abdulazeez Adeshina work
+ "Securing FastAPI with JWT Token-based Authentication",
+ https://testdriven.io/blog/fastapi-jwt-auth/
+"""
 
 from fastapi import Request, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials

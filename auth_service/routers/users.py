@@ -3,8 +3,14 @@
 from fastapi import Depends, APIRouter, HTTPException, status, Body
 from decouple import config
 from internal import JWTBearer, sign_jwt, decode_jwt
+from sqlalchemy.orm import Session
+
 
 router: APIRouter = APIRouter()
+
+#from models import User, Base, SessionLocal, engine
+from models import get_database
+#Base.metadata.create_all(bind=engine)
 
 
 @router.get(
@@ -12,9 +18,11 @@ router: APIRouter = APIRouter()
 )
 async def create_new_user(
     payload=Body({"username": "myusername", "password": "mypassword"}),
+    db: Session = Depends(get_database)
 ):
 
-    if payload.get("username", None) is None:
+
+    if (username := payload.get("username", None)) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
         )
@@ -27,7 +35,7 @@ async def create_new_user(
             detail="Username must be at least 3 characters",
         )
 
-    if payload.get("password", None) is None:
+    if (password := payload.get("password", None)) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing password"
         )
@@ -43,23 +51,38 @@ async def create_new_user(
 
     # TODO: Create user in database
 
-    # Generate a JWT token for the user
-    token = sign_jwt(payload["username"], payload={"admin": True})
+    #db_user = User(name=username, password=password)
+    #db.add(db_user)
+    #db.commit()
+    #db.refresh(db_user)
 
-    return {"token": token}
+
+    # Generate a JWT token for the user TODO : Make this payload generation use some preset values from the database
+    return {"token": sign_jwt(username, payload={
+        "permissions": {
+            "is_admin": True,
+            "read": True,
+            "write": True,
+            "delete": False,
+            "create": True,
+
+        },
+    })}
+
 
 
 @router.get("/login")
 async def login_user(
-    payload=Body({"username": "myusername", "password": "mypassword"})
+    payload=Body({"username": "myusername", "password": "mypassword"}),
+    db: Session = Depends(get_database)
 ):
 
-    if payload.get("username", None) is None:
+    if (username := payload.get("username", None)) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
         )
 
-    if payload.get("password", None) is None:
+    if (password := payload.get("password", None)) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing password"
         )
@@ -79,20 +102,27 @@ async def login_user(
 @router.get("/modify")
 async def modify_user(
     payload=Body(
-        {"username": "myusername", "data": {"max_ram": 8, "max_cpu": 4, "foo": "bar"}}
+        {"username": "myusername", "data": {"max_ram": 8, "max_cpu": 4, "foo": "bar", "is_admin": True}}
     ),
     token=Depends(JWTBearer()),
+    db: Session = Depends(get_database)
 ):
 
-    permissions = decode_jwt(token)
+    permissions = decode_jwt(token).get("permissions", None)
 
-    if permissions.get("admin", False) is False:
+    # Sanity check
+    if permissions is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing permissions"
+        )
+
+    if permissions.get("is_admin", False) is False:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only administators can modify users",
         )
 
-    if payload.get("username", None) is None:
+    if (username := payload.get("username", None)) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
         )
@@ -111,18 +141,25 @@ async def modify_user(
 
 @router.get("/delete", dependencies=[Depends(JWTBearer())])
 async def delete_user(
-    payload=Body({"username": "myusername"}), token=Depends(JWTBearer())
+    payload=Body({"username": "myusername"}), token=Depends(JWTBearer()),
+    db: Session = Depends(get_database)
 ):
 
-    permissions = decode_jwt(token)
+    permissions = decode_jwt(token).get("permissions", None)
 
-    if permissions.get("admin", False) is False:
+    # Sanity check
+    if permissions is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing permissions"
+        )
+
+    if permissions.get("is_admin", False) is False:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Only administators can delete users",
         )
 
-    if payload.get("username", None) is None:
+    if (username := payload.get("username", None)) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
         )
@@ -136,10 +173,11 @@ async def delete_user(
 
 @router.get("/is_username_available")
 async def is_username_available(
-    payload=Body({"username": "myusername"}), token=Depends(JWTBearer())
+    payload=Body({"username": "myusername"}), token=Depends(JWTBearer()),
+    db: Session = Depends(get_database)
 ):
 
-    if payload.get("username", None) is None:
+    if (username := payload.get("username", None)) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
         )

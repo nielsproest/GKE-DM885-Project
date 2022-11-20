@@ -39,10 +39,7 @@ def sign_jwt(user_id: str, payload: dict = None) -> str:
         str: The signed JWT token
     """
 
-    new_payload = {"user_id": user_id, "expiration": str(time.time() + SESSION_TIME)}
-
-    if payload is not None:
-        new_payload.update(payload)
+    new_payload = {"user_id": user_id, "expiration": str(time.time() + SESSION_TIME), "permissions": payload}
 
     token = jwt.encode(new_payload, PRIVATE_KEY, algorithm="RS256")
 
