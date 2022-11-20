@@ -8,6 +8,8 @@ RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./app /code/app
 
+WORKDIR /code/app
+
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
 
 # If running behind a proxy like Nginx or Traefik add --proxy-headers

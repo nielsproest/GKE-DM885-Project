@@ -1,151 +1,112 @@
 import uuid
-
-
+import os
+from decouple import config
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 
-from app.model import *
-from app.auth.auth_bearer import JWTBearer
-from app.auth.auth_handler import signJWT
+from sqlalchemy.dialects.postgresql import UUID
+
+import models
+import crud
+import schemas
+from schemas import *
+from auth.auth_bearer import JWTBearer
+from auth.auth_handler import signJWT
 
 
-db = [{
-    "job_id": "f3b8921c-3f0c-442e-82f4-8286e24bb50c",
-    "status": 2,
-    "user_id": "normal_user",
-    "solvers": [
-      {
-        "id": "chuffed",
-        "vcpus": 2,
-        "ram": 64
-      }
-    ],
-    "mzn": "123",
-    "dzn": "123",
-    "timeout": 120
-  },
-  {
-    "job_id": "7712980b-80bf-489c-a510-d78a13de507a",
-    "status": 1,
-    "user_id": "normal_user",
-    "solvers": [
-      {
-        "id": "gecode",
-        "vcpus": 1,
-        "ram": 256
-      }
-    ],
-    "mzn": "123",
-    "dzn": "123",
-    "timeout": 120
-  },
-  {
-    "job_id": "d808eada-08a1-42bd-8a59-b1442ec69652",
-    "status": 1,
-    "user_id": "other_user",
-    "solvers": [
-      {
-        "id": "gecode",
-        "vcpus": 4,
-        "ram": 512
-      }
-    ],
-    "mzn": "123",
-    "dzn": "123",
-    "timeout": 120
-  }
-]
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session
+
+
+SQLALCHEMY_DATABASE_URL = config('DATABASE_URL')
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL
+)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+Base = declarative_base()
+
+models.Base.metadata.create_all(bind=engine)
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 
 app = FastAPI()
 
 #@app.get("/job/{job_id}", dependencies=[Depends(JWTBearer())])
-@app.get("/job/{job_id}")
-def get_job(job_id: str):
+@app.get("/job/{job_id}", response_model=schemas.Job)
+def get_job(job_id: str, db: Session = Depends(get_db)):
     #TODO: Check if user is authenticated
     if not (has_permission("TEMP_TOKEN", "list_jobs")):
         raise HTTPException(status_code=403)
 
     user_id = get_user("TEMP_TOKEN")
-    job = get_job_of_user(job_id, user_id)
-    return job
+
+    return crud.get_job(db, job_id, user_id)
 
 @app.delete("/job/{job_id}")
-def delete_job(job_id: str):
+def delete_job(job_id: str, db: Session = Depends(get_db)):
     #TODO: Check if user is authenticated
     if not (has_permission("TEMP_TOKEN", "delete_job")):
         raise HTTPException(status_code=403)
 
     user_id = get_user("TEMP_TOKEN")
-    job = get_job_of_user(job_id, user_id)
-
-    #TODO: Remove from database
-    del db[db.index(job)]
 
     #TODO: Stop the execution of the job
-    return job
+    return crud.delete_job(db, job_id, user_id)
 
 @app.patch("/job/{job_id}")
-def stop_solver(job_id: str, solver_id: str):
+def stop_solver(job_id: str, solver_id: str, db: Session = Depends(get_db)):
     #TODO: Check if user is authenticated
     if not (has_permission("TEMP_TOKEN", "stop_solver")):
         raise HTTPException(status_code=403)
 
     user_id = get_user("TEMP_TOKEN")
-    job = get_job_of_user(job_id, user_id)
 
-    #TODO: Remove from database
-    solver = list(filter(lambda x: x["id"] == solver_id,job["solvers"]))
-    if len(solver) == 0:
-        raise HTTPException(status_code=403, detail="Given solver is not running in this job")
-    solver = solver[0]
-
-    solver_list = job["solvers"]
-    del solver_list[solver_list.index(solver)]
-
-    # Check if no solvers left for job, and delete job
-    if len(solver_list) == 0:
-      delete_job(job_id)
-
-
+    result = crud.stop_solver(db, job_id, solver_id)
     #TODO: Stop the execution of the job
-    return job
+
+    if crud.solvers_left(db, job_id) < 1:
+        crud.delete_job(db, job_id)
+    #TODO: Check if no solvers left for job, and delete job if that is the case
+    return result
 
 @app.get("/job")
-def get_job_list():
+def get_job_list(db: Session = Depends(get_db)):
     #TODO: Check if user is authenticated
     if not (has_permission("TEMP_TOKEN", "list_jobs")):
         raise HTTPException(status_code=403)
 
     user_id = get_user("TEMP_TOKEN")
     #TODO: Connect to DB
-    return list(filter(lambda x: x["user_id"] == user_id,db))
+    return crud.get_jobs(db, user_id)
 
 
 @app.post("/job")
-def create_job(create_job_request: CreateJob):
+def create_job(create_job_request: CreateJob, db: Session = Depends(get_db)):
 
     if not (has_permission("TEMP_TOKEN", "create_job") or has_permission("TEMP_TOKEN", "enough_ram_allowed")):
         raise HTTPException(status_code=403)
 
     available_solvers = get_solvers()
 
-    if len(list(set(map(lambda x: x.id,create_job_request.solver_list)) - set(available_solvers))) > 0:
+    if len(list(set(map(lambda x: x.name,create_job_request.solver_list)) - set(available_solvers))) > 0:
         raise HTTPException(status_code=400, detail="One or more of the requested solvers are not available")
 
     #TODO: Check that solvers are unique?
 
-    job_id = uuid.uuid4()
     user_id = get_user("TEMP_TOKEN")
 
-    db.append({
-        "job_id": job_id,
-        "status": Status.IN_PROGRESS,
-        "user_id": user_id,
-        "solvers": create_job_request.solver_list,
-        "mzn": create_job_request.mzn,
-        "dzn": create_job_request.dzn,
-        "timeout": create_job_request.timeout
-      })
+    (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id)
+
 
     #TODO: Run Job
 
@@ -160,9 +121,16 @@ def create_job(create_job_request: CreateJob):
         # Update entries in DB
         # Update UI of user
 
-    return {"job_id": job_id}
+    for solver in create_job_request.solver_list:
+      start_job(create_job_request, solver, mzn, dzn)
+
+    return crud.create_job(db, create_job_request, user_id)
 
 
+def start_job(create_job_request: CreateJob, solver: Solver, mzn, dzn):
+  #TODO: Actually spawn a new Pod to run the job
+  print(f"Starting job with solver: {solver.name}")
+  return
 
 
 def has_permission(token, permission):
@@ -171,30 +139,22 @@ def has_permission(token, permission):
 
 def get_solvers():
     # TODO: Implement call to solver service
-    return ["chuffed", "gecode"]
+    return ["chuffed", "gecode", "OR-Tools"] #TODO: Remove, only for testing
 
-def get_problem_files(get_dzn):
+def get_problem_files(mzn_id, dzn_id):
     #TODO: Contact file services for mzn
     mzn = "var 1..nc: wa; var 1..nc: nt; var 1..nc: sa; var 1..nc: q;"
 
-    if get_dzn:
+    if dzn_id != None:
         #TODO: Contact file services for dzn
         dzn = "max_per_block = [1, 2, 1, 2, 1]"
+    else:
+        dzn = None
 
     return (mzn, dzn)
 
 def get_user(token):
     #TODO: Contact authentication service
-    return "normal_user"
 
-def get_job_of_user(job_id, user_id):
-    jobs = list(filter(lambda x: x["job_id"] == job_id,db))
-    #TODO: Connect to DB
-
-    if len(jobs) < 1:
-        raise HTTPException(status_code=403, detail="Job does not exist")
-    job = jobs[0]
-
-    if job["user_id"] != user_id:
-        raise HTTPException(status_code=403)
-    return job
+    #TODO: Remove static user_id for testing
+    return "ae5f1ccd-15db-454b-86bc-bcf5968987e4"
