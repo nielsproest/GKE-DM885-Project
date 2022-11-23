@@ -8,8 +8,8 @@ def uuid_helper():
   return str(uuid.uuid4())
 
 class Solver(Base):
-    __tablename__ = "solvers"
-    solverId = Column(UUID(as_uuid=True), primary_key=True, default=uuid_helper)
+    __tablename__ = "solver"
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid_helper)
     name = Column(String)
     dockerImage = Column(String)
 

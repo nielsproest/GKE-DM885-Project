@@ -5,13 +5,14 @@ import uuid
 from . import models, schemas
 
 def getAllSolvers(db: Session):
-    return db.select([models.Solver.solverId, models.Solver.name])
+    return db.query(models.Solver).all()
 
 def getSolver(db: Session, solverId: str):
-    return db.query(models.Solver).filter(models.Solver.solverId == solverId).first()
+    return db.query(models.Solver).filter(models.Solver.id == solverId).first()
 
 def deleteSolver(db: Session, solverId: str):
-    db.query(models.Solver).filter(models.Solver.solverId == solverId).first().delete()
+    db_solver = db.query(models.Solver).filter(models.Solver.id == solverId).first()
+    db.delete(db_solver)
     db.commit()
     return {"success"}
 
