@@ -1,1 +1,51 @@
-#TODO
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fs-service  # Sets Deployment name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fs-service
+  template:
+    metadata:
+      labels:
+        app: fs-service
+    spec:
+      containers:
+        - name: fs-service
+          image: europe-docker.pkg.dev/noted-flash-366811/eu.gcr.io/fs_service:latest # Sets Image
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 9090  # Exposes container port
+          envFrom:
+            - configMapRef:
+                name: fs-postgres-config
+          volumeMounts:
+            - mountPath: /mnt/hdd
+              subPath: dumbaf #Fix some bug
+              name: fsservicevol
+          resources: #Asks google kindly for ram
+            limits:
+              cpu: "1"
+              memory: "4Gi"
+            requests:
+              cpu: "1"
+              memory: "1Gi"
+      volumes:
+        - name: fsservicevol
+          persistentVolumeClaim:
+            claimName: fs-pv-claim
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fs-service # Sets service name
+  labels:
+    app: fs-service # Labels and Selectors
+spec:
+  type: NodePort # Sets service type
+  ports:
+    - port: 9090 # Sets port to run the postgres application
+  selector:
+    app: fs-service

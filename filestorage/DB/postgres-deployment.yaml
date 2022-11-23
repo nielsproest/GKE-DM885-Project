@@ -12,6 +12,7 @@ spec:
       labels:
         app: fs-postgres
     spec:
+      hostname: fsservice
       containers:
         - name: postgres
           image: postgres:latest # Sets Image
@@ -31,7 +32,7 @@ spec:
               memory: "4Gi"
             requests:
               cpu: "1"
-              memory: "4Gi"
+              memory: "1Gi"
       volumes:
         - name: postgredb
           persistentVolumeClaim:
@@ -40,12 +41,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: fs-postgres # Sets service name
+  name: fs-postgres
   labels:
-    app: fs-postgres # Labels and Selectors
-spec:
-  type: NodePort # Sets service type
-  ports:
-    - port: 5432 # Sets port to run the postgres application
-  selector:
     app: fs-postgres
+spec:
+  type: NodePort
+  ports:
+   - port: 5432
+  selector:
+   app: fs-postgres

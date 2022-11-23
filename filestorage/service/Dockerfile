@@ -1,13 +1,12 @@
 FROM python:3
 
-WORKDIR .
-
-ADD app /
+COPY ./app /app
 COPY main.py /
 COPY requirements.txt /
 
 RUN mkdir /mnt/data
-RUN pip install --no-cache-dir --upgrade pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip3 install --no-cache-dir --upgrade pip
+RUN pip3 install --no-cache-dir -r requirements.txt
 
-CMD ["python", "./main.py"]
+EXPOSE 9090
+CMD ["python3", "./main.py"]
