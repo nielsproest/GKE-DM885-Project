@@ -1,0 +1,161 @@
+openapi: 3.0.3
+info:
+  title: DM885 SolverService API
+  description: |-
+    API specification for SolverService
+  version: 1.0.11
+tags:
+  - name: solver
+    description: Related to solver service
+
+paths:
+  /solver:
+    get:
+      summary: get all solvers
+      description: get all solvers
+      tags:
+        - solver
+      operationId: getSolvers
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/Solvers"
+        "400":
+          description: ???
+
+  /solver/{solverId}:
+    get:
+      summary: get a solver by id
+      description: get a solver by id
+      tags:
+        - solver
+      operationId: getSolverById
+      parameters:
+        - name: solverId
+          in: path
+          description: The name of the solver to acquire
+          required: true
+          schema:
+            $ref: "#/components/schemas/Solver/properties/solverId"
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: "#/components/schemas/Solver"
+        "400":
+          description: ???
+          
+    post:
+      summary: add a solver
+      description: add a solver
+      tags:
+        - solver
+      operationId: addSolver
+      parameters:
+        - name: solverId
+          in: path
+          description: The solver id
+          required: true
+          schema:
+            $ref: "#/components/schemas/Solver/properties/solverId"
+        - name: name
+          in: query
+          description: The name of the solver to kill
+          required: true
+          schema:
+            $ref: "#/components/schemas/Solver/properties/name"
+        - name: docker image
+          in: query
+          description: The name of the solver to kill
+          required: true
+          schema:
+            $ref: "#/components/schemas/Solver/properties/dockerImage"
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: ???    
+          
+    delete:
+      summary: remove a solver
+      description: remove a solver
+      tags:
+        - solver
+      operationId: removeSolver
+      parameters:
+        - name: solverId
+          in: path
+          description: The name of the solver to remove
+          required: true
+          schema:
+            $ref: "#/components/schemas/Solver/properties/solverId"
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: ???  
+          
+  /solver/{solverId}/{name}/{dockerImage}:
+    patch:
+      summary: update a solver
+      description: update a solver
+      tags:
+        - solver
+      operationId: updateSolver
+      parameters:
+        - name: solverId
+          in: path
+          description: The id of the solver to update
+          required: true
+          schema:
+            $ref: "#/components/schemas/Solver/properties/solverId"
+        - name: name
+          in: path
+          description: The id of the solver to update
+          required: true #Removes this path??
+          schema:
+            type: string
+        - name: dockerImage
+          in: path
+          description: The id of the solver to update
+          required: true #Remove this path??
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: ???        
+
+components:
+  schemas:
+    Solver:
+      type: object
+      properties:
+        name:
+          type: string
+          example: gecode
+        solverId:
+          type: string
+          format: GUID
+          example: 8852ba4d-2a5c-4d44-ad14-db3d2dbd56f3
+        dockerImage:
+          type: string
+          example: (author)/(name)
+    Solvers:
+      type: array
+      items:
+        $ref: '#/components/schemas/Solver'
+        
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: api_key
