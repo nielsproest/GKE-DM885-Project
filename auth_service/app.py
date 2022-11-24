@@ -11,6 +11,7 @@ from internal.auth import sign_jwt, decode_jwt
 app = FastAPI()
 
 app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(keys.router, prefix="/keys", tags=["keys"])
 
 
 @app.get("/")
