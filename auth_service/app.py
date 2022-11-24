@@ -16,14 +16,7 @@ app.include_router(keys.router, prefix="/keys", tags=["keys"])
 
 @app.get("/")
 async def index():
-
-    if not hasattr(index, "counter"):
-        index.counter = 0
-
-    token = sign_jwt(index.counter)
-    index.counter += 1
-
-    return {"token": token}
+    return {"message": "Hello, World!"}
 
 
 if __name__ == "__main__":

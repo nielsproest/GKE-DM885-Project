@@ -3,10 +3,11 @@ import json
 
 from fastapi import Depends, APIRouter, HTTPException, status, Body
 from decouple import config
-from internal import JWTBearer, sign_jwt, decode_jwt
+from internal import JWTBearer, sign_jwt, decode_jwt, hash_password, verify_password
 from sqlalchemy.orm import Session
 router: APIRouter = APIRouter()
 from models import User, Base, engine, get_database
+
 Base.metadata.create_all(bind=engine)
 
 
@@ -55,8 +56,9 @@ async def create_new_user(
 
     base_permissions = json.load(open("base_permissions.json", "r"))
 
-    # TODO : Refactor this out to another module
-    new_user = User(username=username, password=password, permissions=base_permissions)
+    # Passwords are hashed before being stored in the database
+    hashed_password = hash_password(password)
+    new_user = User(username=username, password=hashed_password, permissions=base_permissions)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -90,7 +92,7 @@ async def login_user(
         )
     
     # Check if password is correct
-    if user.password != password:
+    if not verify_password(password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
