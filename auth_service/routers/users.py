@@ -1,14 +1,13 @@
 """ Endpoints relating to the creation, deletion, and modification of users. """
+import json
 
 from fastapi import Depends, APIRouter, HTTPException, status, Body
 from decouple import config
-from internal import JWTBearer, sign_jwt, decode_jwt
+from internal import JWTBearer, sign_jwt, decode_jwt, hash_password, verify_password
 from sqlalchemy.orm import Session
-import json
-
 router: APIRouter = APIRouter()
+from models import User, Base, engine, get_database
 
-from models import User, Base, SessionLocal, engine, get_database
 Base.metadata.create_all(bind=engine)
 
 
@@ -57,8 +56,9 @@ async def create_new_user(
 
     base_permissions = json.load(open("base_permissions.json", "r"))
 
-    # TODO : Refactor this out to another module
-    new_user = User(username=username, password=password, permissions=base_permissions)
+    # Passwords are hashed before being stored in the database
+    hashed_password = hash_password(password)
+    new_user = User(username=username, password=hashed_password, permissions=base_permissions)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
@@ -92,7 +92,7 @@ async def login_user(
         )
     
     # Check if password is correct
-    if user.password != password:
+    if not verify_password(password, user.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -148,12 +148,8 @@ async def modify_user(
         )
 
     # Update previous permissions with new permissions given in the payload
-    print(new_user_data)
     current_permissions = user.permissions
-    print(current_permissions)
     current_permissions.update(new_user_data)
-    print(current_permissions)
-
 
     # Update the user's permissions in the database
     db.query(User).filter(User.username == username).update({"permissions": current_permissions})
@@ -171,7 +167,7 @@ async def delete_user(
 
     permissions = decode_jwt(token).get("permissions", None)
 
-    # Sanity check
+    # Sanity Checks
     if permissions is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing permissions"
@@ -188,7 +184,7 @@ async def delete_user(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
         )
 
-    # TODO: Check if the user exists
+    # Check if the user exists
     if (user := db.query(User).filter(User.username == username).first()) is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
