@@ -59,7 +59,7 @@ jobs:
 
     - uses: 'docker/login-action@v1'
       with:
-        registry: '$GAR_LOCATION-docker.pkg.dev'
+        registry: 'gcr.io'
         username: 'oauth2accesstoken'
         password: '${{ steps.auth.outputs.access_token }}'
 
