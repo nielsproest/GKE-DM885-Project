@@ -18,7 +18,7 @@ on:
     branches: [ "deploy" ]
 
 env:
-  PROJECT_ID: ${{ secrets.GKE_PROJECT }}
+  PROJECT_ID: devops-terraform-369612
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
   SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
   GAR_LOCATION: europe-west4 # TODO: update region of the Artifact Registry
