@@ -19,7 +19,7 @@ resource "google_service_account_key" "github_actions_service_account_key" {
 
 
 locals {
-  project_id = "solveit-369711"
+  project_id = var.project_id
   repo       = "TroelsLind/DM885-Project"
 }
 
