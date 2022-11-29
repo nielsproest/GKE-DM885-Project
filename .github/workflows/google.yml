@@ -18,11 +18,11 @@ on:
     branches: [ "deploy" ]
 
 env:
-  PROJECT_ID: devops-terraform-369612
+  PROJECT_ID: solveit-369711
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
   SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
   GAR_LOCATION: europe-west4 # TODO: update region of the Artifact Registry
-  GKE_CLUSTER: devops-terraform-369612-gke   # TODO: update to cluster name
+  GKE_CLUSTER: solveit-369711-gke   # TODO: update to cluster name
   GKE_ZONE: europe-west4   # TODO: update to cluster zone
   DEPLOYMENT_NAME: scalable-nginx-example # TODO: update to deployment name
   REPOSITORY: services-repository	 # TODO: update to Artifact Registry docker repository
@@ -76,18 +76,18 @@ jobs:
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
           ./job_service/db
-          
+
     - name: Helper
       run: |
        gcloud auth configure-docker -q
 
-          
+
     - name: PUSH TO GCR
       run: |-
        docker push eu.gcr.io/$PROJECT_ID/$IMAGE:$GITHUB_SHA
-    
-    
-    
+
+
+
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |-

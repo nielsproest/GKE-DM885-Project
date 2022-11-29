@@ -1,2 +1,2 @@
-project_id = "devops-terraform-369612"
+project_id = "solveit-369711"
 region     = "europe-west4"
