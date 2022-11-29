@@ -22,7 +22,7 @@ env:
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
   SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
   GAR_LOCATION: europe-west4 # TODO: update region of the Artifact Registry
-  GKE_CLUSTER: solveit-369711-gke    # TODO: update to cluster name
+  GKE_CLUSTER: ${{ secrets.GKE_PROJECT }}-gke    # TODO: update to cluster name
   GKE_ZONE: europe-west4   # TODO: update to cluster zone
   DEPLOYMENT_NAME: scalable-nginx-example # TODO: update to deployment name
   REPOSITORY: services-repository	 # TODO: update to Artifact Registry docker repository
