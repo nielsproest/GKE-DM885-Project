@@ -6,18 +6,14 @@ kind: Service
 metadata:
   name: jobservice
 spec:
-  clusterIP: 10.96.0.12
+  type: ClusterIP
+  #clusterIP: 10.96.0.12
   selector:
     app: jobservice
   ports:
     - protocol: "TCP"
       port: 8080
       targetPort: 8080
-  type: LoadBalancer
-status:
-  loadBalancer:
-    ingress:
-    - ip: 192.0.2.127
 
 ---
 apiVersion: apps/v1
@@ -125,7 +121,7 @@ metadata:
   labels:
     app: postgres # Labels and Selectors
 spec:
-  clusterIP: 10.96.0.11
+  #clusterIP: 10.96.0.11
   ports:
     - port: 5432 # Sets port to run the postgres application
   selector:
