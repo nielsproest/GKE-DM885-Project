@@ -73,12 +73,12 @@ jobs:
     - name: Build
       run: |-
         docker build \
-          --tag "eu.gcr.io/$PROJECT_ID/JOB_SERVICE_DB_IMAGE" \
+          --tag "eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_DB_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
           ./job_service/db
         docker build \
-          --tag "eu.gcr.io/$PROJECT_ID/JOB_SERVICE_IMAGE" \
+          --tag "eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
           ./job_service
@@ -89,13 +89,13 @@ jobs:
 
     - name: Delete old image in GCR
       run: |
-       gcloud container images delete eu.gcr.io/$PROJECT_ID/JOB_SERVICE_DB_IMAGE || true
-       gcloud container images delete eu.gcr.io/$PROJECT_ID/JOB_SERVICE_IMAGE || true
+       gcloud container images delete eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_DB_IMAGE || true
+       gcloud container images delete eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE || true
 
     - name: Push to GCR
       run: |-
-       docker push eu.gcr.io/$PROJECT_ID/JOB_SERVICE_DB_IMAGE
-       docker push eu.gcr.io/$PROJECT_ID/JOB_SERVICE_IMAGE
+       docker push eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_DB_IMAGE
+       docker push eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE
 
 
 
