@@ -10,6 +10,10 @@ def get_job(db: Session, job_id: str, user_id: str):
 def get_jobs(db: Session, user_id: str):
     return list(db.query(models.Job).filter(models.Job.user_id == user_id))
 
+def get_solver_instances(db: Session, job_id: str, user_id: str):
+    solvers = db.query(models.Job).filter(models.Job.user_id == user_id).filter(models.Job.id == job_id).first().solver_instances
+    return list(solvers)
+
 def delete_job(db: Session, job_id: str):
     db.query(models.Job).filter(models.Job.id == job_id).first().delete()
     db.commit()

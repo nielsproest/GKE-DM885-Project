@@ -42,7 +42,7 @@ def get_db():
 app = FastAPI()
 
 #@app.get("/job/{job_id}", dependencies=[Depends(JWTBearer())])
-@app.get("/job/{job_id}", response_model=schemas.Job)
+@app.get("/job/{job_id}")
 def get_job(job_id: str, db: Session = Depends(get_db)):
     #TODO: Check if user is authenticated
     if not (has_permission("TEMP_TOKEN", "list_jobs")):
@@ -51,6 +51,16 @@ def get_job(job_id: str, db: Session = Depends(get_db)):
     user_id = get_user("TEMP_TOKEN")
 
     return crud.get_job(db, job_id, user_id)
+
+@app.get("/job/{job_id}/solvers")
+def get_job(job_id: str, db: Session = Depends(get_db)):
+    #TODO: Check if user is authenticated
+    if not (has_permission("TEMP_TOKEN", "list_jobs")):
+        raise HTTPException(status_code=403)
+
+    user_id = get_user("TEMP_TOKEN")
+
+    return crud.get_solver_instances(db, job_id, user_id)
 
 @app.delete("/job/{job_id}")
 def delete_job(job_id: str, db: Session = Depends(get_db)):
