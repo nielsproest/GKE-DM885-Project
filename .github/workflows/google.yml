@@ -83,7 +83,7 @@ jobs:
 
     - name: Delete old image in GCR
       run: |
-       gcloud container images delete eu.gcr.io/$PROJECT_ID/$IMAGE
+       gcloud container images delete eu.gcr.io/$PROJECT_ID/$IMAGE || true
 
     - name: Push to GCR
       run: |-

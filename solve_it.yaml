@@ -1,6 +1,4 @@
 
-# LoadBalancer due to testing. Enables the pod to be accessible outside the cluster
-
 apiVersion: v1
 kind: Service
 metadata:
@@ -14,7 +12,6 @@ spec:
     - protocol: "TCP"
       port: 8080
       targetPort: 8080
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -38,9 +35,9 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8080
-
-
-
+      envFrom:
+      - configMapRef:
+          name: postgres-config
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -53,35 +50,30 @@ data:
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: psltest
 ---
-kind: PersistentVolume
-apiVersion: v1
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
 metadata:
-  name: postgres-pv-volume  # Sets PV's name
-  labels:
-    type: local  # Sets PV's type to local
-    app: postgres
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 50Mi # Sets PV Volume
-  accessModes:
-    - ReadWriteMany
-  hostPath:
-    path: "/mnt/data"
+  name: default-storage-class
+provisioner: kubernetes.io/gce-pd
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+parameters:
+  type: pd-standard
+  fstype: ext4
+  replication-type: none
 ---
-kind: PersistentVolumeClaim
 apiVersion: v1
+kind: PersistentVolumeClaim
 metadata:
-  name: postgres-pv-claim  # Sets name of PVC
-  labels:
-    app: postgres
+  name: solve-it-pvc
 spec:
-  storageClassName: manual
   accessModes:
-    - ReadWriteMany  # Sets read and write access
+    - ReadWriteOnce
   resources:
     requests:
-      storage: 50Mi  # Sets volume size
+      storage: 100Mi
+  storageClassName: standard-rwo
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -108,11 +100,12 @@ spec:
                 name: postgres-config
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
-              name: postgredb
+              name: postgredb-vol
+              subPath: postgres
       volumes:
-        - name: postgredb
+        - name: postgredb-vol
           persistentVolumeClaim:
-            claimName: postgres-pv-claim
+            claimName: solve-it-pvc
 ---
 apiVersion: v1
 kind: Service

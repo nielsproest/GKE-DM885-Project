@@ -21,7 +21,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
 
-SQLALCHEMY_DATABASE_URL = config('DATABASE_URL')
+SQLALCHEMY_DATABASE_URL = "postgresql://postgres:psltest@postgres.default.svc.cluster.local:5432/job_service_db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
