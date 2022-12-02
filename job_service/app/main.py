@@ -11,8 +11,8 @@ import models
 import crud
 import schemas
 from schemas import *
-from auth.auth_bearer import JWTBearer
-from auth.auth_handler import signJWT
+#from auth.auth_bearer import JWTBearer
+#from auth.auth_handler import signJWT
 
 
 from sqlalchemy import create_engine
@@ -22,6 +22,18 @@ from sqlalchemy.orm import Session
 
 
 SQLALCHEMY_DATABASE_URL = "postgresql://postgres:psltest@postgres.default.svc.cluster.local:5432/job_service_db"
+
+# user = os.environ.get('POSTGRES_USER')
+# password = os.environ.get('POSTGRES_PASSWORD')
+# postgres_db = os.environ.get('POSTGRES_DB')
+# if user and password and postgres_db:
+#   SQLALCHEMY_DATABASE_URL = f"postgresql://{user}:{password}@postgres.default.svc.cluster.local:5432/{postgres_db}"
+#   print(f"postgres URL: {SQLALCHEMY_DATABASE_URL}")
+# else:
+#   print("Could not access POSTGRES environment vars")
+#   print(user)
+#   print(password)
+#  print(postgres_db)
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
