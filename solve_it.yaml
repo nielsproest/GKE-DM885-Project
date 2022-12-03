@@ -31,13 +31,13 @@ spec:
     spec:
       containers:
       - name: jobservice
-        image: jobservice
-        imagePullPolicy: IfNotPresent
+        image: eu.gcr.io/solveit-369711/jobservice:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 8080
-      envFrom:
-      - configMapRef:
-          name: postgres-config
+        envFrom:
+        - configMapRef:
+            name: postgres-config
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -119,3 +119,40 @@ spec:
     - port: 5432 # Sets port to run the postgres application
   selector:
     app: postgres
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend
+  ports:
+    - protocol: "TCP"
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: eu.gcr.io/solveit-369711/frontend:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
