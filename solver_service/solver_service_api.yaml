@@ -15,7 +15,7 @@ paths:
       description: get all solvers
       tags:
         - solver
-      operationId: getSolvers
+      operationId: getAllSolvers
       responses:
         "200":
           description: Successful operation
@@ -27,7 +27,7 @@ paths:
         "400":
           description: ???
 
-  /solver/{solverId}:
+  /solver/{id}:
     get:
       summary: get a solver by id
       description: get a solver by id
@@ -35,12 +35,12 @@ paths:
         - solver
       operationId: getSolverById
       parameters:
-        - name: solverId
+        - name: id
           in: path
           description: The name of the solver to acquire
           required: true
           schema:
-            $ref: "#/components/schemas/Solver/properties/solverId"
+            $ref: "#/components/schemas/Solver/properties/id"
       responses:
         "200":
           description: Successful operation
@@ -50,8 +50,28 @@ paths:
                 items:
                   $ref: "#/components/schemas/Solver"
         "400":
-          description: ???
+          description: ???    
           
+    delete:
+      summary: remove a solver
+      description: remove a solver
+      tags:
+        - solver
+      operationId: removeSolver
+      parameters:
+        - name: id
+          in: path
+          description: The name of the solver to remove
+          required: true
+          schema:
+            $ref: "#/components/schemas/Solver/properties/id"
+      responses:
+        "200":
+          description: Successful operation
+        "400":
+          description: ???  
+
+  /solver/{name}/{dockerImage}:        
     post:
       summary: add a solver
       description: add a solver
@@ -59,12 +79,6 @@ paths:
         - solver
       operationId: addSolver
       parameters:
-        - name: solverId
-          in: path
-          description: The solver id
-          required: true
-          schema:
-            $ref: "#/components/schemas/Solver/properties/solverId"
         - name: name
           in: query
           description: The name of the solver to kill
@@ -81,58 +95,7 @@ paths:
         "200":
           description: Successful operation
         "400":
-          description: ???    
-          
-    delete:
-      summary: remove a solver
-      description: remove a solver
-      tags:
-        - solver
-      operationId: removeSolver
-      parameters:
-        - name: solverId
-          in: path
-          description: The name of the solver to remove
-          required: true
-          schema:
-            $ref: "#/components/schemas/Solver/properties/solverId"
-      responses:
-        "200":
-          description: Successful operation
-        "400":
-          description: ???  
-          
-  /solver/{solverId}/{name}/{dockerImage}:
-    patch:
-      summary: update a solver
-      description: update a solver
-      tags:
-        - solver
-      operationId: updateSolver
-      parameters:
-        - name: solverId
-          in: path
-          description: The id of the solver to update
-          required: true
-          schema:
-            $ref: "#/components/schemas/Solver/properties/solverId"
-        - name: name
-          in: path
-          description: The id of the solver to update
-          required: true #Removes this path??
-          schema:
-            type: string
-        - name: dockerImage
-          in: path
-          description: The id of the solver to update
-          required: true #Remove this path??
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Successful operation
-        "400":
-          description: ???        
+          description: ???           
 
 components:
   schemas:
@@ -142,7 +105,7 @@ components:
         name:
           type: string
           example: gecode
-        solverId:
+        id:
           type: string
           format: GUID
           example: 8852ba4d-2a5c-4d44-ad14-db3d2dbd56f3
