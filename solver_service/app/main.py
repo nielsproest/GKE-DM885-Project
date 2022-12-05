@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
-import pydantic
-import uuid
+
 from . import models, crud, schemas
+
 from decouple import config
 from sqlalchemy.orm import Session
 from typing import List, Union
