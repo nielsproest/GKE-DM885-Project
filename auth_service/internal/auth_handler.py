@@ -27,7 +27,7 @@ class JWTBearer(HTTPBearer):
             if not validate_token(credentials.credentials):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail="Invalid token or expired token",
+                    detail="Invalid token or expired token, please login (again?).",
                 )
             return credentials.credentials
         else:

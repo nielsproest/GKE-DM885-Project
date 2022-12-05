@@ -14,6 +14,15 @@ app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(keys.router, prefix="/keys", tags=["keys"])
 
 
+@app.on_event("startup")
+async def startup_event():
+    """ FastAPI Startup Event Triggers """
+    
+    # Create default admin user
+    from models import setup_admin
+    setup_admin()
+
+
 @app.get("/")
 async def index():
     return {"message": "Hello, World!"}

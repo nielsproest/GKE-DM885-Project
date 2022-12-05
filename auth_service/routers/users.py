@@ -6,6 +6,7 @@ from decouple import config
 from internal import JWTBearer, sign_jwt, decode_jwt, hash_password, verify_password
 from sqlalchemy.orm import Session
 router: APIRouter = APIRouter()
+
 from models import User, Base, engine, get_database
 
 Base.metadata.create_all(bind=engine)
@@ -54,7 +55,7 @@ async def create_new_user(
         )
     
 
-    base_permissions = json.load(open("base_permissions.json", "r"))
+    base_permissions = json.load(open(config("PATH_TO_BASE_PERMISSIONS"), "r"))
 
     # Passwords are hashed before being stored in the database
     hashed_password = hash_password(password)
@@ -90,6 +91,8 @@ async def login_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
+
+    print("...", user.password)
     
     # Check if password is correct
     if not verify_password(password, user.password):
@@ -97,7 +100,7 @@ async def login_user(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
         )
-
+    
     # Retrieve the user's permissions from the database
     permissions = user.permissions
 
@@ -215,3 +218,73 @@ async def is_username_available(
 
     return {"message": False}
 
+@router.get("/list_users")
+async def list_users(
+    token=Depends(JWTBearer()),
+    db: Session = Depends(get_database)
+):
+    
+        permissions = decode_jwt(token).get("permissions", None)
+    
+        # Sanity Checks
+        if permissions is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Missing permissions"
+            )
+    
+        if permissions.get("is_admin", False) is False:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only administators can list users",
+            )
+    
+        # Get all users from the database
+        users = db.query(User).all()
+    
+        # Return a list of all users
+        return {"message": [user.username for user in users]}
+
+@router.get("/get_permissions")
+async def get_permissions(
+    payload=Body({"username": "myusername"}),
+    token=Depends(JWTBearer()),
+    db: Session = Depends(get_database)
+):
+    
+        permissions = decode_jwt(token).get("permissions", None)
+    
+        # Sanity Checks
+        if permissions is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Missing permissions"
+            )
+    
+        if permissions.get("is_admin", False) is False:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only administators can get user permissions",
+            )
+    
+        if (username := payload.get("username", None)) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
+            )
+    
+        # Check if the user exists
+        if (user := db.query(User).filter(User.username == username).first()) is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+    
+        # Return the user's permissions
+        return {"message": user.permissions}
+
+
+@router.get("/wave")
+async def wave(token=Depends(JWTBearer())):
+
+    permissions = decode_jwt(token).get("permissions", None)
+    
+
+    return {"message": "Hello World"}

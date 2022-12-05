@@ -1,5 +1,5 @@
 {
-    "is_admin": true,
+    "is_admin": false,
     "vcpu": 6,
     "storage_limit": 10485760
 }

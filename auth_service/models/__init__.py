@@ -1,2 +1,33 @@
 from .schemas import User
 from .setup import SessionLocal, Base, engine, get_database
+
+from internal import  hash_password
+import json
+
+from decouple import config
+
+# Setup default admin user
+def setup_admin():
+    """ Setup default admin user """
+    
+    db = next(get_database())
+    
+    # Check if admin user exists
+    if db.query(User).filter(User.username == config("DEFAULT_ADMIN_USERNAME")).first() is not None:
+        return      
+    
+    # Create admin user
+    print("Creating default admin user")
+
+    try:
+        base_permissions = json.load(open(config("PATH_TO_BASE_PERMISSIONS"), "r"))
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Base permissions file not found. Please create a file {config('PATH_TO_BASE_PERMISSIONS')} and try again.")
+    except Exception as e:
+        raise e
+    
+    hashed_password = hash_password(config("DEFAULT_ADMIN_PASSWORD"))
+    new_user = User(username=config("DEFAULT_ADMIN_USERNAME"), password=hashed_password, permissions=base_permissions)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
