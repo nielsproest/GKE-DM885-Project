@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
-import pydantic
-import uuid
+
 from . import models, crud, schemas
+
 from decouple import config
 from sqlalchemy.orm import Session
 from typing import List, Union
@@ -9,8 +9,6 @@ from typing import List, Union
 from .database import engine, SessionLocal
 
 models.Solver.metadata.create_all(bind=engine)
-
-has_permission = True; # Temp solution until i get to security part.
 
 def get_db():
     db = SessionLocal()
@@ -21,19 +19,22 @@ def get_db():
 
 app = FastAPI()
 
+def has_permission(token, permission):
+    return True
+
 @app.get("/solver")
 def getAllSolvers(db: Session = Depends(get_db)):
 
-    #if not (has_permission("TEMP_TOKEN", "???")):
-    #    raise HTTPException(status_code=403)
+    if not (has_permission("TEMP_TOKEN", "???")):
+        raise HTTPException(status_code=403)
 
     return crud.getAllSolvers(db)
 
 @app.get("/solver/{id}", response_model=schemas.Solver)
 def getSolver(solverId: str, db: Session = Depends(get_db)):
 
-    #if not (has_permission("TEMP_TOKEN", "???")):
-    #    raise HTTPException(status_code=403)
+    if not (has_permission("TEMP_TOKEN", "???")):
+        raise HTTPException(status_code=403)
 
     solver = crud.getSolver(db, solverId)
     return solver
@@ -41,8 +42,8 @@ def getSolver(solverId: str, db: Session = Depends(get_db)):
 @app.delete("/solver/{id}")
 def deleteSolver(solverId: str, db: Session = Depends(get_db)):
 
-    #if not (has_permission("TEMP_TOKEN", "???")):
-    #    raise HTTPException(status_code=403)
+    if not (has_permission("TEMP_TOKEN", "???")):
+        raise HTTPException(status_code=403)
 
     crud.deleteSolver(db, solverId)
     return
@@ -50,8 +51,8 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db)):
 @app.post("/solver/{name}/{dockerName}")
 def postSolver(name: str, dockerName: str, dockerAuthor: Union[str, None] = None, db: Session = Depends(get_db)):
     
-    #if not (has_permission("TEMP_TOKEN", "???")):
-    #    raise HTTPException(status_code=403)
+    if not (has_permission("TEMP_TOKEN", "???")):
+        raise HTTPException(status_code=403)
     if not dockerAuthor:
         crud.postSolver(db, name, dockerName)
     else:    

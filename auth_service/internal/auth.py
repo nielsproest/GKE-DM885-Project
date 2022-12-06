@@ -25,6 +25,7 @@ with open(PUBLIC_KEY_FILE, "rb") as f:
     PUBLIC_KEY = serialization.load_pem_public_key(f.read(), backend=default_backend())
 
 
+
 def sign_jwt(user_id: str, payload: dict = None) -> str:
     """Create and sign a JWT token using the secret private key
 

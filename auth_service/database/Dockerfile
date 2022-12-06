@@ -1,0 +1,3 @@
+FROM postgres
+ENV POSTGRES_PASSWORD mypassword
+ENV POSTGRES_DB userdb

@@ -1,6 +1,4 @@
-from typing import List, Union
-import uuid
-
+from typing import List
 from pydantic import BaseModel
 
 class Solver(BaseModel):
