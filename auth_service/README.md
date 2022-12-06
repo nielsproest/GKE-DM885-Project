@@ -1,8 +1,6 @@
 
 ## Testing the authentication service locally:
 
-
-
 To run the authentication service locally, you need to have a local instance of the database running. In the `/database` folder, you can use the Dockerfile to build an image, and then run it. The database will be available on port 5432.
 
 
@@ -34,3 +32,10 @@ The frontend would not need to handle any of this, as it would only need receive
 `http://IP:PORT/users/signup`
 
 and send it to the backend in the header of each request. If any of the requests fail, the frontend should redirect the user to the login page and request a new token.
+
+## General Usage guides
+
+Most functionality can be seen in the documentation, but to clarify some things:
+
+both `/users/signup` and `/users/login` are described as returning a string, it should be noted that this is the JWT token.
+
