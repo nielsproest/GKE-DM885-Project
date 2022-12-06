@@ -120,13 +120,12 @@ spec:
   selector:
     app: postgres
 ---
-
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend
 spec:
-  type: LoadBalancer
+  #type: LoadBalancer
   selector:
     app: frontend
   ports:

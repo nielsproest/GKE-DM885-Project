@@ -126,7 +126,10 @@ jobs:
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |-
-        kubectl apply -f solve_it.yaml
+        kubectl apply -f kubernetes/authservice.yaml
+        kubectl apply -f kubernetes/jobservice.yaml
+        kubectl rollout status deployment/auth-service-deployment
+        kubectl rollout status deployment/auth-database
         kubectl rollout status deployment/postgres
         kubectl rollout status deployment/jobservice-deployment
         kubectl get services -o wide
