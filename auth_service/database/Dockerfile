@@ -1,3 +1,4 @@
 FROM postgres
+EXPOSE 5432
 ENV POSTGRES_PASSWORD mypassword
 ENV POSTGRES_DB userdb
