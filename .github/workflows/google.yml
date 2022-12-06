@@ -79,7 +79,7 @@ jobs:
           --tag "eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_DB_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
-          ./auth_service/db
+          ./auth_service/database
         docker build \
           --tag "eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
