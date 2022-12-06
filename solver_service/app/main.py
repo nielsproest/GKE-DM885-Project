@@ -1,14 +1,19 @@
 from fastapi import FastAPI, Depends, HTTPException
 
-from . import models, crud, schemas
+#from . import models, crud, schemas
+
+from models import Solver
+from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver
+from schemas import SolverSchema
+
 
 from decouple import config
 from sqlalchemy.orm import Session
 from typing import List, Union
 
-from .database import engine, SessionLocal
+from database import engine, SessionLocal
 
-models.Solver.metadata.create_all(bind=engine)
+Solver.metadata.create_all(bind=engine)
 
 def get_db():
     db = SessionLocal()
@@ -19,7 +24,7 @@ def get_db():
 
 app = FastAPI()
 
-def has_permission(token, permission):
+def has_permission(token: str, permission: str):
     return True
 
 @app.get("/solver")
@@ -28,15 +33,17 @@ def getAllSolvers(db: Session = Depends(get_db)):
     if not (has_permission("TEMP_TOKEN", "???")):
         raise HTTPException(status_code=403)
 
-    return crud.getAllSolvers(db)
+    #return crud.getAllSolvers(db)
+    return cGetAllSolvers(db)
 
-@app.get("/solver/{id}", response_model=schemas.Solver)
+@app.get("/solver/{id}")
 def getSolver(solverId: str, db: Session = Depends(get_db)):
 
     if not (has_permission("TEMP_TOKEN", "???")):
         raise HTTPException(status_code=403)
 
-    solver = crud.getSolver(db, solverId)
+    #solver = crud.getSolver(db, solverId)
+    solver = cGetSolver(db, solverId)
     return solver
 
 @app.delete("/solver/{id}")
@@ -45,7 +52,8 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db)):
     if not (has_permission("TEMP_TOKEN", "???")):
         raise HTTPException(status_code=403)
 
-    crud.deleteSolver(db, solverId)
+    #crud.deleteSolver(db, solverId)
+    cDeleteSolver(db, solverId)
     return
 
 @app.post("/solver/{name}/{dockerName}")
@@ -54,7 +62,9 @@ def postSolver(name: str, dockerName: str, dockerAuthor: Union[str, None] = None
     if not (has_permission("TEMP_TOKEN", "???")):
         raise HTTPException(status_code=403)
     if not dockerAuthor:
-        crud.postSolver(db, name, dockerName)
+        #crud.postSolver(db, name, dockerName)
+        cPostSolver(db, name, dockerName)
     else:    
-        crud.postSolver(db, name, dockerAuthor + "/" + dockerName)
+        #crud.postSolver(db, name, dockerAuthor + "/" + dockerName)
+        cPostSolver(db, name, dockerAuthor + "/" + dockerName)
     return
