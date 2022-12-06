@@ -245,7 +245,7 @@ async def list_users(
         return {"message": [user.username for user in users]}
 
 @router.get("/get_my_permissions")
-async def get_permissions(
+async def get_my_permissions(
     token=Depends(JWTBearer()),
     db: Session = Depends(get_database)
 ):
