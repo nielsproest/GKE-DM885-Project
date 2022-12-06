@@ -31,7 +31,7 @@ The frontend would not need to handle any of this, as it would only need receive
 `http://IP:PORT/users/login` or
 `http://IP:PORT/users/signup`
 
-and send it to the backend in the header of each request. If any of the requests fail, the frontend should redirect the user to the login page and request a new token.
+and send it to the backend in the header of each request. If any of the requests fail, the frontend should redirect the user to the login page and request a new token. The token should be sent as a "bearer token" see: https://reqbin.com/req/adf8b77i/authorization-bearer-header
 
 ## General Usage guides
 
