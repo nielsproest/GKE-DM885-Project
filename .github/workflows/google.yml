@@ -29,7 +29,7 @@ env:
   JOB_SERVICE_DB_IMAGE: jobservice_db
   JOB_SERVICE_IMAGE: jobservice
   FRONTEND_IMAGE: frontend
-  AUTH_SERVICE_DB_IMAGE: auth_service_db
+  AUTH_SERVICE_DB_IMAGE: auth_service_database
   AUTH_SERVICE_IMAGE: auth_service
 
 jobs:
