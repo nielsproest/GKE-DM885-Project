@@ -21,6 +21,7 @@ def setup_admin():
 
     try:
         base_permissions = json.load(open(config("PATH_TO_BASE_PERMISSIONS"), "r"))
+        base_permissions["is_admin"] = True
     except FileNotFoundError:
         raise FileNotFoundError(f"Base permissions file not found. Please create a file {config('PATH_TO_BASE_PERMISSIONS')} and try again.")
     except Exception as e:

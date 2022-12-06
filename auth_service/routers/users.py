@@ -244,6 +244,30 @@ async def list_users(
         # Return a list of all users
         return {"message": [user.username for user in users]}
 
+@router.get("/get_my_permissions")
+async def get_permissions(
+    token=Depends(JWTBearer()),
+    db: Session = Depends(get_database)
+):
+
+        username = decode_jwt(token).get("user_id", None)
+
+        # Sanity Checks, this should never happen as we're decoding the JWT token
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Missing permissions"
+            )
+
+        # Check if the user exists. this should never happen as we're decoding the JWT token
+        if (user := db.query(User).filter(User.username == username).first()) is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="User not found",
+            )
+    
+        # Return the users permissions
+        return {"message": user.permissions}
+
 @router.get("/get_permissions")
 async def get_permissions(
     payload=Body({"username": "myusername"}),
@@ -280,11 +304,9 @@ async def get_permissions(
         # Return the user's permissions
         return {"message": user.permissions}
 
-
 @router.get("/wave")
 async def wave(token=Depends(JWTBearer())):
 
     permissions = decode_jwt(token).get("permissions", None)
-    
 
     return {"message": "Hello World"}
