@@ -20,7 +20,6 @@ async def create_new_user(
     db: Session = Depends(get_database)
 ):
 
-
     if (username := payload.get("username", None)) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
@@ -74,6 +73,8 @@ async def login_user(
     payload=Body({"username": "myusername", "password": "mypassword"}),
     db: Session = Depends(get_database)
 ):
+
+
 
     if (username := payload.get("username", None)) is None:
         raise HTTPException(
