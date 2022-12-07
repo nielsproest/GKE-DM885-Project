@@ -12,7 +12,7 @@ from models import User, Base, engine, get_database
 Base.metadata.create_all(bind=engine)
 
 
-@router.get(
+@router.post(
     "/signup",
 )
 async def create_new_user(
@@ -69,7 +69,7 @@ async def create_new_user(
 
 
 
-@router.get("/login")
+@router.post("/login")
 async def login_user(
     payload=Body({"username": "myusername", "password": "mypassword"}),
     db: Session = Depends(get_database)
@@ -92,8 +92,6 @@ async def login_user(
             detail="User not found",
         )
 
-    print("...", user.password)
-    
     # Check if password is correct
     if not verify_password(password, user.password):
         raise HTTPException(
@@ -109,7 +107,7 @@ async def login_user(
 
 
 
-@router.get("/modify")
+@router.post("/modify")
 async def modify_user(
     payload=Body(
         {"username": "myusername", "data": {"max_ram": 8, "max_cpu": 4, "foo": "bar", "is_admin": True}}
@@ -162,7 +160,7 @@ async def modify_user(
     return {"message": "User modified successfully"}
 
 
-@router.get("/delete", dependencies=[Depends(JWTBearer())])
+@router.post("/delete", dependencies=[Depends(JWTBearer())])
 async def delete_user(
     payload=Body({"username": "myusername"}), token=Depends(JWTBearer()),
     db: Session = Depends(get_database)
@@ -201,13 +199,13 @@ async def delete_user(
     return {"message": "User deleted successfully"}
 
 
-@router.get("/is_username_available")
+@router.get("/is_username_available/{username}")
 async def is_username_available(
-    payload=Body({"username": "myusername"}), token=Depends(JWTBearer()),
+    username: str,
     db: Session = Depends(get_database)
 ):
 
-    if (username := payload.get("username", None)) is None:
+    if username is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
         )
@@ -268,9 +266,9 @@ async def get_my_permissions(
         # Return the users permissions
         return {"message": user.permissions}
 
-@router.get("/get_permissions")
+@router.get("/get_permissions/{username}")
 async def get_permissions(
-    payload=Body({"username": "myusername"}),
+    username: str,
     token=Depends(JWTBearer()),
     db: Session = Depends(get_database)
 ):
@@ -289,7 +287,7 @@ async def get_permissions(
                 detail="Only administators can get user permissions",
             )
     
-        if (username := payload.get("username", None)) is None:
+        if username is None:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
             )
@@ -306,7 +304,5 @@ async def get_permissions(
 
 @router.get("/wave")
 async def wave(token=Depends(JWTBearer())):
-
-    permissions = decode_jwt(token).get("permissions", None)
-
+    decode_jwt(token).get("permissions", None)
     return {"message": "Hello World"}
