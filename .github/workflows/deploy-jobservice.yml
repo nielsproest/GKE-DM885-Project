@@ -4,7 +4,7 @@ name: Build and Deploy jobservice to GKE
 on:
   workflow_dispatch:
   push:
-    branches: [ "deploy" ]
+    branches: [ "deploy-jobservice" ]
 
 env:
   PROJECT_ID: solveit-369711
