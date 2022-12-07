@@ -1,7 +1,7 @@
 from typing import List
 from pydantic import BaseModel
 
-class Solver(BaseModel):
+class SolverSchema(BaseModel):
     id: str
     name: str
     dockerImage: str

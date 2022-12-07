@@ -1,8 +1,7 @@
 from sqlalchemy import Column, String
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import UUID
 import uuid
-from .database import Base
+from database import Base
   
 def uuid_helper():
   return str(uuid.uuid4())
