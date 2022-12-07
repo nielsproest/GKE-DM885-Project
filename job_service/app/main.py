@@ -71,7 +71,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-auth_url = "auth-service.default.svc.cluster.local:5000"
+auth_url = "http://auth-service.default.svc.cluster.local:5000"
 
 @app.on_event("startup")
 async def startup_event():
