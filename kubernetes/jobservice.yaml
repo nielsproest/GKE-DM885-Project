@@ -38,6 +38,15 @@ spec:
         envFrom:
         - configMapRef:
             name: postgres-config
+        volumeMounts:
+          - mountPath: /mnt
+            name: job-vol
+            subPath: postgres
+      volumes:
+        - name: job-vol
+          persistentVolumeClaim:
+            claimName: job-pvc
+
 ---
 apiVersion: v1
 kind: ConfigMap
@@ -67,6 +76,18 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: solve-it-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: standard-rwo
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: job-pvc
 spec:
   accessModes:
     - ReadWriteOnce

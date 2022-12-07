@@ -9,7 +9,7 @@ From here, you need to access the .env file in the root folder, and change the `
 
 You can now build the authentication service using the Dockerfile in the root folder. This will create an image that you can run locally.
 
-Once this is done, you can access the documentation at  
+Once this is done, you can access the documentation at
 
 `http://IP:PORT/docs`
 

@@ -35,7 +35,7 @@ minikube start
 eval $(minikube docker-env)
 docker build -t jobservice ./job_service
 docker build -t job_service_db ./job_service/db
-kubectl apply -f solve_it.yaml
+kubectl apply -f kubernetes/jobservice.yaml
 
 (Run 'minikube service jobservice --url' and access the resulting url)
 ```
@@ -43,11 +43,20 @@ kubectl apply -f solve_it.yaml
 To restart deployment
 ```
 kubectl rollout restart deployment/jobservice-deployment
+kubectl rollout restart deployment/postgres
+kubectl rollout restart deployment/frontend-deployment
 ```
 
 
+Reset minikube oneliner:
+```
+minikube delete && minikube start && eval $(minikube docker-env) && docker build -t jobservice ./job_service && docker build -t job_service_db ./job_service/db
+```
 
+Connect with gcloud
+```
+gcloud container clusters get-credentials solveit-369711-gke --region=europe-west4
+```
 
-
-
-
+http://postgres.default.svc.cluster.local:5432/
+http://jobservice.default.svc.cluster.local:8080/

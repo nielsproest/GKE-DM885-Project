@@ -11,7 +11,6 @@ from models import User, Base, engine, get_database
 
 Base.metadata.create_all(bind=engine)
 
-
 @router.post(
     "/signup",
 )

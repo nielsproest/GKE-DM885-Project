@@ -1,9 +1,10 @@
-name: Build and Deploy to GKE
+
+name: Build and Deploy jobservice to GKE
 
 on:
   workflow_dispatch:
   push:
-    branches: [ "deploy" ]
+    branches: [ "deploy-jobservice" ]
 
 env:
   PROJECT_ID: solveit-369711
@@ -13,11 +14,7 @@ env:
   GKE_CLUSTER: solveit-369711-gke
   GKE_ZONE: europe-west4
   REPOSITORY: services-repository
-  JOB_SERVICE_DB_IMAGE: jobservice_db
   JOB_SERVICE_IMAGE: jobservice
-  FRONTEND_IMAGE: frontend
-  AUTH_SERVICE_DB_IMAGE: auth_service_database
-  AUTH_SERVICE_IMAGE: auth_service
 
 jobs:
   setup-build-publish-deploy:
@@ -57,30 +54,10 @@ jobs:
     - name: Build
       run: |-
         docker build \
-          --tag "eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_DB_IMAGE" \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" \
-          ./auth_service/database
-        docker build \
-          --tag "eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_IMAGE" \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" \
-          ./auth_service
-        docker build \
-          --tag "eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_DB_IMAGE" \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" \
-          ./job_service/db
-        docker build \
           --tag "eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
           ./job_service
-        docker build \
-          --tag "eu.gcr.io/$PROJECT_ID/$FRONTEND_IMAGE" \
-          --build-arg GITHUB_SHA="$GITHUB_SHA" \
-          --build-arg GITHUB_REF="$GITHUB_REF" \
-          ./frontend
 
     - name: Helper
       run: |
@@ -88,29 +65,16 @@ jobs:
 
     - name: Delete old image in GCR
       run: |
-       gcloud container images delete eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_DB_IMAGE || true
-       gcloud container images delete eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_IMAGE || true
-       gcloud container images delete eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_DB_IMAGE || true
        gcloud container images delete eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE || true
-       gcloud container images delete eu.gcr.io/$PROJECT_ID/$FRONTEND_IMAGE || true
 
     - name: Push to GCR
       run: |-
-       docker push eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_DB_IMAGE
-       docker push eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_IMAGE
-       docker push eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_DB_IMAGE
        docker push eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE
-       docker push eu.gcr.io/$PROJECT_ID/$FRONTEND_IMAGE
 
 
 
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |-
-        kubectl apply -f kubernetes/authservice.yaml
         kubectl apply -f kubernetes/jobservice.yaml
-        kubectl rollout status deployment/auth-database
-        kubectl rollout status deployment/auth-service-deployment
-        kubectl rollout status deployment/postgres
         kubectl rollout status deployment/jobservice-deployment
-        kubectl get services -o wide

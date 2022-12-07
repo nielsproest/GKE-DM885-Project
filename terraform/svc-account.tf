@@ -1,22 +1,3 @@
-/*resource "google_service_account" "github_actions_service_account" {
-  account_id   = "github-actions-id"
-  display_name = "Github Action Service Account"
-}
-
-resource "google_project_iam_member" "github_actions_roles" {
-  project = local.project_id
-  role    = "roles/iam.workloadIdentityPoolAdmin"
-  member  = "serviceAccount:${google_service_account.github-actions-id.email}"
-}
-
-
-resource "google_service_account_key" "github_actions_service_account_key" {
-  service_account_id = google_service_account.myaccount.name
-  public_key_type    = "TYPE_X509_PEM_FILE"
-}*/
-
-
-
 
 locals {
   project_id = var.project_id
@@ -98,17 +79,3 @@ resource "google_artifact_registry_repository_iam_policy" "policy" {
   repository = google_artifact_registry_repository.services-repository.name
   policy_data = data.google_iam_policy.admin.policy_data
 }
-
-
-/*
-resource "google_artifact_registry_repository_iam_binding" "github-actions-repo-iam" {
-  provider = google-beta
-  project = local.project_id
-
-  location = google_artifact_registry_repository.services-repository.location
-  repository = google_artifact_registry_repository.services-repository.name
-
-  role = "roles/artifactregistry.admin"
-  members  = ["serviceAccount:${google_service_account.github_actions.email}"]
-}
-*/

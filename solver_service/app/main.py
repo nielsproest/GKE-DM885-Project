@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 
 #from . import models, crud, schemas
 
+from fastapi.middleware.cors import CORSMiddleware
 from models import Solver
 from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver
 from schemas import SolverSchema
@@ -23,6 +24,21 @@ def get_db():
         db.close()
 
 app = FastAPI()
+
+# CHANGE FOR PRODUCTION
+origins = [
+    "http://localhost",
+    "http://localhost:3000",
+]
+
+# Adding cors rules
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def has_permission(token: str, permission: str):
     return True
