@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from decouple import config
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
+import requests
 
 from sqlalchemy.dialects.postgresql import UUID
 
@@ -68,6 +69,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+auth_url = "auth-service.default.svc.cluster.local:5000"
+
+@app.on_event("startup")
+async def startup_event():
+  r = requests.get(url = auth_url + "/public_key")
+  data = r.json()
+  print(data)
 
 #@app.get("/job/{job_id}", dependencies=[Depends(JWTBearer())])
 @app.get("/job/{job_id}")
