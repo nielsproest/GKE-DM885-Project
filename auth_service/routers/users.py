@@ -11,7 +11,6 @@ from models import User, Base, engine, get_database
 
 Base.metadata.create_all(bind=engine)
 
-
 @router.post(
     "/signup",
 )
@@ -21,7 +20,7 @@ async def create_new_user(
 ):
 
 
-    if (username := payload.get("username", None)) is None:
+    if (payload.get("username", None)) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
         )
