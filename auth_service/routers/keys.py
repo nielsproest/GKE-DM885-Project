@@ -2,8 +2,11 @@
 
 from fastapi import APIRouter, HTTPException, status
 from decouple import config
+
 router: APIRouter = APIRouter()
+
 from models import Base, engine
+
 Base.metadata.create_all(bind=engine)
 
 @router.get(
