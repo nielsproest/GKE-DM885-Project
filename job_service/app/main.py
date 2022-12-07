@@ -75,10 +75,10 @@ auth_url = "http://auth-service.default.svc.cluster.local:5000"
 
 @app.on_event("startup")
 async def startup_event():
-  r = requests.get(url = auth_url + "/public_key")
-  data = r.json()
-  print(data)
-  print("")
+  #r = requests.get(url = auth_url + "/public_key")
+  #data = r.json()
+  #print(data)
+  #print("")
   with open("/mnt/aust.mzn", "a") as f:
 
     f.write('''% Colouring Australia using nc colours
