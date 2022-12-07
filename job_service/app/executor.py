@@ -6,7 +6,8 @@ from kubernetes import client
 from kubernetes import config
 
 logging.basicConfig(level=logging.INFO)
-config.load_kube_config()
+#config.load_kube_config()
+config.load_incluster_config()
 
 
 class Kubernetes:
