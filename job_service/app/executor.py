@@ -81,7 +81,7 @@ class Kubernetes:
             name=name,
             image_pull_policy=pull_policy,
             volume_mounts=[client.V1VolumeMount(name="job-pvc", mount_path='/mnt')],
-            command=["echo \"Message from job\" && pwd"]
+            command=["sh", "-c", "echo \"Message from job\" && pwd && ls /mnt && ls /mnt/aust.mzn"]
             #command=["sh", "-c", "echo \"var 1..3: x; var 1..3: y; constraint x+y > 3; solve satisfy;\" | minizinc --solver chuffed --output-objective --output-mode json -p 2 --input-from-stdin"],
         )
 

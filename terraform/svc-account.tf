@@ -73,6 +73,12 @@ data "google_iam_policy" "admin" {
   }
 }
 
+resource "google_project_iam_binding" "github_actions_container_admin" {
+  role = "roles/container.admin"
+  project = local.project_id
+  members  = ["serviceAccount:${google_service_account.github_actions.email}"]
+}
+
 resource "google_artifact_registry_repository_iam_policy" "policy" {
   project = local.project_id
   location = google_artifact_registry_repository.services-repository.location
