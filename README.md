@@ -5,3 +5,16 @@
 
 # DM885-Project
 A repository for the mandatory project in DM885
+
+
+# Setup guide for Google Cloud
+
+
+Go to the 'terraform' directory.
+
+Then follow this guide:
+https://developer.hashicorp.com/terraform/tutorials/gcp-get-started/google-cloud-platform-build
+Though skip both the "Write configuration" and "Initialize the directory" steps (since the relevant files already exist in the 'terraform' directory).
+
+You will likely need to enable more APIs on the google cloud project.
+
