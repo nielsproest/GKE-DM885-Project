@@ -46,4 +46,5 @@ async def index():
 
 
 if __name__ == "__main__":
+        
     uvicorn.run("app:app", host=config("HOST"), port=int(config("PORT")), reload=True)
