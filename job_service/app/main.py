@@ -22,8 +22,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
-
-SQLALCHEMY_DATABASE_URL = "postgresql://postgres:psltest@postgres.default.svc.cluster.local:5432/job_service_db"
+if os.getenv('KUBERNETES_SERVICE_HOST'):
+  SQLALCHEMY_DATABASE_URL = "postgresql://postgres:psltest@postgres.default.svc.cluster.local:5432/job_service_db"
+else:
+  SQLALCHEMY_DATABASE_URL = "postgresql://postgres:psltest@localhost:5432/job_service_db"
 
 # user = os.environ.get('POSTGRES_USER')
 # password = os.environ.get('POSTGRES_PASSWORD')
@@ -36,6 +38,27 @@ SQLALCHEMY_DATABASE_URL = "postgresql://postgres:psltest@postgres.default.svc.cl
 #   print(user)
 #   print(password)
 #  print(postgres_db)
+
+test_mzn = '''% Colouring Australia using nc colours
+int: nc = 3;
+
+var 1..nc: wa;   var 1..nc: nt;  var 1..nc: sa;   var 1..nc: q;
+var 1..nc: nsw;  var 1..nc: v;   var 1..nc: t;
+
+constraint wa != nt;
+constraint wa != sa;
+constraint nt != sa;
+constraint nt != q;
+constraint sa != q;
+constraint sa != nsw;
+constraint sa != v;
+constraint q != nsw;
+constraint nsw != v;
+solve satisfy;
+
+output ["wa=\(wa)\t nt=\(nt)\t sa=\(sa)\n",
+        "q=\(q)\t nsw=\(nsw)\t v=\(v)\n",
+         "t=", show(t),  "\n"];'''
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
@@ -79,28 +102,9 @@ async def startup_event():
   #data = r.json()
   #print(data)
   #print("")
-  with open("/mnt/aust.mzn", "a") as f:
+  with open("mnt/aust.mzn", "a") as f:
 
-    f.write('''% Colouring Australia using nc colours
-int: nc = 3;
-
-var 1..nc: wa;   var 1..nc: nt;  var 1..nc: sa;   var 1..nc: q;
-var 1..nc: nsw;  var 1..nc: v;   var 1..nc: t;
-
-constraint wa != nt;
-constraint wa != sa;
-constraint nt != sa;
-constraint nt != q;
-constraint sa != q;
-constraint sa != nsw;
-constraint sa != v;
-constraint q != nsw;
-constraint nsw != v;
-solve satisfy;
-
-output ["wa=\(wa)\t nt=\(nt)\t sa=\(sa)\n",
-        "q=\(q)\t nsw=\(nsw)\t v=\(v)\n",
-         "t=", show(t),  "\n"];''')
+    f.write(test_mzn)
 
     executor.execute_job()
 

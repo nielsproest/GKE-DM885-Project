@@ -73,35 +73,29 @@ class Kubernetes:
     @staticmethod
     def create_container(image, name, pull_policy):
 
-        #pvc_name = "job-pvc"
-        #pvc = client.V1PersistentVolumeClaimVolumeSource(claim_name=pvc_name)
+        pvc_name = "job-pvc"
+        pvc = client.V1PersistentVolumeClaimVolumeSource(claim_name=pvc_name)
 
-        with open('problem/aust.mzn') as f:
-            problem = f.read()
-            print(problem)
+        container = client.V1Container(
+            image=image,
+            name=name,
+            image_pull_policy=pull_policy,
+            volume_mounts=[client.V1VolumeMount(name="job-pvc", mount_path='/mnt')],
+            command=["ls /mnt"]
+            #command=["sh", "-c", "echo \"var 1..3: x; var 1..3: y; constraint x+y > 3; solve satisfy;\" | minizinc --solver chuffed --output-objective --output-mode json -p 2 --input-from-stdin"],
+        )
 
-            f.write("")
+        logging.info(
+            f"Created container with name: {container.name}, "
+            f"image: {container.image} and args: {container.args}"
+        )
 
-            container = client.V1Container(
-                image=image,
-                name=name,
-                image_pull_policy=pull_policy,
-                volume_mounts=[client.V1VolumeMount(name="job-storage", mount_path='/mnt')],
-                command=["ls /mnt"]
-                #command=["sh", "-c", "echo \"var 1..3: x; var 1..3: y; constraint x+y > 3; solve satisfy;\" | minizinc --solver chuffed --output-objective --output-mode json -p 2 --input-from-stdin"],
-            )
-
-            logging.info(
-                f"Created container with name: {container.name}, "
-                f"image: {container.image} and args: {container.args}"
-            )
-
-            return container
+        return container
 
     @staticmethod
     def create_pod_template(pod_name, container):
         volume = client.V1Volume(
-            name='job-storage',
+            name='job-pvc',
             persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(claim_name="job-pvc")
         )
 
