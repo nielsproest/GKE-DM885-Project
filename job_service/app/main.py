@@ -102,7 +102,7 @@ async def startup_event():
   #data = r.json()
   #print(data)
   #print("")
-  with open("mnt/aust.mzn", "a") as f:
+  with open("/mnt/aust.mzn", "a") as f:
 
     f.write(test_mzn)
 
