@@ -1,11 +1,35 @@
-function loginFunction() {
-  // call the user service
 
-  // Set the session token
-  localStorage.setItem("user_token", "jwt_token")
-  
-  // redirect to index
-  window.location.href = "index.html";
+const authUrl = "http://127.0.0.4:5000"
+
+function loginFunction() {
+
+  const usernameField = document.querySelector('input[type="text"]');
+  const pwField = document.querySelector('input[type="password"]');
+
+  // call the user service
+  if (authUrl != null) {
+    fetch(authUrl + "/users/login" , {
+      method: 'POST',
+      body: '{"username":"' + usernameField.value + '", "password":"' + pwField.value + '"}',
+      mode: 'cors',
+      headers: {
+        'Access-Control-Allow-Origin':'*',
+        'Content-Type': 'application/json',
+        'accept': 'application/json'
+      }
+    })
+      .then((response) => response.json())
+      .then((result) => {
+
+        // Put JWT in session
+        localStorage.setItem("user_token", result.token)
+
+        window.location.href = "index.html";
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }
 }
 
 // Get the input field
