@@ -29,6 +29,7 @@ spec:
       labels:
         app: jobservice
     spec:
+      serviceAccountName: jobservice-svc-account
       containers:
       - name: jobservice
         image: eu.gcr.io/solveit-369711/jobservice:latest
@@ -46,7 +47,28 @@ spec:
         - name: job-vol
           persistentVolumeClaim:
             claimName: job-pvc
-
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: executor
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: executor-binding
+roleRef: # points to my Role
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: executor # name of role
+subjects: # points to my ServiceAccount
+- kind: ServiceAccount
+  name: jobservice-svc-account # service account to bind to
+  namespace: default
 ---
 apiVersion: v1
 kind: ConfigMap

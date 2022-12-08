@@ -1,13 +1,16 @@
 import logging
-import argparse
 import uuid
+import os
 
 from kubernetes import client
 from kubernetes import config
 
 logging.basicConfig(level=logging.INFO)
-#config.load_kube_config()
-config.load_incluster_config()
+
+if os.getenv('KUBERNETES_SERVICE_HOST'):
+  config.load_incluster_config()
+else:
+  config.load_kube_config()
 
 
 class Kubernetes:
