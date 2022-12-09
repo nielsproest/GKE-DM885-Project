@@ -101,13 +101,7 @@ async def startup_event():
   #r = requests.get(url = auth_url + "/keys/public_key")
   #data = r.json()
   #print(data)
-  #print("")
-
-  with open("/mnt/aust.mzn", "a") as f:
-
-    f.write(test_mzn)
-
-    executor.execute_job()
+  print("")
 
 #@app.get("/job/{job_id}", dependencies=[Depends(JWTBearer())])
 @app.get("/job/{job_id}")
@@ -186,6 +180,8 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db)):
     (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id)
 
 
+
+
     #TODO: Run Job
 
     # Check if valid
@@ -199,8 +195,8 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db)):
         # Update entries in DB
         # Update UI of user
 
-    for solver in create_job_request.solver_list:
-      start_job(create_job_request, solver, mzn, dzn)
+    executor.execute_job(create_job_request, mzn, dzn)
+    #TODO: Check if successfull
 
     return crud.create_job(db, create_job_request, user_id)
 
@@ -217,11 +213,11 @@ def has_permission(token, permission):
 
 def get_solvers():
     # TODO: Implement call to solver service
-    return ["chuffed", "gecode", "OR-Tools"] #TODO: Remove, only for testing
+    return ["hakankj/fzn-picat-sat", "gkgange/geas-mznc2022", "chuffed", "gecode", "OR-Tools"] #TODO: Remove, only for testing
 
 def get_problem_files(mzn_id, dzn_id):
     #TODO: Contact file services for mzn
-    mzn = "var 1..nc: wa; var 1..nc: nt; var 1..nc: sa; var 1..nc: q;"
+    mzn = test_mzn
 
     if dzn_id != None:
         #TODO: Contact file services for dzn

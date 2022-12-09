@@ -71,36 +71,45 @@ class Kubernetes:
 
 
     @staticmethod
-    def create_container(image, name, pull_policy):
+    def create_container(solver_list, job_id, has_dzn, pull_policy):
 
         pvc_name = "job-pvc"
         pvc = client.V1PersistentVolumeClaimVolumeSource(claim_name=pvc_name)
 
-        container = client.V1Container(
-            image=image,
-            name=name,
-            image_pull_policy=pull_policy,
-            volume_mounts=[client.V1VolumeMount(name="job-pvc", mount_path='/mnt')],
-            command=["sh", "-c", "echo \"Message from job\" && pwd && ls /mnt && ls /mnt/aust.mzn"]
-            #command=["sh", "-c", "echo \"var 1..3: x; var 1..3: y; constraint x+y > 3; solve satisfy;\" | minizinc --solver chuffed --output-objective --output-mode json -p 2 --input-from-stdin"],
-        )
 
-        logging.info(
-            f"Created container with name: {container.name}, "
-            f"image: {container.image} and args: {container.args}"
-        )
+        #TODO: Make sure to sanitize solver name to avoid command injection!
+        container_list = []
+        for solver in solver_list:
+          if has_dzn:
+            start_command = f"minizinc -i --output-objective --output-mode dzn /mnt/{job_id}.mzn /mnt/{job_id}.dzn"
+          else:
+            start_command = f"minizinc -i --output-objective --output-mode dzn /mnt/{job_id}.mzn"
 
-        return container
+          container = client.V1Container(
+              image=f"{solver.name}",
+              name=f"solver-{solver.name.replace('/','-')}",
+              image_pull_policy=pull_policy,
+              volume_mounts=[client.V1VolumeMount(name="job-pvc", mount_path='/mnt')],
+              command=["sh", "-c", start_command],
+          )
+          container_list.append(container)
+
+          logging.info(
+              f"Created container with name: {container.name}, "
+              f"image: {container.image} and solver: {solver}"
+          )
+
+        return container_list
 
     @staticmethod
-    def create_pod_template(pod_name, container):
+    def create_pod_template(pod_name, containers):
         volume = client.V1Volume(
             name='job-pvc',
             persistent_volume_claim=client.V1PersistentVolumeClaimVolumeSource(claim_name="job-pvc")
         )
 
         pod_template = client.V1PodTemplateSpec(
-            spec=client.V1PodSpec(restart_policy="Never", containers=[container], volumes=[volume]),
+            spec=client.V1PodSpec(restart_policy="Never", containers=containers, volumes=[volume]),
             metadata=client.V1ObjectMeta(name=pod_name, labels={"pod_name": pod_name}),
         )
 
@@ -114,16 +123,30 @@ class Kubernetes:
             api_version="batch/v1",
             kind="Job",
             metadata=metadata,
-            spec=client.V1JobSpec(backoff_limit=0, template=pod_template),
+            spec=client.V1JobSpec(backoff_limit=0, template=pod_template, completions=1),
         )
 
         return job
 
 
 
-def execute_job():
+def execute_job(create_job_request, mzn, dzn):
+
     job_id = uuid.uuid4()
     pod_id = job_id
+
+    has_dzn = dzn != None
+
+    if os.getenv('KUBERNETES_SERVICE_HOST'):
+      mount_path = "/mnt"
+    else:
+      mount_path = "mnt"
+
+    with open(f"{mount_path}/{job_id}.mzn", "a") as f:
+      f.write(mzn)
+      if has_dzn:
+        with open(f"mount_path/{job_id}.dzn", "a") as f:
+          f.write(dzn)
 
     # Kubernetes instance
     k8s = Kubernetes()
@@ -131,17 +154,12 @@ def execute_job():
     _namespace = "default"
     k8s.create_namespace(_namespace)
 
-    #k8s.simple_persistentvolumeclaim(_namespace)
-
-    _image = "minizinc/minizinc"
-    _name = "solver-test"
     _pull_policy = "IfNotPresent"
 
-
-    solver_container = k8s.create_container(_image, _name, _pull_policy)
+    solver_containers = k8s.create_container(create_job_request.solver_list, job_id, has_dzn, _pull_policy)
 
     _pod_name = f"solver-instance-pod-{pod_id}"
-    _pod_spec = k8s.create_pod_template(_pod_name, solver_container)
+    _pod_spec = k8s.create_pod_template(_pod_name, solver_containers)
 
     _job_name = f"solver-instance-job-{job_id}"
     _job = k8s.create_job(_job_name, _pod_spec)

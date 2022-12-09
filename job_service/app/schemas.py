@@ -50,22 +50,17 @@ class CreateJob(JobBase):
         schema_extra = {
             "example": {
                 "mzn_id": "6c68de18-43ea-467e-86c9-fd72f7940bec",
-                "dzn_id": "e89b0778-8639-4c58-8cf1-1fdebb2a724e",
+                "dzn_id": None,
                 "timeout": 120,
                 "solver_list": [
                   {
-                    "name": "gecode",
+                    "name": "hakankj/fzn-picat-sat",
                     "vcpus": 1,
                     "ram": 1024
                   },
                   {
-                    "name": "chuffed",
+                    "name": "gkgange/geas-mznc2022",
                     "vcpus": 1,
-                    "ram": 1024
-                  },
-                  {
-                    "name": "OR-Tools",
-                    "vcpus": 2,
                     "ram": 1024
                   }
                 ]
