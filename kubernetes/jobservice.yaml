@@ -41,10 +41,9 @@ spec:
             name: postgres-config
         volumeMounts:
           - mountPath: /mnt
-            name: job-vol
-            subPath: postgres
+            name: job-pvc
       volumes:
-        - name: job-vol
+        - name: job-pvc
           persistentVolumeClaim:
             claimName: job-pvc
 ---
@@ -168,7 +167,7 @@ kind: Service
 metadata:
   name: frontend
 spec:
-  #type: LoadBalancer
+#  type: LoadBalancer
   selector:
     app: frontend
   ports:
