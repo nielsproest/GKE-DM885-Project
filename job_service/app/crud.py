@@ -14,18 +14,19 @@ def get_solver_instances(db: Session, job_id: str, user_id: str):
     solvers = db.query(models.Job).filter(models.Job.user_id == user_id).filter(models.Job.id == job_id).first().solver_instances
     return list(solvers)
 
-def delete_job(db: Session, job_id: str):
-    db.query(models.Job).filter(models.Job.id == job_id).first().delete()
+def delete_job(db: Session, job_id: str, user_id: str):
+    #TODO: Check that user owns this JOB
+    job = db.query(models.Job).filter(models.Job.id == job_id).filter(models.Job.user_id == user_id).first()
+    db.delete(job)
     db.commit()
     return {"success"}
 
-def stop_solver(db: Session, job_id: str, solver_id: str):
-    job = db.query(models.Job).filter(models.Job.id == job_id).first()
+def stop_solver(db: Session, job_id: str, solver_id: str, user_id: str):
+    job = db.query(models.Job).filter(models.Job.id == job_id).filter(models.Job.user_id == user_id).first()
     for solver in job.solver_instances:
-        print(solver.name)
-        print(solver_id)
-        if solver.name == solver_id:
-          solver.delete()
+        if str(solver.id) == str(solver_id):
+          # TODO: This currently does NOT work. Since they are still tied to the Job probably
+          db.delete(solver)
           return {"success"}
     return {"failed to stop solver"}
 

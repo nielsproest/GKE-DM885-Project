@@ -24,9 +24,9 @@ class JWTBearer(HTTPBearer):
         isTokenValid: bool = False
 
         try:
-            payload = decodeJWT(jwtoken)
+            decoded_token = decodeJWT(jwtoken)
+            if decoded_token != None:
+                isTokenValid = True
         except:
-            payload = None
-        if payload:
-            isTokenValid = True
+            isTokenValid = False
         return isTokenValid
