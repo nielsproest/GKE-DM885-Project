@@ -15,6 +15,8 @@ Go to the 'terraform' directory.
 Then follow this guide:
 https://developer.hashicorp.com/terraform/tutorials/gcp-get-started/google-cloud-platform-build
 Though skip both the "Write configuration" and "Initialize the directory" steps (since the relevant files already exist in the 'terraform' directory).
+Make sure to update the variables in 'terraform.tfvars' to point to the correct name and region.
+Also make sure to install gcloud and authenticate using 'gcloud init', 'gcloud auth login' and 'gcloud auth application-default login'.
 
 You will likely need to enable more APIs on the google cloud project.
 
