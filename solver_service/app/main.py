@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException
+import uuid
 
 #from . import models, crud, schemas
 
@@ -58,6 +59,9 @@ def getSolver(solverId: str, db: Session = Depends(get_db)):
     if not (has_permission("TEMP_TOKEN", "???")):
         raise HTTPException(status_code=403)
 
+    if not isValidUuid(solverId):
+        raise HTTPException(status_code=500)
+        
     #solver = crud.getSolver(db, solverId)
     solver = cGetSolver(db, solverId)
     return solver
@@ -67,6 +71,10 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db)):
 
     if not (has_permission("TEMP_TOKEN", "???")):
         raise HTTPException(status_code=403)
+
+    if not isValidUuid(solverId):
+        raise HTTPException(status_code=500)
+        #return {"Id not valid"}
 
     #crud.deleteSolver(db, solverId)
     cDeleteSolver(db, solverId)
@@ -84,3 +92,10 @@ def postSolver(name: str, dockerName: str, dockerAuthor: Union[str, None] = None
         #crud.postSolver(db, name, dockerAuthor + "/" + dockerName)
         cPostSolver(db, name, dockerAuthor + "/" + dockerName)
     return
+
+def isValidUuid(solverId):
+    try:
+        uuid.UUID(str(solverId))
+        return True
+    except ValueError:
+        return False
