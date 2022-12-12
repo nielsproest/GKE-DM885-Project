@@ -4,6 +4,7 @@ import time
 import queue
 import os
 from threading import Thread
+import crud
 
 from kubernetes import client
 from kubernetes import config
@@ -75,7 +76,7 @@ class Kubernetes:
 
 
     @staticmethod
-    def create_container(solver_list, job_id, has_dzn, pull_policy):
+    def create_container(solver_instances, job_id, has_dzn, pull_policy):
 
         pvc_name = "job-pvc"
         pvc = client.V1PersistentVolumeClaimVolumeSource(claim_name=pvc_name)
@@ -83,7 +84,7 @@ class Kubernetes:
 
         #TODO: Make sure to sanitize solver name to avoid command injection?
         container_list = []
-        for solver in solver_list:
+        for solver in solver_instances:
           if has_dzn:
             start_command = f"minizinc -i --output-objective --output-mode dzn /mnt/{job_id}.mzn /mnt/{job_id}.dzn"
           else:
@@ -91,7 +92,7 @@ class Kubernetes:
 
           container = client.V1Container(
               image=f"{solver.name}",
-              name=f"solver-{solver.name.replace('/','-')}",
+              name=str(solver.id),
               image_pull_policy=pull_policy,
               volume_mounts=[client.V1VolumeMount(name="job-pvc", mount_path='/mnt')],
               command=["sh", "-c", start_command],
@@ -116,7 +117,7 @@ class Kubernetes:
 
             pod_template = client.V1PodTemplateSpec(
                 spec=client.V1PodSpec(restart_policy="Never", containers=[container], volumes=[volume]),
-                metadata=client.V1ObjectMeta(name=pod_name, labels={"pod_name": pod_name}),
+                metadata=client.V1ObjectMeta(name=container.name, labels={"pod_name": container.name}),
             )
             pod_list.append(pod_template)
 
@@ -124,26 +125,26 @@ class Kubernetes:
         return pod_list
 
     @staticmethod
-    def create_job(pod_templates, job_id):
+    def create_job(pod_templates, job_id, solver_list):
 
         job_list = []
         index = 0
         for pod in pod_templates:
-            job_name = f"{pod.metadata.name}-{index}"
+            job_name = f"{pod.metadata.name}"
             metadata = client.V1ObjectMeta(name=job_name, labels={"job": job_id})
 
             job = client.V1Job(
                 api_version="batch/v1",
                 kind="Job",
                 metadata=metadata,
-                spec=client.V1JobSpec(backoff_limit=0, template=pod, completions=1),
+                spec=client.V1JobSpec(backoff_limit=0, template=pod, completions=1, ttl_seconds_after_finished=20),
             )
             job_list.append(job)
             index += 1
 
         return job_list
 
-    def start_job(self, job, batch_api, _namespace, q, job_id):
+    def start_job(self, job, batch_api, _namespace, q, job_id, db):
       start_time = time.time()
       batch_api.create_namespaced_job(_namespace, job)
       print(f"starting thread with job: {job.metadata.name}")
@@ -156,11 +157,23 @@ class Kubernetes:
           if event["object"].status.phase == "Succeeded":
               pod_name = event['object'].metadata.name
               w.stop()
-              end_time = time.time()
-              logging.info("Started in %0.2f sec", end_time-start_time)
 
-              result = self.core_api.read_namespaced_pod_log(name=pod_name, namespace=_namespace)
-              q.put((job.metadata.name, result))
+              result = ""
+
+              for e in w.stream(func=self.core_api.read_namespaced_pod_log, name=pod_name, namespace=_namespace):
+                print(e)
+                result += e + "\n"
+                if e == "----------":
+                  print("Contact DB")
+                  print(f"job_id: {job_id}")
+                  print(f"PODNAME: {pod_name.rsplit('-', 1)[0]}")
+                  crud.update_solver_instance_result(db, job_id, pod_name.rsplit('-', 1)[0], result)
+                  # TODO: Contact DB
+                elif e == "==========":
+                  print("End other solvers")
+                  crud.update_solver_instance_result(db, job_id, pod_name.rsplit('-', 1)[0], result)
+                  q.put((pod_name.rsplit('-', 1)[0], result))
+
               return
 
           # TODO: Clean up this code:
@@ -171,22 +184,27 @@ class Kubernetes:
               w.stop()
               return
 
-      print("Reached here")
       q.put(None)
 
       return
 
 
-def thread_controller(q):
-  first = q.get()
-  print(f"First thread was: {first}")
-  # TODO: Stop other jobs
-  # TODO: Update database entry for job with result and new status
-  return
+    def thread_controller(self, q, jobs, _namespace, job_id, db):
+      solver, result = q.get()
+      print(f"First thread was: {solver}")
+      for job in jobs:
+        self.batch_api.delete_namespaced_job(name=job.metadata.name, namespace=_namespace, propagation_policy="Foreground")
 
-def execute_job(create_job_request, mzn, dzn):
+      crud.found_result(db, job_id, solver, result)
 
-    job_id = uuid.uuid4()
+      # TODO: Stop other threads
+      # TODO: Stop other jobs
+      # TODO: Update database entry for job with result and new status
+      return
+
+def execute_job(create_job_request, mzn, dzn, db):
+
+    job_id = str(create_job_request.id)
     pod_id = job_id
 
     has_dzn = dzn != None
@@ -205,20 +223,20 @@ def execute_job(create_job_request, mzn, dzn):
 
     _pull_policy = "IfNotPresent"
 
-    solver_containers = k8s.create_container(create_job_request.solver_list, job_id, has_dzn, _pull_policy)
+    solver_containers = k8s.create_container(create_job_request.solver_instances, job_id, has_dzn, _pull_policy)
 
     _pod_name = f"solver-instance-pod-{pod_id}"
     _pod_specs = k8s.create_pod_template(_pod_name, solver_containers)
 
-    jobs = k8s.create_job(_pod_specs, job_id)
+    jobs = k8s.create_job(_pod_specs, job_id, create_job_request.solver_instances)
 
 
     batch_api = client.BatchV1Api()
     q = queue.Queue()
-    controller_thread = Thread(target = thread_controller, args = (q, ))
+    controller_thread = Thread(target = k8s.thread_controller, args = (q, jobs, _namespace, job_id, db))
     controller_thread.start()
     for job in jobs:
-      thread = Thread(target = k8s.start_job, args = (job, batch_api, _namespace, q, job_id))
+      thread = Thread(target = k8s.start_job, args = (job, batch_api, _namespace, q, job_id, db))
       thread.start()
 
 

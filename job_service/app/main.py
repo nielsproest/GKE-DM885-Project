@@ -137,6 +137,7 @@ def stop_solver(job_id: str, solver_id: str, db: Session = Depends(get_db), toke
     #TODO: Stop the execution of the solver
 
     if crud.solvers_left(db, job_id) < 1:
+        # TODO: Does not seem to work...
         crud.delete_job(db, job_id)
         #TODO: Stop the execution of the job
     return result
@@ -166,10 +167,12 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
     # TODO: Verify that mzn file exists
     (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id)
 
-    executor.execute_job(create_job_request, mzn, dzn)
+    new_job = crud.create_job(db, create_job_request, user_id)
+
+    executor.execute_job(new_job, mzn, dzn, db)
     #TODO: Check if successful
 
-    return crud.create_job(db, create_job_request, user_id)
+    return new_job
 
 
 
