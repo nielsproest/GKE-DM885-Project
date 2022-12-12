@@ -30,7 +30,7 @@ spec:
     spec:
       containers:
       - name: auth-service
-        image: eu.gcr.io/solveit-369711/auth_service:latest
+        image: eu.gcr.io/dm885-project-371308/auth_service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 5000
