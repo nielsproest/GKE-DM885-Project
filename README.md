@@ -18,5 +18,15 @@ Though skip both the "Write configuration" and "Initialize the directory" steps 
 Make sure to update the variables in 'terraform.tfvars' to point to the correct name and region.
 Also make sure to install gcloud and authenticate using 'gcloud init', 'gcloud auth login' and 'gcloud auth application-default login'.
 
-You will likely need to enable more APIs on the google cloud project.
+Make sure to enable the  following APIs in the project:
+Google Container Registry API
+Service Consumer Management API
+Kubernetes Engine API
 
+You may need to run 'terraform init -upgrade'
+
+Make sure to install kubectl version 1.23.x (x doesn't matter, could be 1.23.14).
+After that, follow this guide to get kubectl working with the cluster:
+https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+
+Change all instances of the project-id in the project (such as in workflows and the images in the kubernetes yaml files)

@@ -17,6 +17,7 @@ class SolverInstance(BaseModel):
     id: str
     status: str
     name: str
+    result: str
     timeout: int = 60
     job_id: str
 

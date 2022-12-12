@@ -22,7 +22,7 @@ class Job(Base):
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
-    solver_instances = relationship('SolverInstance', back_populates="job")
+    solver_instances = relationship('SolverInstance')
 
 
 class SolverInstance(Base):
@@ -30,8 +30,9 @@ class SolverInstance(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid_helper)
     name = Column(String)
     status = Column(String)
+    result = Column(String)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
     job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"))
 
-    job = relationship("Job", back_populates="solver_instances")
+#    job = relationship("Job", back_populates="solver_instances")

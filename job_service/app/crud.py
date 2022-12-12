@@ -25,8 +25,8 @@ def stop_solver(db: Session, job_id: str, solver_id: str, user_id: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).filter(models.Job.user_id == user_id).first()
     for solver in job.solver_instances:
         if str(solver.id) == str(solver_id):
-          # TODO: This currently does NOT work. Since they are still tied to the Job probably
           db.delete(solver)
+          db.commit()
           return {"success"}
     return {"failed to stop solver"}
 
@@ -53,3 +53,25 @@ def create_job(db: Session, job: schemas.CreateJob, user_id: str):
     db.commit()
     db.refresh(db_job)
     return db_job
+
+def update_solver_instance_result(db: Session, job_id: str, solver_id: str, result: str):
+    solvers = db.query(models.Job).filter(models.Job.id == job_id).first().solver_instances
+    for solver in solvers:
+        if str(solver.id) == str(solver_id):
+          solver.result = result
+          db.commit()
+          return {"success"}
+    return {"error"}
+
+def found_result(db: Session, job_id: str, solver_id: str, result: str):
+    job = db.query(models.Job).filter(models.Job.id == job_id).first()
+    job.status = "completed"
+    job.result = result
+    for solver in job.solver_instances:
+      if str(solver.id) == str(solver_id):
+        solver.status = "completed"
+      else:
+        solver.status = "stopped"
+
+    db.commit()
+    return {"success"}
