@@ -55,6 +55,9 @@ resource "google_container_node_pool" "primary_nodes" {
   }
 }
 
+provider "kubernetes" {
+  config_path    = "~/.kube/config"
+}
 
 # # Kubernetes provider
 # # The Terraform Kubernetes Provider configuration below is used as a learning reference only.
