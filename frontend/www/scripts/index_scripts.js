@@ -67,7 +67,7 @@ function getAvailableSolvers(){
 }
 
 function getAvailableModels(){
-    // Get the list of solvers the user has available
+    // Get the list of models  the user has available
 }
 
 function isUserAdmin(){
