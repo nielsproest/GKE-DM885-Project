@@ -5,9 +5,12 @@ const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
 // urls for services
-//const jobUrl = "http://127.0.0.1:8000" // Not finished
+// const jobUrl = "http://127.0.0.1:8000" // Not finished
 const jobUrl = null
-const solverUrl = "http://127.0.0.1:8000"
+// const solverUrl = "http://127.0.0.1:8000"
+const solverUrl = null
+// const fileUrl = "http://127.0.0.1:8000"
+const fileUrl = null
 
 function onLoad(){
     // Is user logged in?
@@ -27,12 +30,80 @@ function onLoad(){
 }
 
 function uploadModel(){
-    // Calls job service and uploads a model for solving along with wanted solvers
+  var input = document.querySelector('input[type="file"]')
+
+  var data = new FormData()
+  data.append('file', input.files[0])
+
+  // Might need to change?
+  username = document.getItem("username");
+  
+  if(fileUrl != null){
+    fetch(fileUrl + '/' + username, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      },
+      body: data,
+      method: "PUT"
+    })
+    .then((response) => response.json())
+    .then((result) => {
+
+      console.log(result)
+      
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  }
 }
 
-function deleteSolution(){
-    // Calls DB(?) to remove a certain solution
-    
+function getAvailableModels(){
+  // Get the list of models  the user has available
+
+  // Might need to change?
+  username = document.getItem("username");
+  
+  if(fileUrl != null){
+    fetch(fileUrl + '/' + username, {
+      headers: {
+        "Content-Type": "multipart/form-data"
+      },
+      body: data,
+      method: "PUT"
+    })
+    .then((response) => response.json())
+    .then((result) => {
+
+      console.log(result)
+      
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  }
+}
+
+function deleteModel(fileId){
+
+  // Might need to change?
+  username = document.getItem("username");
+  
+  if(fileUrl != null){
+    fetch(fileUrl + '/' + username + '/' + fileId, {
+      method: "DELETE"
+    })
+    .then((response) => response.json())
+    .then((result) => {
+
+      console.log("Delete file result " + result)
+      
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+  }
+
 }
 
 function getAvailableSolvers(){
@@ -64,10 +135,6 @@ function getAvailableSolvers(){
           console.error('Error:', error);
         });
     } 
-}
-
-function getAvailableModels(){
-    // Get the list of solvers the user has available
 }
 
 function isUserAdmin(){
@@ -194,22 +261,22 @@ function stopRunningJob(jobId){
   jobToDelete = document.getElementById("runningSolution-" + jobId);
   jobToDelete.remove();
 
-  // fetch(jobUrl + "/job/" + jobId, {
-  //   method: 'DELETE',
-  //   mode: 'cors',
-  //   headers: {
-  //     'Access-Control-Allow-Origin':'*'
-  //   }
-  // })
-  //   .then((response) => response.json())
-  //   .then((result) => {
+  fetch(jobUrl + "/job/" + jobId, {
+    method: 'DELETE',
+    mode: 'cors',
+    headers: {
+      'Access-Control-Allow-Origin':'*'
+    }
+  })
+    .then((response) => response.json())
+    .then((result) => {
 
-      
+      console.log("stop job: ", result)
 
-  //   })
-  //   .catch((error) => {
-  //     console.error('Error:', error);
-  //   });
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
 
   let wrapper = document.getElementById("runningSolutionsWrapper");
   let childCount = wrapper.childElementCount;
