@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: fs-service
-          image: europe-docker.pkg.dev/noted-flash-366811/eu.gcr.io/fs_service:latest # Sets Image
+          image: eu.gcr.io/solveit-369711/fs_service:latest # Sets Image
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 9090  # Exposes container port
@@ -25,13 +25,6 @@ spec:
             - mountPath: /mnt/hdd
               subPath: dumbaf #Fix some bug
               name: fsservicevol
-          resources: #Asks google kindly for ram
-            limits:
-              cpu: "1"
-              memory: "4Gi"
-            requests:
-              cpu: "1"
-              memory: "1Gi"
       volumes:
         - name: fsservicevol
           persistentVolumeClaim:

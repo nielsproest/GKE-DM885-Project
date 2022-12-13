@@ -26,13 +26,6 @@ spec:
             - mountPath: /var/lib/postgresql/data
               subPath: dumbaf #Fix some bug
               name: postgredb
-          resources: #Asks google kindly for ram
-            limits:
-              cpu: "1"
-              memory: "4Gi"
-            requests:
-              cpu: "1"
-              memory: "1Gi"
       volumes:
         - name: postgredb
           persistentVolumeClaim:
