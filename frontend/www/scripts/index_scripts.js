@@ -7,15 +7,15 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstra
 // urls for services
 // const jobUrl = "http://127.0.0.1:8000" // Not finished
 //const jobUrl = null
-const jobUrl = "http://jobservice.default.svc.cluster.local:8080/ "
+const jobUrl = "/api/jobs/"
 // const solverUrl = "http://127.0.0.1:8000"
-const solverUrl = null
+const solverUrl = "/api/solver/"
 // const fileUrl = "http://127.0.0.1:8000"
-const fileUrl = null
+const fileUrl = "/api/fs/"
 
 function onLoad(){
     // Is user logged in?
-    if (localStorage.getItem("user_token") === null) {
+    if (localStorage.getItem("token") === null) {
       window.location.href = "login.html";
     } 
 
@@ -40,7 +40,7 @@ function uploadModel(){
   username = localStorage.getItem("username");
   
   if(fileUrl != null){
-    fetch(fileUrl + '/' + username, {
+    fetch(fileUrl + username, {
       headers: {
         "Content-Type": "multipart/form-data",
         'Authorization':'Bearer ' + localStorage.getItem("token")
@@ -67,7 +67,7 @@ function getAvailableModels(){
   username = localStorage.getItem("username");
   
   if(fileUrl != null){
-    fetch(fileUrl + '/' + username, {
+    fetch(fileUrl + username, {
       headers: {
         "Content-Type": "multipart/form-data",
         'Authorization':'Bearer ' + localStorage.getItem("token")
@@ -102,7 +102,7 @@ function deleteModel(fileId){
   username = localStorage.getItem("username");
   
   if(fileUrl != null){
-    fetch(fileUrl + '/' + username + '/' + fileId, {
+    fetch(fileUrl + username + '/' + fileId, {
       method: "DELETE",
       headers: {
         'Authorization':'Bearer ' + localStorage.getItem("token")
@@ -124,7 +124,7 @@ function getAvailableSolvers(){
     // Get the list of solvers the user has available
 
     if(solverUrl != null){
-      fetch(solverUrl + "/solver", {
+      fetch(solverUrl + "solver", {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -188,7 +188,7 @@ function getSolvedSolutions(){
     wrapperDiv = document.getElementById("runningSolutionsWrapper")
 
     if (jobUrl != null) {
-      fetch(jobUrl + "/job", {
+      fetch(jobUrl + "job", {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -237,7 +237,7 @@ function getSolvedSolutions(){
 
             } else {
               
-              getStoppedSolvers();
+              getStoppedSolvers(element);
 
             }
           });
@@ -266,7 +266,7 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
   console.log(solutionInstanceId)
 
-  fetch(jobUrl + "/job/" + solutionInstanceId + "/solvers", {
+  fetch(jobUrl + "job/" + solutionInstanceId + "/solvers", {
     method: 'GET',
     mode: 'cors',
     headers: {
@@ -294,7 +294,27 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
 }
 
-function getStoppedSolvers(){
+function getStoppedSolvers(stoppedJob){
+
+  let wrapperFinishedJobs = document.getElementById("accordionWrapper");
+
+  let itemstring = `<div class="accordion-item">
+                      <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                          ` + "Solver: " + stoppedJob.solver + " Create date: " + stoppedJob.createdTime + " Status: " + stoppedJob.status `
+                        </button>
+                      </h2>
+                      <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                        <div class="accordion-body">
+                          ` + "Result: " + stoppedJob.result + `
+                        </div>
+                        <button class="accordion-button danger btn" type="button">
+                          Delete result
+                        </button>
+                      </div>
+                    </div>`;
+
+  wrapperFinishedJobs.append(itemstring)
 
 }
 
@@ -304,7 +324,7 @@ function stopRunningJob(jobId){
   jobToDelete = document.getElementById("runningSolution-" + jobId);
   jobToDelete.remove();
 
-  fetch(jobUrl + "/job/" + jobId, {
+  fetch(jobUrl + "job/" + jobId, {
     method: 'DELETE',
     mode: 'cors',
     headers: {
@@ -332,7 +352,7 @@ function stopRunningJob(jobId){
 
 function startJob(modelIds){
 
-  fetch(jobUrl + "/job/", {
+  fetch(jobUrl + "job/", {
     method: 'POST',
     mode: 'cors',
     body: `{

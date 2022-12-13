@@ -1,7 +1,7 @@
 
 //const authUrl = "http://127.0.0.4:5000"
 //const authUrl = null
-const authUrl = "http://auth-service.default.svc.cluster.local:5000/"
+const authUrl = "/api/auth/"
 
 function loginFunction() {
 
@@ -10,7 +10,7 @@ function loginFunction() {
 
   // call the user service
   if (authUrl != null) {
-    fetch(authUrl + "/users/login" , {
+    fetch(authUrl + "users/login" , {
       method: 'POST',
       body: '{"username":"' + usernameField.value + '", "password":"' + pwField.value + '"}',
       mode: 'cors',

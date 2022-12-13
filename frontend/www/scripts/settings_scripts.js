@@ -1,5 +1,7 @@
-// const solverUrl = "http://127.0.0.1:8000"
-const solverUrl = null
+ const solverUrl = "/api/solver/"
+//const solverUrl = null
+const authUrl = "/api/auth/"
+
 
 function loadChecker(){
   // Can the user be here? (is admin)
@@ -12,7 +14,7 @@ function loadChecker(){
 function loadSolvers(){
 
   if(solverUrl != null){
-    fetch(solverUrl + "/solver", {
+    fetch(solverUrl + "solver", {
       method: 'GET',
       mode: 'cors',
       headers: {
@@ -66,7 +68,7 @@ function uploadNewSolver() {
   newsolverUrl = document.getElementById("solver_url_input").value;  
 
   if(solverUrl != null){
-    fetch(solverUrl + "/solver/" + solverName + "/" + newsolverUrl, {
+    fetch(solverUrl + "solver/" + solverName + "/" + newsolverUrl, {
       method: 'POST',
       mode: 'cors',
       headers: {
@@ -90,7 +92,7 @@ function uploadNewSolver() {
 function deleteSolver(solverId) {
 
   if(solverUrl != null){
-    fetch(solverUrl + "/solver/{id}?solverId=" + solverId, {
+    fetch(solverUrl + "solver/{id}?solverId=" + solverId, {
       method: 'DELETE',
       mode: 'cors',
       headers: {
@@ -115,7 +117,7 @@ function isUserAdmin(){
   // Check token to see if user is admin
 
   if (authUrl != null) {
-    fetch(authUrl + "/users/get_my_permissions" , {
+    fetch(authUrl + "users/get_my_permissions" , {
       method: 'GET',
       mode: 'cors',
       headers: {
