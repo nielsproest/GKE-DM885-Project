@@ -36,12 +36,13 @@ function uploadModel(){
   data.append('file', input.files[0])
 
   // Might need to change?
-  username = document.getItem("username");
+  username = localStorage.getItem("username");
   
   if(fileUrl != null){
     fetch(fileUrl + '/' + username, {
       headers: {
-        "Content-Type": "multipart/form-data"
+        "Content-Type": "multipart/form-data",
+        'Authorization':'Bearer ' + localStorage.getItem("token")
       },
       body: data,
       method: "PUT"
@@ -62,12 +63,13 @@ function getAvailableModels(){
   // Get the list of models  the user has available
 
   // Might need to change?
-  username = document.getItem("username");
+  username = localStorage.getItem("username");
   
   if(fileUrl != null){
     fetch(fileUrl + '/' + username, {
       headers: {
-        "Content-Type": "multipart/form-data"
+        "Content-Type": "multipart/form-data",
+        'Authorization':'Bearer ' + localStorage.getItem("token")
       },
       body: data,
       method: "PUT"
@@ -87,11 +89,14 @@ function getAvailableModels(){
 function deleteModel(fileId){
 
   // Might need to change?
-  username = document.getItem("username");
+  username = localStorage.getItem("username");
   
   if(fileUrl != null){
     fetch(fileUrl + '/' + username + '/' + fileId, {
-      method: "DELETE"
+      method: "DELETE",
+      headers: {
+        'Authorization':'Bearer ' + localStorage.getItem("token")
+      }
     })
     .then((response) => response.json())
     .then((result) => {
@@ -103,7 +108,6 @@ function deleteModel(fileId){
       console.error('Error:', error);
     });
   }
-
 }
 
 function getAvailableSolvers(){
@@ -114,7 +118,8 @@ function getAvailableSolvers(){
         method: 'GET',
         mode: 'cors',
         headers: {
-          'Access-Control-Allow-Origin':'*'
+          'Access-Control-Allow-Origin':'*',
+          'Authorization':'Bearer ' + localStorage.getItem("token")
         }
       })
         .then((response) => response.json())
@@ -139,6 +144,33 @@ function getAvailableSolvers(){
 
 function isUserAdmin(){
     // Check token to see if user is admin
+
+    if (authUrl != null) {
+      fetch(authUrl + "/users/get_my_permissions" , {
+        method: 'GET',
+        mode: 'cors',
+        headers: {
+          'Access-Control-Allow-Origin':'*',
+          'Authorization':'Bearer ' + localStorage.getItem("token")
+        }
+      })
+        .then((response) => response.json())
+        .then((result) => {
+          
+          console.log("permissions results:", result)
+
+          // Not finished
+          if(result.permissions == "yay admin"){
+            settingsElement = document.getElementById("settingsAId");
+            settingsElement.classList.remove("disabled");
+            settingsElement.setAttribute("aria-disabled", "false");
+          }
+
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+        });
+    }
 }
 
 function getSolvedSolutions(){
@@ -228,7 +260,8 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
     method: 'GET',
     mode: 'cors',
     headers: {
-      'Access-Control-Allow-Origin':'*'
+      'Access-Control-Allow-Origin':'*',
+      'Authorization':'Bearer ' + localStorage.getItem("token")
     }
   })
     .then((response) => response.json())
@@ -265,7 +298,8 @@ function stopRunningJob(jobId){
     method: 'DELETE',
     mode: 'cors',
     headers: {
-      'Access-Control-Allow-Origin':'*'
+      'Access-Control-Allow-Origin':'*',
+      'Authorization':'Bearer ' + localStorage.getItem("token")
     }
   })
     .then((response) => response.json())
