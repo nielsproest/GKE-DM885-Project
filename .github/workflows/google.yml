@@ -6,11 +6,11 @@ on:
     branches: [ "deploy" ]
 
 env:
-  PROJECT_ID: dm885-project-371308
+  PROJECT_ID: solveit-369711
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
   SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
   GAR_LOCATION: europe-west4
-  GKE_CLUSTER: dm885-project-371308-gke
+  GKE_CLUSTER: solveit-369711-gke
   GKE_ZONE: europe-west4
   REPOSITORY: services-repository
   JOB_SERVICE_DB_IMAGE: jobservice_db

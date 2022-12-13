@@ -32,7 +32,7 @@ spec:
       serviceAccountName: jobservice-svc-account
       containers:
       - name: jobservice
-        image: eu.gcr.io/dm885-project-371308/jobservice:latest
+        image: eu.gcr.io/solveit-369711/jobservice:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
