@@ -1,7 +1,9 @@
-const solverUrl = "http://127.0.0.1:8000"
+// const solverUrl = "http://127.0.0.1:8000"
+const solverUrl = null
 
 function loadChecker(){
   // Can the user be here? (is admin)
+  isUserAdmin()
 
   // Load admin details
   loadSolvers()
@@ -14,7 +16,8 @@ function loadSolvers(){
       method: 'GET',
       mode: 'cors',
       headers: {
-        'Access-Control-Allow-Origin':'*'
+        'Access-Control-Allow-Origin':'*',
+        'Authorization':'Bearer ' + localStorage.getItem("token")
       }
     })
       .then((response) => response.json())
@@ -67,7 +70,8 @@ function uploadNewSolver() {
       method: 'POST',
       mode: 'cors',
       headers: {
-        'Access-Control-Allow-Origin':'*'
+        'Access-Control-Allow-Origin':'*',
+        'Authorization':'Bearer ' + localStorage.getItem("token")
       }
     })
       .then((response) => response.json())
@@ -90,7 +94,8 @@ function deleteSolver(solverId) {
       method: 'DELETE',
       mode: 'cors',
       headers: {
-        'Access-Control-Allow-Origin':'*'
+        'Access-Control-Allow-Origin':'*',
+        'Authorization':'Bearer ' + localStorage.getItem("token")
       }
     })
       .then((response) => response.json())
@@ -104,6 +109,35 @@ function deleteSolver(solverId) {
       });
   }
 
+}
+
+function isUserAdmin(){
+  // Check token to see if user is admin
+
+  if (authUrl != null) {
+    fetch(authUrl + "/users/get_my_permissions" , {
+      method: 'GET',
+      mode: 'cors',
+      headers: {
+        'Access-Control-Allow-Origin':'*',
+        'Authorization':'Bearer ' + localStorage.getItem("token")
+      }
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        
+        console.log("permissions results:", result)
+
+        // Not finished
+        if(result.permissions != "yay admin"){
+          window.location.href = "index.html";
+        }
+
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }
 }
 
 function logout(){

@@ -1,5 +1,6 @@
 
-const authUrl = "http://127.0.0.4:5000"
+//const authUrl = "http://127.0.0.4:5000"
+const authUrl = null
 
 function loginFunction() {
 
