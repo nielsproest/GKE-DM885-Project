@@ -1,3 +1,41 @@
+#Holds the database secrets
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fs-postgres-config
+  labels:
+    app: fs-postgres
+data:
+  POSTGRES_DB: postgresdb
+  POSTGRES_USER: admin
+  POSTGRES_PASSWORD: psltest
+  _POSTGRES_HOST: fs-postgres.default.svc.cluster.local:5432
+  _HOST: 0.0.0.0:9090
+  _STORAGE_DIR: /mnt/hdd/dumbaf
+---
+#The data storage (and access)
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fs-postgres-pv-volume
+provisioner: pd.csi.storage.gke.io
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
+parameters:
+  type: pd-balanced
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: fs-postgres-pv-claim
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: fs-postgres-pv-volume
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
