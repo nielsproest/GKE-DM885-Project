@@ -6,7 +6,8 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstra
 
 // urls for services
 // const jobUrl = "http://127.0.0.1:8000" // Not finished
-const jobUrl = null
+//const jobUrl = null
+const jobUrl = "http://jobservice.default.svc.cluster.local:8080/ "
 // const solverUrl = "http://127.0.0.1:8000"
 const solverUrl = null
 // const fileUrl = "http://127.0.0.1:8000"
@@ -83,6 +84,15 @@ function getAvailableModels(){
     .catch((error) => {
       console.error('Error:', error);
     });
+  } else {
+
+    // Make fake solveItList
+    modelList = document.getElementById("modelList");
+    modelList.innerHTML = "";
+    let modelParser = new DOMParser();
+    let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="fake_id" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>');
+    modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
+
   }
 }
 
@@ -317,6 +327,47 @@ function stopRunningJob(jobId){
   if (childCount == 0){
     wrapper.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
   }
+
+}
+
+function startJob(modelIds){
+
+  fetch(jobUrl + "/job/", {
+    method: 'POST',
+    mode: 'cors',
+    body: `{
+      "mzn_id": "` + modelIds + `",
+      "timeout": 120,
+      "solver_list": [
+        
+          "name": "hakankj/fzn-picat-sat",
+          "vcpus": 1,
+          "ram": 1024
+        },
+        {
+          "name": "gkgange/geas-mznc2022",
+          "vcpus": 1,
+          "ram": 1024
+        }
+      ]
+    }`,
+    headers: {
+      'Access-Control-Allow-Origin':'*',
+      'Authorization':'Bearer ' + localStorage.getItem("token"),
+      'Content-Type': 'application/json',
+      'accept': 'application/json'
+    }
+  })
+    .then((response) => response.json())
+    .then((result) => {
+
+      console.log("", result)
+
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+
 
 }
 

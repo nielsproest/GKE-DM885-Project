@@ -1,6 +1,7 @@
 
 //const authUrl = "http://127.0.0.4:5000"
-const authUrl = null
+//const authUrl = null
+const authUrl = "http://auth-service.default.svc.cluster.local:5000/"
 
 function loginFunction() {
 
