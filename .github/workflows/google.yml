@@ -18,6 +18,7 @@ env:
   FRONTEND_IMAGE: frontend
   AUTH_SERVICE_DB_IMAGE: auth_service_database
   AUTH_SERVICE_IMAGE: auth_service
+  FS_SERVICE_IMAGE: fs_service
 
 jobs:
   setup-build-publish-deploy:
@@ -77,6 +78,11 @@ jobs:
           --build-arg GITHUB_REF="$GITHUB_REF" \
           ./job_service
         docker build \
+          --tag "eu.gcr.io/$PROJECT_ID/$FS_SERVICE_IMAGE" \
+          --build-arg GITHUB_SHA="$GITHUB_SHA" \
+          --build-arg GITHUB_REF="$GITHUB_REF" \
+          ./filestorage/service
+        docker build \
           --tag "eu.gcr.io/$PROJECT_ID/$FRONTEND_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
@@ -92,6 +98,7 @@ jobs:
        gcloud container images delete eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_IMAGE || true
        gcloud container images delete eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_DB_IMAGE || true
        gcloud container images delete eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE || true
+       gcloud container images delete eu.gcr.io/$PROJECT_ID/$FS_SERVICE_IMAGE || true
        gcloud container images delete eu.gcr.io/$PROJECT_ID/$FRONTEND_IMAGE || true
 
     - name: Push to GCR
@@ -100,6 +107,7 @@ jobs:
        docker push eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_IMAGE
        docker push eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_DB_IMAGE
        docker push eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE
+       docker push eu.gcr.io/$PROJECT_ID/$FS_SERVICE_IMAGE
        docker push eu.gcr.io/$PROJECT_ID/$FRONTEND_IMAGE
 
 
@@ -109,8 +117,12 @@ jobs:
       run: |-
         kubectl apply -f kubernetes/authservice.yaml
         kubectl apply -f kubernetes/jobservice.yaml
+        kubectl apply -f filestorage/DB/postgres-deployment.yaml
+        kubectl apply -f filestorage/fs-deployment.yaml
         kubectl rollout status deployment/auth-database
         kubectl rollout status deployment/auth-service-deployment
         kubectl rollout status deployment/postgres
         kubectl rollout status deployment/jobservice-deployment
+        kubectl rollout status deployment/fs-postgres
+        kubectl rollout status deployment/fs-service
         kubectl get services -o wide
