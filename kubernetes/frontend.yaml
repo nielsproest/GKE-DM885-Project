@@ -29,7 +29,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: eu.gcr.io/solveit-369711/frontend:latest
+        image: eu.gcr.io/${PROJECT_ID}/frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80

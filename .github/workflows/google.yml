@@ -115,10 +115,10 @@ jobs:
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |-
-        kubectl apply -f kubernetes/authservice.yaml
-        kubectl apply -f kubernetes/jobservice.yaml
-        kubectl apply -f filestorage/DB/postgres-deployment.yaml
-        kubectl apply -f filestorage/fs-deployment.yaml
+        envsubst < kubernetes/authservice.yaml | kubectl apply -f -
+        envsubst < kubernetes/jobservice.yaml | kubectl apply -f -
+        envsubst < filestorage/DB/postgres-deployment.yaml | kubectl apply -f -
+        envsubst < filestorage/fs-deployment.yaml | kubectl apply -f -
         kubectl rollout status deployment/auth-database
         kubectl rollout status deployment/auth-service-deployment
         kubectl rollout status deployment/postgres
