@@ -1,1 +1,1 @@
-CREATE DATABASE solver_service_db;
+CREATE DATABASE solver_service_database;

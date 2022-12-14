@@ -1,5 +1,4 @@
 from sqlalchemy.orm import Session
-from sqlalchemy import delete
 
 from models import Solver
 

@@ -1,0 +1,132 @@
+#Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solverservice-deployment
+  labels:
+    app: solverservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: solverservice
+  template:
+    metadata:
+      labels:
+        app: solverservice
+    spec:
+      containers:
+      - name: solverservice
+        image: eu.gcr.io/solveit-369711/solverservice:latest #Få den fra g-cloud
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: postgres-config
+        volumeMounts:
+          - mountPath: /mnt
+            name: solver-db-pvc
+      volumes:
+        - name: solver-db-pvc
+          persistentVolumeClaim:
+            claimName: solver-db-pvc
+--- #Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: solverservice
+spec:
+  type: ClusterIP
+  selector:
+    app: solverservice
+  ports:
+    - protocol: "TCP"
+      port: 8080
+      targetPort: 8080
+--- #Volume
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: solver-db-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi
+  storageClassName: standard-rwo
+--- #Config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: solver-db-config
+  labels:
+    app: solver-db
+data:
+  POSTGRES_DB: solver_service_database
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: password
+--- #StorageClass
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: default-storage-class
+provisioner: kubernetes.io/gce-pd
+volumeBindingMode: Immediate
+allowVolumeExpansion: true
+reclaimPolicy: Delete
+parameters:
+  type: pd-standard
+  fstype: ext4
+  replication-type: none
+--- #ClusterRole?
+
+--- #ClusterRoleBinding?
+
+--- #Database Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solver-db  # Sets Deployment name
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: solver-db
+  template:
+    metadata:
+      labels:
+        app: solver-db
+    spec:
+      containers:
+        - name: solver-db
+          image: postgres:10.1 # Sets Image
+          imagePullPolicy: "IfNotPresent"
+          ports:
+            - containerPort: 5432  # Exposes container port
+          envFrom:
+            - configMapRef:
+                name: solver-db-config
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: solver-db-vol
+              subPath: postgres
+      volumes:
+        - name: solver-db-vol
+          persistentVolumeClaim:
+            claimName: solver-db-pvc
+--- #Database service
+apiVersion: v1
+kind: Service
+metadata:
+  name: solver-db # Sets service name
+  labels:
+    app: solver-db # Labels and Selectors
+spec:
+  ports:
+    - port: 5432 # Sets port to run the postgres application
+  selector:
+    app: solver-db
+
+

@@ -26,6 +26,7 @@ Kubernetes Engine API
 You may need to run 'terraform init -upgrade'
 
 Make sure to install kubectl version 1.23.x (x doesn't matter, could be 1.23.14).
+To authenticate, run: 'gcloud container clusters get-credentials PROJECT_NAME-gke --zone=europe-west4', (replacing PROJECT_NAME).
 After that, follow this guide to get kubectl working with the cluster:
 https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
 
