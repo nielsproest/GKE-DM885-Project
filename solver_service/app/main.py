@@ -6,7 +6,7 @@ import uuid
 from fastapi.middleware.cors import CORSMiddleware
 from models import Solver
 from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver
-from schemas import SolverSchema
+from auth.auth import decode_jwt
 
 
 from decouple import config
@@ -41,8 +41,23 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-def has_permission(token: str, permission: str):
-    return True
+@app.on_event("startup")
+async def startup_event():
+    #TODO: fill initial database with common images - probably redo this part.
+    db = get_db
+    solvers = getAllSolvers(db)
+
+    toAdd = {"gecode": True, "chuffed": True}
+
+    for solver in solvers:
+        if solver.name in toAdd:
+            toAdd[solver.name] = False
+
+    for item in toAdd:
+        if toAdd[item] == True:
+            cPostSolver(db, item, item)
+            
+    return
 
 @app.get("/solver")
 def getAllSolvers(db: Session = Depends(get_db)):
@@ -50,7 +65,6 @@ def getAllSolvers(db: Session = Depends(get_db)):
     if not (has_permission("TEMP_TOKEN", "???")):
         raise HTTPException(status_code=403)
 
-    #return crud.getAllSolvers(db)
     return cGetAllSolvers(db)
 
 @app.get("/solver/{id}")
@@ -60,9 +74,8 @@ def getSolver(solverId: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403)
 
     if not isValidUuid(solverId):
-        raise HTTPException(status_code=500)
+        raise HTTPException(status_code=500, detail=f"Id not valid")
         
-    #solver = crud.getSolver(db, solverId)
     solver = cGetSolver(db, solverId)
     return solver
 
@@ -73,10 +86,8 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403)
 
     if not isValidUuid(solverId):
-        raise HTTPException(status_code=500)
-        #return {"Id not valid"}
+        raise HTTPException(status_code=500, detail=f"Id not valid")
 
-    #crud.deleteSolver(db, solverId)
     cDeleteSolver(db, solverId)
     return
 
@@ -85,11 +96,10 @@ def postSolver(name: str, dockerName: str, dockerAuthor: Union[str, None] = None
     
     if not (has_permission("TEMP_TOKEN", "???")):
         raise HTTPException(status_code=403)
+
     if not dockerAuthor:
-        #crud.postSolver(db, name, dockerName)
         cPostSolver(db, name, dockerName)
     else:    
-        #crud.postSolver(db, name, dockerAuthor + "/" + dockerName)
         cPostSolver(db, name, dockerAuthor + "/" + dockerName)
     return
 
@@ -99,3 +109,12 @@ def isValidUuid(solverId):
         return True
     except ValueError:
         return False
+
+def has_permission(token: str, permission: str):
+    #TODO: check permission properly
+    
+    #decoded = decode_jwt(token)
+    
+    return True        
+
+def verify_

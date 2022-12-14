@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: solverservice-deployment
+  labels:
+    app: solverservice
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: solverservice
+  template:
+    metadata:
+      labels:
+        app: solverservice
+    spec:
+      containers:
+      - name: solverservice
+        image: solverservice:latest
+        ports:
+        - containerPort: 80
+    #volume:
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: solverservice
+spec:
+  type: ClusterIP
+  #clusterIP: 10.96.0.12
+  selector:
+    app: solverservice
+  ports:
+    - protocol: "TCP"
+      port: 8080
+      targetPort: 8080
+---
