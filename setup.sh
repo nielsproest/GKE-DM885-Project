@@ -1,5 +1,6 @@
 #!/bin/bash
 #Used to easily test the entire project on your repository
+set -e
 
 #NOTICE: CHANGE THESE
 export PROJECT_ID=solveit-369711
