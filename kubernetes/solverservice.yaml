@@ -31,7 +31,6 @@ spec:
         - name: solver-pvc
           persistentVolumeClaim:
             claimName: solver-pvc
-                imagePullPolicy: Always
 --- #Service
 apiVersion: v1
 kind: Service
