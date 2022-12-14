@@ -58,7 +58,7 @@ jobs:
           --tag "eu.gcr.io/$PROJECT_ID/$SOLVER_SERVICE_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
-          ./job_service
+          ./solver_service
 
     - name: Helper
       run: |
