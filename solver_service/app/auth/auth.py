@@ -1,14 +1,15 @@
 import jwt
 import time
 
-decoded: dict
 publicKey = ""
 
 def validate_token(token: str) -> bool:
     try:
-        decoded = jwt.decode(token, publicKey, algorithms=["RS256"])
-        if float(decoded["expiration"]) < time.time():
-            return None
+        payload = decode_jwt(token)
+
+        if time.time() > float(payload["expiration"]):
+            return False
+
     except jwt.exceptions.InvalidSignatureError:
         return False
     except KeyError:
@@ -19,8 +20,4 @@ def validate_token(token: str) -> bool:
     return True
 
 def decode_jwt(token: str) -> str:
-    
-    if not validate_token(token):
-        return None
-
-    return decoded
+    return jwt.decode(token, publicKey, algorithms=["RS256"])
