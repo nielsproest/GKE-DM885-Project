@@ -7,15 +7,16 @@ const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstra
 // urls for services
 // const jobUrl = "http://127.0.0.1:8000" // Not finished
 //const jobUrl = null
-const jobUrl = "http://jobservice.default.svc.cluster.local:8080/ "
+const jobUrl = "/api/jobs/"
 // const solverUrl = "http://127.0.0.1:8000"
-const solverUrl = null
+const solverUrl = "/api/solver/"
 // const fileUrl = "http://127.0.0.1:8000"
-const fileUrl = null
+const fileUrl = "/api/fs/"
+const authUrl = "/api/auth/"
 
 function onLoad(){
     // Is user logged in?
-    if (localStorage.getItem("user_token") === null) {
+    if (localStorage.getItem("token") === null) {
       window.location.href = "login.html";
     } 
 
@@ -40,7 +41,7 @@ function uploadModel(){
   username = localStorage.getItem("username");
   
   if(fileUrl != null){
-    fetch(fileUrl + '/' + username, {
+    fetch(fileUrl + username, {
       headers: {
         "Content-Type": "multipart/form-data",
         'Authorization':'Bearer ' + localStorage.getItem("token")
@@ -65,34 +66,38 @@ function getAvailableModels(){
 
   // Might need to change?
   username = localStorage.getItem("username");
+  modelList = document.getElementById("modelList");
   
   if(fileUrl != null){
-    fetch(fileUrl + '/' + username, {
+    fetch(fileUrl + username + "/list", {
       headers: {
         "Content-Type": "multipart/form-data",
         'Authorization':'Bearer ' + localStorage.getItem("token")
       },
-      body: data,
       method: "PUT"
     })
     .then((response) => response.json())
     .then((result) => {
 
-      console.log(result)
+      console.log(result);
+
+      let modelParser = new DOMParser();
+
+      result.lst.forEach(model => {
+        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">"' + model.name + '"<button id="' + model.id + '" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
+        modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
+      });
       
     })
     .catch((error) => {
       console.error('Error:', error);
     });
-  } else {
+  }
 
-    // Make fake solveItList
-    modelList = document.getElementById("modelList");
-    modelList.innerHTML = "";
+  if(modelList.childElementCount == 0){
     let modelParser = new DOMParser();
-    let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="fake_id" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>');
+    let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="fake_id" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
     modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
-
   }
 }
 
@@ -102,7 +107,7 @@ function deleteModel(fileId){
   username = localStorage.getItem("username");
   
   if(fileUrl != null){
-    fetch(fileUrl + '/' + username + '/' + fileId, {
+    fetch(fileUrl + username + '/' + fileId, {
       method: "DELETE",
       headers: {
         'Authorization':'Bearer ' + localStorage.getItem("token")
@@ -122,41 +127,68 @@ function deleteModel(fileId){
 
 function getAvailableSolvers(){
     // Get the list of solvers the user has available
+    solverList = document.getElementById("solverSelectWrapper")
 
     if(solverUrl != null){
-      fetch(solverUrl + "/solver", {
+      fetch(solverUrl + "solver", {
         method: 'GET',
         mode: 'cors',
         headers: {
           'Access-Control-Allow-Origin':'*',
-          'Authorization':'Bearer ' + localStorage.getItem("token")
+          'Authorization':'Bearer {' + localStorage.getItem("token") + "}"
         }
       })
         .then((response) => response.json())
         .then((result) => {
 
-          solverList = document.getElementById("solverSelectWrapper")
           solverList.innerHTML = "";
           let solverParser = new DOMParser();
           
           result.forEach(solver => {
-            let solverToAppend = solverParser.parseFromString('<input type="checkbox" class="btn-check" id="btn-check-' + solver.name + '" checked autocomplete="on"><label class="btn btn-outline-primary m-1" for="btn-check-'+ solver.name +'">' + solver.name + '</label>', 'text/html')
-            solverList.append(solverToAppend.childNodes[0].childNodes[1].childNodes[0])
+            let solverToAppend = solverParser.parseFromString(`
+            <div class="input-group mb-3">
+              <div class="input-group-text">
+                <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
+              </div>
+              <span class="input-group-text solver-name-class">` + solver.name + `</span>
+              <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
+              <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
+            </div>
+            `, 'text/html')
+
+
             solverList.append(solverToAppend.childNodes[0].childNodes[1].childNodes[0])
           })
           
         })
         .catch((error) => {
-          console.error('Error:', error);
+          console.error(error);
         });
-    } 
+    }
+    
+    if(solverList.childElementCount == 0){
+      let solverParser = new DOMParser();
+
+      let solverToAppend = solverParser.parseFromString(`
+            <div class="input-group mb-3">
+              <div class="input-group-text">
+                <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
+              </div>
+              <span class="input-group-text solver-name-class"> fake-solver </span>
+              <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
+              <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
+            </div>
+            `, 'text/html')
+
+      solverList.append(solverToAppend.childNodes[0].childNodes[1].childNodes[0])
+    }
 }
 
 function isUserAdmin(){
     // Check token to see if user is admin
 
     if (authUrl != null) {
-      fetch(authUrl + "/users/get_my_permissions" , {
+      fetch(authUrl + "users/get_my_permissions" , {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -188,7 +220,7 @@ function getSolvedSolutions(){
     wrapperDiv = document.getElementById("runningSolutionsWrapper")
 
     if (jobUrl != null) {
-      fetch(jobUrl + "/job", {
+      fetch(jobUrl + "job", {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -237,7 +269,7 @@ function getSolvedSolutions(){
 
             } else {
               
-              getStoppedSolvers();
+              getStoppedSolvers(element);
 
             }
           });
@@ -266,7 +298,7 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
   console.log(solutionInstanceId)
 
-  fetch(jobUrl + "/job/" + solutionInstanceId + "/solvers", {
+  fetch(jobUrl + "job/" + solutionInstanceId + "/solvers", {
     method: 'GET',
     mode: 'cors',
     headers: {
@@ -294,7 +326,27 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
 }
 
-function getStoppedSolvers(){
+function getStoppedSolvers(stoppedJob){
+
+  let wrapperFinishedJobs = document.getElementById("accordionWrapper");
+
+  let itemstring = `<div class="accordion-item">
+                      <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                          ` + "Solver: " + stoppedJob.solver + " Create date: " + stoppedJob.createdTime + " Status: " + stoppedJob.status `
+                        </button>
+                      </h2>
+                      <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                        <div class="accordion-body">
+                          ` + "Result: " + stoppedJob.result + `
+                        </div>
+                        <button class="accordion-button danger btn" type="button">
+                          Delete result
+                        </button>
+                      </div>
+                    </div>`;
+
+  wrapperFinishedJobs.append(itemstring)
 
 }
 
@@ -304,7 +356,7 @@ function stopRunningJob(jobId){
   jobToDelete = document.getElementById("runningSolution-" + jobId);
   jobToDelete.remove();
 
-  fetch(jobUrl + "/job/" + jobId, {
+  fetch(jobUrl + "job/" + jobId, {
     method: 'DELETE',
     mode: 'cors',
     headers: {
@@ -332,14 +384,26 @@ function stopRunningJob(jobId){
 
 function startJob(modelIds){
 
-  fetch(jobUrl + "/job/", {
+  solverCheckingList = document.getElementById("solverSelectWrapper");
+  const solverList = []
+
+  for(let x of Array.from(solverCheckingList.children)) {
+
+    if(x.querySelector(".form-check-input").checked == true){
+      solverList.push('{"name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpu":'+ x.querySelector(".vcpu-class").value +' ,"ram": '+ x.querySelector(".ram-class").value +'}')
+    }
+
+  }
+
+  console.log(solverList)
+
+  fetch(jobUrl + "job/", {
     method: 'POST',
     mode: 'cors',
     body: `{
       "mzn_id": "` + modelIds + `",
       "timeout": 120,
-      "solver_list": [
-        
+      "solver_list": [{
           "name": "hakankj/fzn-picat-sat",
           "vcpus": 1,
           "ram": 1024

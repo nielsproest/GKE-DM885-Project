@@ -125,4 +125,5 @@ jobs:
         kubectl rollout status deployment/jobservice-deployment
         kubectl rollout status deployment/fs-postgres
         kubectl rollout status deployment/fs-service
+        kubectl rollout status deployment/frontend-deployment
         kubectl get services -o wide

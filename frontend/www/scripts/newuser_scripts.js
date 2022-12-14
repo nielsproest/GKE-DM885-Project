@@ -1,6 +1,6 @@
   // const authUrl = "http://127.0.0.4:5000"
   //const authUrl = null
-   const authUrl = "http://auth-service.default.svc.cluster.local:5000/"
+   const authUrl = "/api/auth/"
   
   // Create user
   function createUser() {
@@ -14,7 +14,7 @@
 
     // call the user service and create user
     if (authUrl != null) {
-      fetch(authUrl + "/users/signup" , {
+      fetch(authUrl + "users/signup" , {
         method: 'POST',
         body: '{"username":"' + usernameField.value + '", "password":"' + pwField.value + '"}',
         mode: 'cors',
@@ -82,7 +82,7 @@
  function callToCheckUsername(username){
 
   // Call
-  fetch(authUrl + "/users/is_username_available/" + username , {
+  fetch(authUrl + "users/is_username_available/" + username , {
     method: 'GET',
     mode: 'cors',
     headers: {

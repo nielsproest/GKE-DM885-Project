@@ -1,11 +1,11 @@
 
-name: Build and Deploy jobservice to GKE
+name: Build and Deploy frontend to GKE
 
 on:
   workflow_dispatch:
   push:
     paths:
-        - job_service/app/**
+        - frontend/**
 
 env:
   PROJECT_ID: solveit-369711
@@ -15,7 +15,7 @@ env:
   GKE_CLUSTER: solveit-369711-gke
   GKE_ZONE: europe-west4
   REPOSITORY: services-repository
-  JOB_SERVICE_IMAGE: jobservice
+  FRONTEND_IMAGE: frontend
 
 jobs:
   setup-build-publish-deploy:
@@ -55,7 +55,7 @@ jobs:
     - name: Build
       run: |-
         docker build \
-          --tag "eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE" \
+          --tag "eu.gcr.io/$PROJECT_ID/$FRONTEND_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
           ./job_service
@@ -66,16 +66,16 @@ jobs:
 
     - name: Delete old image in GCR
       run: |
-       gcloud container images delete eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE || true
+       gcloud container images delete eu.gcr.io/$PROJECT_ID/$FRONTEND_IMAGE || true
 
     - name: Push to GCR
       run: |-
-       docker push eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE
+       docker push eu.gcr.io/$PROJECT_ID/$FRONTEND_IMAGE
 
 
 
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |-
-        kubectl apply -f kubernetes/jobservice.yaml
-        kubectl rollout status deployment/jobservice-deployment
+        kubectl apply -f kubernetes/frontend.yaml
+        kubectl rollout status deployment/frontend-deployment

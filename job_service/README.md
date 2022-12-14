@@ -60,3 +60,5 @@ gcloud container clusters get-credentials solveit-369711-gke --region=europe-wes
 
 http://postgres.default.svc.cluster.local:5432/
 http://jobservice.default.svc.cluster.local:8080/
+http://auth-service.default.svc.cluster.local:5000
+http://fs-postgres.default.svc.cluster.local

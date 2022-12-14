@@ -6,9 +6,6 @@ from decouple import config
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
-JWT_SECRET = config("secret")
-JWT_ALGORITHM = config("algorithm")
-
 #TODO: Should be received from auth service
 PUBLIC_KEY = '''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvpAXDxizoN4MHs0qJrQ9
