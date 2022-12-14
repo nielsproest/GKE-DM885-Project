@@ -26,11 +26,11 @@ spec:
             name: postgres-config
         volumeMounts:
           - mountPath: /mnt
-            name: solver-pvc
+            name: solver-db-pvc
       volumes:
-        - name: solver-pvc
+        - name: solver-db-pvc
           persistentVolumeClaim:
-            claimName: solver-pvc
+            claimName: solver-db-pvc
 --- #Service
 apiVersion: v1
 kind: Service
