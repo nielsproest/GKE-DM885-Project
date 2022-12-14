@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 import uuid
+import os
+import requests
 from fastapi.middleware.cors import CORSMiddleware
 from decouple import config
 from sqlalchemy.orm import Session
@@ -9,6 +11,7 @@ from models import Solver
 from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver
 from database import engine, SessionLocal
 from auth_handler import JWTBearer
+from auth import setPublicKey
 #import verifier
 
 Solver.metadata.create_all(bind=engine)
@@ -37,6 +40,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+auth_url = "http://auth-service.default.svc.cluster.local:5000"
+
 @app.on_event("startup")
 async def startup_event():
 
@@ -54,7 +59,14 @@ async def startup_event():
     for item in startupSolvers:
         if startupSolvers[item] == True:
             cPostSolver(db, item, item)
-    '''     
+    '''
+
+    if os.getenv('KUBERNETES_SERVICE_HOST'):
+        r = requests.get(url = auth_url + "/keys/public_key")
+        data = r.json()
+        print(data)
+        setPublicKey(data)
+
     return
 
 @app.get("/solver", dependencies=[Depends(JWTBearer())])

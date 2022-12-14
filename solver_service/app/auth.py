@@ -1,7 +1,10 @@
 import jwt
 import time
 
-publicKey = ""
+PUBLIC_KEY = ""
+
+def setPublicKey(newKey):
+    PUBLIC_KEY = newKey
 
 def validate_token(token: str) -> bool:
     try:
@@ -20,4 +23,4 @@ def validate_token(token: str) -> bool:
     return True
 
 def decode_jwt(token: str) -> str:
-    return jwt.decode(token, publicKey, algorithms=["RS256"])
+    return jwt.decode(token, PUBLIC_KEY, algorithms=["RS256"])
