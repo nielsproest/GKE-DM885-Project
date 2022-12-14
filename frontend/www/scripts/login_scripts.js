@@ -24,7 +24,7 @@ function loginFunction() {
       .then((result) => {
 
         // Put JWT in session
-        localStorage.setItem("user_token", result.token)
+        localStorage.setItem("token", result.token)
 
         window.location.href = "index.html";
       })
