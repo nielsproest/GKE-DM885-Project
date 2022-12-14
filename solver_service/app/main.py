@@ -8,9 +8,8 @@ from typing import List, Union
 from models import Solver
 from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver
 from database import engine, SessionLocal
-from auth import decode_jwt, validate_token
 from auth_handler import JWTBearer
-import verifier
+#import verifier
 
 Solver.metadata.create_all(bind=engine)
 
