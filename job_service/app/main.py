@@ -95,6 +95,7 @@ app.add_middleware(
 )
 
 auth_url = "http://auth-service.default.svc.cluster.local:5000"
+solver_svc_url = "http://solverservice.default.svc.cluster.local:5000"
 
 
 @app.on_event("startup")
@@ -177,7 +178,14 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
 
 
 def get_solvers():
+
     # TODO: Implement call to solver service
+    if False:
+      r = requests.get(url = solver_svc_url + "/solver")
+      data = r.json()
+      print(data)
+      return list(data)
+
     return ["hakankj/fzn-picat-sat", "gkgange/geas-mznc2022", "chuffed", "gecode", "OR-Tools"] #TODO: Remove, only for testing
 
 def get_problem_files(mzn_id, dzn_id):
