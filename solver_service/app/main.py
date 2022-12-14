@@ -7,8 +7,10 @@ from typing import List, Union
 
 from models import Solver
 from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver
-from auth.auth import decode_jwt, verify_jwt
 from database import engine, SessionLocal
+from auth import decode_jwt, validate_token
+from auth_handler import JWTBearer
+import verifier
 
 Solver.metadata.create_all(bind=engine)
 
@@ -40,7 +42,7 @@ app.add_middleware(
 async def startup_event():
 
     #TODO: fill initial database with common images - probably redo this part.
-    
+    '''
     db = get_db
     solvers = getAllSolvers(db)
 
@@ -53,24 +55,18 @@ async def startup_event():
     for item in startupSolvers:
         if startupSolvers[item] == True:
             cPostSolver(db, item, item)
-            
+    '''     
     return
 
-@app.get("/solver")
-def getAllSolvers(db: Session = Depends(get_db)):
+@app.get("/solver", dependencies=[Depends(JWTBearer())])
+def getAllSolvers(db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
     #Maybe don't return image url
 
-    if not (has_permission("TEMP_TOKEN")):
-        raise HTTPException(status_code=403)
-
     return cGetAllSolvers(db)
 
-@app.get("/solver/{id}")
-def getSolver(solverId: str, db: Session = Depends(get_db)):
-
-    if not (has_permission("TEMP_TOKEN")):
-        raise HTTPException(status_code=403)
+@app.get("/solver/{id}", dependencies=[Depends(JWTBearer())])
+def getSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
     if not isValidUuid(solverId):
         raise HTTPException(status_code=500, detail=f"Id not valid")
@@ -79,11 +75,8 @@ def getSolver(solverId: str, db: Session = Depends(get_db)):
 
     return solver
 
-@app.delete("/solver/{id}")
-def deleteSolver(solverId: str, db: Session = Depends(get_db)):
-
-    if not (has_permission("TEMP_TOKEN")):
-        raise HTTPException(status_code=403)
+@app.delete("/solver/{id}", dependencies=[Depends(JWTBearer())])
+def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
     if not isValidUuid(solverId):
         raise HTTPException(status_code=500, detail=f"Id not valid")
@@ -92,21 +85,16 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db)):
 
     return
 
-@app.post("/solver/{name}/{dockerName}")
-def postSolver(name: str, dockerName: str, dockerAuthor: Union[str, None] = None, db: Session = Depends(get_db)):
+@app.post("/solver/{name}/{dockerName}", dependencies=[Depends(JWTBearer())])
+def postSolver(name: str, dockerName: str, dockerAuthor: Union[str, None] = None, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
-    if not (has_permission("TEMP_TOKEN")):
-        raise HTTPException(status_code=403)
+    dockerImage = dockerName
 
-    dockerImage: str
-
-    if not dockerAuthor:
-        dockerImage = dockerName
-    else:
+    if dockerAuthor:
         dockerImage = (dockerAuthor + "/" + dockerName)
     
     if not verify_image(dockerImage):
-        raise HTTPException(status_code=405, detail=f"image could not be verified")
+        raise HTTPException(status_code=405, detail=f"Docker image could not be verified")
 
     cPostSolver(db, name, dockerImage)
 
@@ -119,15 +107,6 @@ def isValidUuid(solverId):
     except ValueError:
         return False
 
-def has_permission(token: str):
-    #TODO: check permission properly
-    
-    decoded = decode_jwt(token)
-
-    if verify_jwt(decoded):
-        return True
-    
-    return True        
 
 def verify_image(dockerImage: str):
     #TODO: verify image by building imgage in container

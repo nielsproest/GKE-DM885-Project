@@ -1,6 +1,5 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import delete
-import uuid
 
 from models import Solver
 
