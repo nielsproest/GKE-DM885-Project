@@ -99,15 +99,6 @@ solver_svc_url = "http://solverservice.default.svc.cluster.local:8080"
 fs_svc_url = "http://fs-service.default.svc.cluster.local:9090"
 
 
-@app.on_event("startup")
-async def startup_event():
-  # if os.getenv('KUBERNETES_SERVICE_HOST'):
-  #   r = requests.get(url = auth_url + "/keys/public_key")
-  #   data = r.json()
-  #   print(data)
-  #   auth_handler.set_public_key(data)
-
-
 @app.get("/job/{job_id}", dependencies=[Depends(JWTBearer())])
 def get_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
