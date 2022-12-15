@@ -7,7 +7,7 @@ from .setup import Base
 class User(Base):
 	__tablename__ = config("TABLE_NAME")
 
-	id = Column(Integer, Identity("always"), primary_key=True, index=True)
+	id = Column(Integer, Identity("always"), primary_key=True, index=True, autoincrement=True)
 	username = Column(String, index=True)
 	password = Column(String)
 	permissions = Column(JSON) 
