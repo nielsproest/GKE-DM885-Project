@@ -6,11 +6,11 @@ PUBLIC_KEY = ""
 def setPublicKey(newKey):
     global PUBLIC_KEY
     PUBLIC_KEY = newKey
+    print("Public key is:" + PUBLIC_KEY)
     return
 
 def validate_token(token: str) -> bool:
     try:
-        print("Public key is:" + PUBLIC_KEY)
         payload = decode_jwt(token)
 
         if time.time() > float(payload["expiration"]):
