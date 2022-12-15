@@ -42,7 +42,7 @@ app.add_middleware(
 auth_url = "http://auth-service.default.svc.cluster.local:5000"
 
 @app.on_event("startup")
-async def startup_event():    
+async def startup_event():
     db = SessionLocal()
     solvers = getAllSolvers(db)
 
@@ -63,17 +63,17 @@ async def startup_event():
     if os.getenv('KUBERNETES_SERVICE_HOST'):
         r = requests.get(url = auth_url + "/keys/public_key")
         data = r.json()
-        setPublicKey(data)
+        setPublicKey(data["message"])
     else:
         setPublicKey('''-----BEGIN PUBLIC KEY-----
             MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvpAXDxizoN4MHs0qJrQ9J/Dc+95mLbT7o/haw2vXuB2LoSp855W/5hpPqyhAkPmKJEzICp6Ke72a2oUVeJb8lckM3km9dxFBvNsbMEpKEOO1/WhmWw8aDwBI7E0s7KAXHSdqCBncB4L3W37O9c6bQ2QrGpfrN82yFXez25tdv1ODc7bzfYFdD5LHNVymYl0E+dR/4P2P/+YxUX7omUI9Bqt6jdw6uERt2tcyT0PFT2DQwf3mtrXCufo68uMfxKP0TN5c1Zan4jwXeiJE4wHPzFgaWTzgKB6xayJqkgI9nhy5KaONIKe+ZCerrsBKztk9R8uH38GdI2rcwCPYi2AkkQIDAQAB
             -----END PUBLIC KEY-----''')
-    
+
     return
 
 @app.get("/solver", dependencies=[Depends(JWTBearer())])
 def getAllSolvers(db: Session = Depends(get_db)):
-    
+
     return cGetAllSolvers(db)
 
 @app.get("/solver/{id}", dependencies=[Depends(JWTBearer())])
@@ -81,7 +81,7 @@ def getSolver(solverId: str, db: Session = Depends(get_db)):
 
     if not isValidUuid(solverId):
         raise HTTPException(status_code=500, detail=f"Id not valid")
-        
+
     solver = cGetSolver(db, solverId)
 
     return solver
