@@ -150,7 +150,7 @@ function getAvailableSolvers(){
               <div class="input-group-text">
                 <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
               </div>
-              <span class="input-group-text solver-name-class">` + solver.name + `</span>
+              <span id="` + solver.id + `"  class="input-group-text solver-name-class">` + solver.name + `</span>
               <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
               <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
             </div>
@@ -174,7 +174,7 @@ function getAvailableSolvers(){
               <div class="input-group-text">
                 <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
               </div>
-              <span class="input-group-text solver-name-class"> fake-solver </span>
+              <span id="fake-solver-id" class="input-group-text solver-name-class"> fake-solver </span>
               <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
               <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
             </div>
@@ -391,7 +391,7 @@ function startJob(modelIds){
   for(let x of Array.from(solverCheckingList.children)) {
 
     if(x.querySelector(".form-check-input").checked == true){
-      solverList.push('{"name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpu":'+ x.querySelector(".vcpu-class").value +' ,"ram": '+ x.querySelector(".ram-class").value +'}')
+      solverList.push('{"id": "' + x.querySelector("span.solver-name-class").id + '", "name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpu":'+ x.querySelector(".vcpu-class").value +' ,"ram": '+ x.querySelector(".ram-class").value +'}')
     }
 
   }
@@ -404,17 +404,7 @@ function startJob(modelIds){
     body: `{
       "mzn_id": "` + modelIds + `",
       "timeout": 120,
-      "solver_list": [{
-          "name": "hakankj/fzn-picat-sat",
-          "vcpus": 1,
-          "ram": 1024
-        },
-        {
-          "name": "gkgange/geas-mznc2022",
-          "vcpus": 1,
-          "ram": 1024
-        }
-      ]
+      "solver_list": ` + solverList.toString() + `
     }`,
     headers: {
       'Access-Control-Allow-Origin':'*',

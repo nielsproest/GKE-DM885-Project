@@ -2,10 +2,10 @@
 name: Build and Deploy jobservice to GKE
 
 on:
-  workflow_dispatch:
   push:
     paths:
         - job_service/app/**
+  workflow_dispatch:
 
 env:
   PROJECT_ID: solveit-369711
