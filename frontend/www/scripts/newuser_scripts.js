@@ -27,12 +27,14 @@
         .then((response) => response.json())
         .then((result) => {
 
+          console.log(result)
+
           if("details" in result){
             console.log(result)
             responsWarning(result.details)
-          }else{
+          } else if ("token" in result){
             // Put JWT in session
-            localStorage.setItem("user_token", result.token)
+            localStorage.setItem("token", result.token)
     
             window.location.href = "index.html";
           }
