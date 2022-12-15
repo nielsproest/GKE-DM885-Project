@@ -11,3 +11,4 @@ class User(Base):
 	username = Column(String, index=True)
 	password = Column(String)
 	permissions = Column(JSON) 
+	uuid = Column(String, index=True)
