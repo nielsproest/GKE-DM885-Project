@@ -80,10 +80,6 @@ parameters:
   type: pd-standard
   fstype: ext4
   replication-type: none
---- #ClusterRole?
-
---- #ClusterRoleBinding?
-
 --- #Database Deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -128,5 +124,6 @@ spec:
     - port: 5432 # Sets port to run the postgres application
   selector:
     app: solver-db
+--- #ClusterRole?
 
-
+--- #ClusterRoleBinding?
