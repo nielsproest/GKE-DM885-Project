@@ -70,14 +70,14 @@ async def startup_event():
     return
 
 @app.get("/solver", dependencies=[Depends(JWTBearer())])
-def getAllSolvers(db: Session = Depends(get_db), token=Depends(JWTBearer())):
+def getAllSolvers(db: Session = Depends(get_db)):
 
     #Maybe don't return image url
 
     return cGetAllSolvers(db)
 
 @app.get("/solver/{id}", dependencies=[Depends(JWTBearer())])
-def getSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+def getSolver(solverId: str, db: Session = Depends(get_db)):
 
     if not isValidUuid(solverId):
         raise HTTPException(status_code=500, detail=f"Id not valid")
@@ -87,7 +87,7 @@ def getSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWTBea
     return solver
 
 @app.delete("/solver/{id}", dependencies=[Depends(JWTBearer())])
-def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+def deleteSolver(solverId: str, db: Session = Depends(get_db)):
 
     if not isValidUuid(solverId):
         raise HTTPException(status_code=500, detail=f"Id not valid")
@@ -97,7 +97,7 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWT
     return
 
 @app.post("/solver/{name}/{dockerName}", dependencies=[Depends(JWTBearer())])
-def postSolver(name: str, dockerName: str, dockerAuthor: Union[str, None] = None, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+def postSolver(name: str, dockerName: str, dockerAuthor: Union[str, None] = None, db: Session = Depends(get_db)):
 
     dockerImage = dockerName
 
