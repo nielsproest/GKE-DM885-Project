@@ -12,7 +12,6 @@ from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver
 from database import engine, SessionLocal
 from auth_handler import JWTBearer
 from auth import setPublicKey
-#import verifier
 
 Solver.metadata.create_all(bind=engine)
 
@@ -60,13 +59,13 @@ async def startup_event():
         if startupSolvers[item] == True:
             cPostSolver(db, item, item)
     '''
-
+    '''
     if os.getenv('KUBERNETES_SERVICE_HOST'):
         r = requests.get(url = auth_url + "/keys/public_key")
         data = r.json()
         print(data)
         setPublicKey(data)
-
+    '''
     return
 
 @app.get("/solver", dependencies=[Depends(JWTBearer())])
@@ -96,22 +95,17 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db)):
 
     return
 
-@app.post("/solver/{name}/{dockerName}", dependencies=[Depends(JWTBearer())])
-def postSolver(name: str, dockerName: str, dockerAuthor: Union[str, None] = None, db: Session = Depends(get_db)):
+@app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
+def postSolver(name: str, image: str, db: Session = Depends(get_db)):
 
-    dockerImage = dockerName
-
-    if dockerAuthor:
-        dockerImage = (dockerAuthor + "/" + dockerName)
-    
-    if not verify_image(dockerImage):
+    if not verify_image(image):
         raise HTTPException(status_code=405, detail=f"Docker image could not be verified")
 
-    cPostSolver(db, name, dockerImage)
+    cPostSolver(db, name, image)
 
     return
 
-def isValidUuid(solverId):
+def isValidUuid(solverId) -> bool:
     try:
         uuid.UUID(str(solverId))
         return True
@@ -119,8 +113,24 @@ def isValidUuid(solverId):
         return False
 
 
-def verify_image(dockerImage: str):
+def verify_image(dockerImage: str) -> bool:
     #TODO: verify image by building imgage in container
+
+    dockerRepository = "https://hub.docker.com/r/"
+    dockerOfficial = "https://hub.docker.com/_/"
+
+    print(dockerOfficial+dockerImage)
+
+    #dockerTest = dockerRepository+dockerImage
+    #print(dockerTest)
+    #r = requests.get(dockerTest)
+    #print(r.raw)
+
+    dockerTest = dockerOfficial+dockerImage
+    print(dockerTest)
+    r = requests.get(dockerTest)
+    print(r.text)
+
 
     #Get and test image
     #Test that dockerhub returns 200 when requesting image
