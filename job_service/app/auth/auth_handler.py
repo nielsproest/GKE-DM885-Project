@@ -19,6 +19,7 @@ kQIDAQAB
 '''
 
 def set_public_key(pub_key):
+  global PUBLIC_KEY
   PUBLIC_KEY = pub_key
 
 def decodeJWT(token: str) -> dict:

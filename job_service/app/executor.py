@@ -91,7 +91,7 @@ class Kubernetes:
             start_command = f"minizinc -i --output-objective --output-mode dzn /mnt/{job_id}.mzn"
 
           container = client.V1Container(
-              image=f"{solver.name}",
+              image=f"{solver.image}",
               name=str(solver.id),
               image_pull_policy=pull_policy,
               volume_mounts=[client.V1VolumeMount(name="job-pvc", mount_path='/mnt')],

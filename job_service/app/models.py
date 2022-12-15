@@ -29,6 +29,7 @@ class SolverInstance(Base):
     __tablename__ = 'solver_instances'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid_helper)
     name = Column(String)
+    image = Column(String)
     status = Column(String)
     result = Column(String)
     time_created = Column(DateTime(timezone=True), server_default=func.now())

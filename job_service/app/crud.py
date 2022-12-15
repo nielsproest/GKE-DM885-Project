@@ -47,6 +47,7 @@ def create_job(db: Session, job: schemas.CreateJob, user_id: str):
         db_solver = models.SolverInstance(
           status="running",
           name=solver.name,
+          image=solver.image,
           job_id=db_job.id
         )
         db_job.solver_instances.append(db_solver)

@@ -40,6 +40,8 @@ class Job(JobBase):
 
 class Solver(BaseModel):
     name: str
+    id: str
+    image: Union[str, None]
     vcpus: int = 1
     ram: int = 1024
 
@@ -55,12 +57,14 @@ class CreateJob(JobBase):
                 "timeout": 120,
                 "solver_list": [
                   {
-                    "name": "hakankj/fzn-picat-sat",
+                    "id": "213c7f36-dad8-4316-aaac-1a43a4f9062c",
+                    "name": "Good Solver",
                     "vcpus": 1,
                     "ram": 1024
                   },
                   {
-                    "name": "gkgange/geas-mznc2022",
+                    "id": "f54aa3f0-85fd-46e5-afd3-b0d534b4ae44",
+                    "name": "Another Good Solver",
                     "vcpus": 1,
                     "ram": 1024
                   }

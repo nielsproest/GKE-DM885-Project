@@ -159,15 +159,11 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
     uuid = decoded_token.get('uuid')
     #TODO: Check permissions for vCPUs and RAM count
 
-    available_solvers = get_solvers()
-
-
-    # TODO: Check that solvers exist and are unique
-    if len(list(set(map(lambda x: x.name,create_job_request.solver_list)) - set(available_solvers))) > 0:
-        raise HTTPException(status_code=400, detail="One or more of the requested solvers are not available")
+    for s in create_job_request.solver_list:
+      s.image = get_solver_image(s.id, decoded_token)
 
     # TODO: Verify that mzn file exists
-    (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id, uuid)
+    (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id, decoded_token)
 
     new_job = crud.create_job(db, create_job_request, uuid)
 
@@ -178,21 +174,36 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
 
 
 
-def get_solvers():
+def get_solver_image(solver_id, decoded_token):
 
     # TODO: Implement call to solver service
     if os.getenv('KUBERNETES_SERVICE_HOST'):
-      r = requests.get(url = solver_svc_url + "/solver")
+      headers = {
+        "Authorization": f"Bearer {decoded_token}",
+        "Content-Type": "application/json"
+      }
+      r = requests.get(url = solver_svc_url + f"/solver/{solver_id}", headers=headers)
       data = r.json()
       print(data)
-      #return list(data)
+      solver_image = data.dockerImage
+      print(solver_image)
+      # TODO: Do try-catch and return 400 if solver does not exist
+      #return solver_image
 
-    return ["hakankj/fzn-picat-sat", "gkgange/geas-mznc2022", "chuffed", "gecode", "OR-Tools"] #TODO: Remove, only for testing
+    return "hakankj/fzn-picat-sat" #TODO: Remove, only for testing
+    #"gkgange/geas-mznc2022", "hakankj/fzn-picat-sat"
 
-def get_problem_files(mzn_id, dzn_id, uuid):
+def get_problem_files(mzn_id, dzn_id, decoded_token):
     #TODO: Contact file services for mzn
+
+    uuid = decoded_token.get('uuid')
+
     if os.getenv('KUBERNETES_SERVICE_HOST'):
-      r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}")
+      headers = {
+        "Authorization": f"Bearer {decoded_token}",
+        "Content-Type": "application/json"
+      }
+      r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}", headers=headers)
       data = r.json()
       print(data)
 
@@ -208,3 +219,11 @@ def get_problem_files(mzn_id, dzn_id, uuid):
 
 
 # default user: ae5f1ccd-15db-454b-86bc-bcf5968987e4
+
+
+
+
+
+
+
+
