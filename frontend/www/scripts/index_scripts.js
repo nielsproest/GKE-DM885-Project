@@ -18,7 +18,7 @@ function onLoad(){
     // Is user logged in?
     if (localStorage.getItem("token") === null) {
       window.location.href = "login.html";
-    } 
+    }
 
     // Find the available solvers and available models and load the check buttons for the available solvers
     getAvailableSolvers()
@@ -39,7 +39,7 @@ function uploadModel(){
 
   // Might need to change?
   username = localStorage.getItem("username");
-  
+
   if(fileUrl != null){
     fetch(fileUrl + username, {
       headers: {
@@ -53,7 +53,7 @@ function uploadModel(){
     .then((result) => {
 
       console.log(result)
-      
+
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -67,7 +67,7 @@ function getAvailableModels(){
   // Might need to change?
   username = localStorage.getItem("username");
   modelList = document.getElementById("modelList");
-  
+
   if(fileUrl != null){
     fetch(fileUrl + username + "/list", {
       headers: {
@@ -87,7 +87,7 @@ function getAvailableModels(){
         let modelToAppend = modelParser.parseFromString('<li class="list-group-item">"' + model.name + '"<button id="' + model.id + '" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
         modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
       });
-      
+
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -96,7 +96,7 @@ function getAvailableModels(){
 
   if(modelList.childElementCount == 0){
     let modelParser = new DOMParser();
-    let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="fake_id" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
+    let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
     modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
   }
 }
@@ -105,7 +105,7 @@ function deleteModel(fileId){
 
   // Might need to change?
   username = localStorage.getItem("username");
-  
+
   if(fileUrl != null){
     fetch(fileUrl + username + '/' + fileId, {
       method: "DELETE",
@@ -117,7 +117,7 @@ function deleteModel(fileId){
     .then((result) => {
 
       console.log("Delete file result " + result)
-      
+
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -143,7 +143,7 @@ function getAvailableSolvers(){
 
           solverList.innerHTML = "";
           let solverParser = new DOMParser();
-          
+
           result.forEach(solver => {
             let solverToAppend = solverParser.parseFromString(`
             <div class="input-group mb-3">
@@ -159,13 +159,13 @@ function getAvailableSolvers(){
 
             solverList.append(solverToAppend.childNodes[0].childNodes[1].childNodes[0])
           })
-          
+
         })
         .catch((error) => {
           console.error(error);
         });
     }
-    
+
     if(solverList.childElementCount == 0){
       let solverParser = new DOMParser();
 
@@ -198,7 +198,7 @@ function isUserAdmin(){
       })
         .then((response) => response.json())
         .then((result) => {
-          
+
           console.log("permissions results:", result)
 
           // Not finished
@@ -216,7 +216,7 @@ function isUserAdmin(){
 }
 
 function getSolvedSolutions(){
-    // Get solved solutions from job service 
+    // Get solved solutions from job service
     wrapperDiv = document.getElementById("runningSolutionsWrapper")
 
     if (jobUrl != null) {
@@ -224,14 +224,15 @@ function getSolvedSolutions(){
         method: 'GET',
         mode: 'cors',
         headers: {
-          'Access-Control-Allow-Origin':'*'
+          'Access-Control-Allow-Origin':'*',
+          'Authorization':'Bearer ' + localStorage.getItem("token")
         }
       })
         .then((response) => response.json())
         .then((result) => {
 
           let jobParser = new DOMParser();
-          
+
           result.forEach(element => {
 
             if(element.status == "running"){
@@ -251,7 +252,7 @@ function getSolvedSolutions(){
 
               runningSolutionSpan = document.createElement("span");
               runningSolutionSpan.textContent = "Name: missing, Started: " + element.time_created
-              
+
               runningSolutionP.appendChild(runningSolutionSpan)
 
               let runningJob = jobParser.parseFromString('<button id="' + element.id + '" class="btn btn-outline-danger btn-sm" onclick="stopRunningJob(this.id)" type="button">Delete job</button>', 'text/html')
@@ -260,20 +261,20 @@ function getSolvedSolutions(){
               runningSolutionUL = document.createElement("ul");
               runningSolutionUL.id = "running_instance_solver_list" + element.id
               runningSolutionUL.classList.add("list-group")
-              
+
               getRunningSolvers(element.id, runningSolutionUL);
-              
+
               runningSolutionDiv.appendChild(runningSolutionP)
               runningSolutionDiv.appendChild(runningSolutionUL)
               wrapperDiv.appendChild(runningSolutionDiv);
 
             } else {
-              
+
               getStoppedSolvers(element);
 
             }
           });
-  
+
         })
         .catch((error) => {
           console.error('Error:', error);
@@ -310,7 +311,7 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
     .then((result) => {
 
       let instanceParser = new DOMParser();
-      
+
       result.forEach(instance => {
 
         let listItem = instanceParser.parseFromString('<li class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="stopInstance(this.id)" type="button">Remove running solver</button></li>', 'text/html')
@@ -397,7 +398,7 @@ function startJob(modelIds){
 
   console.log(solverList)
 
-  fetch(jobUrl + "job/", {
+  fetch(jobUrl + "job", {
     method: 'POST',
     mode: 'cors',
     body: `{
@@ -444,6 +445,6 @@ function logout(){
     // Delete session token
     localStorage.removeItem("user_token");
 
-    // Back to login 
+    // Back to login
     window.location.href = "login.html";
 }
