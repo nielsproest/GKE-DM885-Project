@@ -6,9 +6,9 @@ import os
 
 #SQLALCHEMY_DATABASE_URL = config('DATABASE_URL')
 if os.getenv('KUBERNETES_SERVICE_HOST'):
-  SQLALCHEMY_DATABASE_URL = "postgresql://postgres:password@solver-db.default.svc.cluster.local:5432/solver_service_db"
+  SQLALCHEMY_DATABASE_URL = "postgresql://postgres:password@solver-db.default.svc.cluster.local:5432/solver_service_database"
 else:
-  SQLALCHEMY_DATABASE_URL = "postgresql://postgres:password@localhost:5432/solver_service_db"
+  SQLALCHEMY_DATABASE_URL = "postgresql://postgres:password@localhost:5432/solver_service_database"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
