@@ -16,6 +16,9 @@ def cDeleteSolver(db: Session, solverId: str):
 
 def cPostSolver(db: Session, name: str, dockerImage: str):
     db_solver = Solver(name = name, dockerImage = dockerImage)
+    image = db.query(Solver).filter(Solver.dockerImage == dockerImage).first()
+    if db_solver == image:
+        return {"solver exists"}
     db.add(db_solver)
     db.commit()
     return {"success"}

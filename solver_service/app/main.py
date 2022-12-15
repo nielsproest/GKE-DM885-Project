@@ -3,9 +3,7 @@ import uuid
 import os
 import requests
 from fastapi.middleware.cors import CORSMiddleware
-from decouple import config
 from sqlalchemy.orm import Session
-from typing import List, Union
 
 from models import Solver
 from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver

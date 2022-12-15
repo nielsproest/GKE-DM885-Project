@@ -27,4 +27,3 @@ def validate_token(token: str) -> bool:
 
 def decode_jwt(token: str) -> str:
     return jwt.decode(token, PUBLIC_KEY, algorithms=["RS256"])
-     
