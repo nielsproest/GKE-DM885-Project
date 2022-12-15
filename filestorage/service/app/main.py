@@ -54,7 +54,7 @@ async def write(
 	#Check user space available
 	usage = crud.get_user_usage(db, user_id)
 	allowed_usage = permissions["storage_limit"]
-	if (usage != None and usage + fs_size > allowed_usage):
+	if (usage != None and not permissions["is_admin"] and usage + fs_size > allowed_usage):
 		raise HTTPException(status_code=413, detail="Not enough space")
 
 	#Create file
@@ -124,7 +124,7 @@ async def update(
 	#Check user space available
 	usage = crud.get_user_usage(db, user_id)
 	allowed_usage = permissions["storage_limit"]
-	if (usage != None and usage + fs_size > allowed_usage):
+	if (usage != None and not permissions["is_admin"] and usage + fs_size > allowed_usage):
 		raise HTTPException(status_code=413, detail="Not enough space")
 
 	with open(join(OS_DIR, str(qry.id)), "wb") as f:
