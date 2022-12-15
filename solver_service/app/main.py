@@ -42,37 +42,38 @@ app.add_middleware(
 auth_url = "http://auth-service.default.svc.cluster.local:5000"
 
 @app.on_event("startup")
-async def startup_event():
-
-    #TODO: fill initial database with common images - probably redo this part.
-    '''
-    db = get_db
+async def startup_event():    
+    db = SessionLocal()
     solvers = getAllSolvers(db)
 
-    startupSolvers = {"gecode": True, "chuffed": True}
+    #Change name, and potentially add more solvers
+
+    permSolvers = {"solver1": "hakankj/fzn-picat-sat", "solver2": "gkgange/geas-mznc2022"}
+
+    solverURLs = []
 
     for solver in solvers:
-        if solver.name in startupSolvers:
-            startupSolvers[solver.name] = False
+        solverURLs.append(solver.dockerImage)
 
-    for item in startupSolvers:
-        if startupSolvers[item] == True:
-            cPostSolver(db, item, item)
-    '''
-    '''
+    for perm in permSolvers:
+        if not permSolvers.get(perm) in solverURLs:
+            print("added solver: " + permSolvers.get(perm))
+            cPostSolver(db, perm, permSolvers.get(perm))
+
     if os.getenv('KUBERNETES_SERVICE_HOST'):
         r = requests.get(url = auth_url + "/keys/public_key")
         data = r.json()
-        print(data)
         setPublicKey(data)
-    '''
+    else:
+        setPublicKey('''-----BEGIN PUBLIC KEY-----
+            MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvpAXDxizoN4MHs0qJrQ9J/Dc+95mLbT7o/haw2vXuB2LoSp855W/5hpPqyhAkPmKJEzICp6Ke72a2oUVeJb8lckM3km9dxFBvNsbMEpKEOO1/WhmWw8aDwBI7E0s7KAXHSdqCBncB4L3W37O9c6bQ2QrGpfrN82yFXez25tdv1ODc7bzfYFdD5LHNVymYl0E+dR/4P2P/+YxUX7omUI9Bqt6jdw6uERt2tcyT0PFT2DQwf3mtrXCufo68uMfxKP0TN5c1Zan4jwXeiJE4wHPzFgaWTzgKB6xayJqkgI9nhy5KaONIKe+ZCerrsBKztk9R8uH38GdI2rcwCPYi2AkkQIDAQAB
+            -----END PUBLIC KEY-----''')
+    
     return
 
 @app.get("/solver", dependencies=[Depends(JWTBearer())])
 def getAllSolvers(db: Session = Depends(get_db)):
-
-    #Maybe don't return image url
-
+    
     return cGetAllSolvers(db)
 
 @app.get("/solver/{id}", dependencies=[Depends(JWTBearer())])
@@ -121,18 +122,9 @@ def verify_image(dockerImage: str) -> bool:
 
     print(dockerOfficial+dockerImage)
 
-    #dockerTest = dockerRepository+dockerImage
-    #print(dockerTest)
-    #r = requests.get(dockerTest)
-    #print(r.raw)
-
     dockerTest = dockerOfficial+dockerImage
     print(dockerTest)
     r = requests.get(dockerTest)
-    print(r.text)
-
-
-    #Get and test image
-    #Test that dockerhub returns 200 when requesting image
+    print(r)
 
     return True
