@@ -101,41 +101,41 @@ fs_svc_url = "http://fs-service.default.svc.cluster.local:9090"
 
 @app.on_event("startup")
 async def startup_event():
-  if os.getenv('KUBERNETES_SERVICE_HOST'):
-    r = requests.get(url = auth_url + "/keys/public_key")
-    data = r.json()
-    print(data)
-    auth_handler.set_public_key(data)
+  # if os.getenv('KUBERNETES_SERVICE_HOST'):
+  #   r = requests.get(url = auth_url + "/keys/public_key")
+  #   data = r.json()
+  #   print(data)
+  #   auth_handler.set_public_key(data)
 
 
 @app.get("/job/{job_id}", dependencies=[Depends(JWTBearer())])
 def get_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
-    user_id = decoded_token.get('user_id')
+    uuid = decoded_token.get('uuid')
 
-    return crud.get_job(db, job_id, user_id)
+    return crud.get_job(db, job_id, uuid)
 
 @app.get("/job/{job_id}/solvers", dependencies=[Depends(JWTBearer())])
 def get_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
-    user_id = decoded_token.get('user_id')
+    uuid = decoded_token.get('uuid')
 
-    return crud.get_solver_instances(db, job_id, user_id)
+    return crud.get_solver_instances(db, job_id, uuid)
 
 @app.delete("/job/{job_id}", dependencies=[Depends(JWTBearer())])
 def delete_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
-    user_id = decoded_token.get('user_id')
+    uuid = decoded_token.get('uuid')
 
     #TODO: Stop the execution of the job
-    return crud.delete_job(db, job_id, user_id)
+    return crud.delete_job(db, job_id, uuid)
 
-@app.patch("/job/{job_id}", dependencies=[Depends(JWTBearer())])
+@app.delete("/job/{job_id}/{solver_id}", dependencies=[Depends(JWTBearer())])
 def stop_solver(job_id: str, solver_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
-    user_id = decoded_token.get('user_id')
+    uuid = decoded_token.get('uuid')
 
-    result = crud.stop_solver(db, job_id, solver_id, user_id)
+    result = crud.stop_solver(db, job_id, solver_id, uuid)
     #TODO: Stop the execution of the solver
 
     if crud.solvers_left(db, job_id) < 1:
@@ -147,16 +147,16 @@ def stop_solver(job_id: str, solver_id: str, db: Session = Depends(get_db), toke
 @app.get("/job", dependencies=[Depends(JWTBearer())])
 def get_job_list(db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
-    user_id = decoded_token.get('user_id')
+    uuid = decoded_token.get('uuid')
 
-    return crud.get_jobs(db, user_id)
+    return crud.get_jobs(db, uuid)
 
 
 @app.post("/job", dependencies=[Depends(JWTBearer())])
 def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
     decoded_token = auth_handler.decodeJWT(token)
-    user_id = decoded_token.get('user_id')
+    uuid = decoded_token.get('uuid')
     #TODO: Check permissions for vCPUs and RAM count
 
     available_solvers = get_solvers()
@@ -167,9 +167,9 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
         raise HTTPException(status_code=400, detail="One or more of the requested solvers are not available")
 
     # TODO: Verify that mzn file exists
-    (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id, user_id)
+    (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id, uuid)
 
-    new_job = crud.create_job(db, create_job_request, user_id)
+    new_job = crud.create_job(db, create_job_request, uuid)
 
     executor.execute_job(new_job, mzn, dzn, db)
     #TODO: Check if successful
@@ -189,10 +189,10 @@ def get_solvers():
 
     return ["hakankj/fzn-picat-sat", "gkgange/geas-mznc2022", "chuffed", "gecode", "OR-Tools"] #TODO: Remove, only for testing
 
-def get_problem_files(mzn_id, dzn_id, user_id):
+def get_problem_files(mzn_id, dzn_id, uuid):
     #TODO: Contact file services for mzn
     if os.getenv('KUBERNETES_SERVICE_HOST'):
-      r = requests.get(url = fs_svc_url + f"/{user_id}/{mzn_id}")
+      r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}")
       data = r.json()
       print(data)
 
@@ -205,5 +205,6 @@ def get_problem_files(mzn_id, dzn_id, user_id):
         dzn = None
 
     return (mzn, dzn)
+
 
 # default user: ae5f1ccd-15db-454b-86bc-bcf5968987e4
