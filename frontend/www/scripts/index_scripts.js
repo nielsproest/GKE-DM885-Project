@@ -174,7 +174,7 @@ function getAvailableSolvers(){
               <div class="input-group-text">
                 <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
               </div>
-              <span id="fake-solver-id" class="input-group-text solver-name-class"> fake-solver </span>
+              <span id="213c7f36-dad8-4316-aaac-1a43a4f9062c" class="input-group-text solver-name-class"> fake-solver </span>
               <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
               <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
             </div>
@@ -404,7 +404,7 @@ function startJob(modelIds){
     body: `{
       "mzn_id": "` + modelIds + `",
       "timeout": 120,
-      "solver_list": ` + solverList.toString() + `
+      "solver_list": [` + solverList.toString() + `]
     }`,
     headers: {
       'Access-Control-Allow-Origin':'*',

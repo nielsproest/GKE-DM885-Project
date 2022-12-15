@@ -17,25 +17,33 @@ To run it locally:
 		-e POSTGRES_USER=postgres \
 		-e POSTGRES_PASSWORD=postgres \
 		-e _POSTGRES_HOST=127.0.0.1:5432 \
+		-e _AUTH_HOST=127.0.0.1:5000 \
 		-e _HOST=0.0.0.0:9090 \
 		-e _STORAGE_DIR=/mnt/hdd/dumbaf \
 		fs_service
 
 It should now be running at 127.0.0.1:9090
 To test it:
+	Login to auth service:
+		curl -X POST http://127.0.0.1:5000/users/login -d '{"username": "admin", "password": "password"}' -H "Content-Type: application/json"
+		=>
+		{"token":"..."}
+	Now put whats in the "..." in after the "Bearer ..." in each curl command
+	NOTE That i write the userid/UUID as 0, this wont be your UUID, change it
+
 	Upload a file as user id 0:
-		curl -X PUT -L -F "file=@blast2.sh" http://127.0.0.1:9090/0/
+		curl -X PUT -H "Authorization: Bearer ..." -L -F "file=@blast2.sh" http://127.0.0.1:9090/0/
 		=>
 		{"message":"OK","id":0}
 	List user id 0's files
-		curl -X PUT -L -F "file=@blast2.sh" http://127.0.0.1:9090/0/list
+		curl -X GET -H "Authorization: Bearer ..." http://127.0.0.1:9090/0/list
 		=>
 		{"message":"OK","lst":[{"size":70,"id":0,"name":"blast2.sh","owner":"0"}]}
 	Get user id 0's file id 0
-		curl -X GET http://127.0.0.1:9090/0/0
+		curl -X GET -H "Authorization: Bearer ..." http://127.0.0.1:9090/0/0
 		=>
 		echo '5' > /sys/devices/platform/nct6775.656/hwmon/hwmon1/pwm4_enable
 	Delete the file
-		curl -X DELETE http://127.0.0.1:9090/0/0
+		curl -X DELETE -H "Authorization: Bearer ..." http://127.0.0.1:9090/0/0
 		=>
 		{"message":"OK"}

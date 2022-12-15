@@ -86,7 +86,7 @@ function getAllUsers(){
             </div>
           `, 'text/html')
 
-          userWrapper.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
+          userWrapper.append(userAppend.childNodes[0].childNodes[1].childNodes[0]);
 
         })
 
@@ -178,8 +178,8 @@ function getRunningSolvers(wrapperId, userId){
                 <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                   <div class="accordion-body">
                     <div id="runningSolutionsWrapper">
-                      <div class="runningSolution m-3 border rounded-2">
-                        <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Running job: ` + job.name + `. Started: ` + job.time_created + ` <button class="btn btn-outline-danger btn-sm" type="button" onclick="deleteRunningSolver(this.id)">Delete job</button></p>
+                      <div id="runningSolution-` + job.id + `" class="runningSolution m-3 border rounded-2">
+                        <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Running job: ` + job.name + `. Started: ` + job.time_created + ` <button id="` + job.id + `" class="btn btn-outline-danger btn-sm" type="button" onclick="deleteRunningJob(this.id)">Delete job</button></p>
                         <ul id="running-instance-list-` + job.id + `" class="list-group">
                         </ul>
                       </div>
@@ -190,7 +190,7 @@ function getRunningSolvers(wrapperId, userId){
             `, 'text/html');
 
             runningSolversElement.append(runningSolvers.childNodes[0].childNodes[1].childNodes[0]);
-            getRunningInstances("running-instance-list-" + job.id);
+            getRunningInstances("running-instance-list-" + job.id, job.id);
 
           }
         })
@@ -202,9 +202,9 @@ function getRunningSolvers(wrapperId, userId){
   }
 }
 
-function getRunningInstances(instanceWrapper){
+function getRunningInstances(instanceWrapper, jobId){
 
-  fetch(jobUrl + "job/" + solutionInstanceId + "/solvers", {
+  fetch(jobUrl + "job/" + jobId + "/solvers", {
       method: 'GET',
       mode: 'cors',
       headers: {
@@ -220,8 +220,8 @@ function getRunningInstances(instanceWrapper){
         
         result.forEach(instance => {
 
-          let listItem = instanceParser.parseFromString('<li class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="deleteRunningJob(this.id)" type="button">Remove running solver</button></li>', 'text/html')
-          runningInstanceElement.append(listItem.documentElement)
+          let listItem = instanceParser.parseFromString('<li id="runningSolverId-' + instance.id + '" class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="deleteRunningSolver(this.id, ' + jobId + ')" type="button">Remove running solver</button></li>', 'text/html')
+          runningInstanceElement.append(listItem.childNodes[0].childNodes[1].childNodes[0])
 
         });
 
@@ -249,18 +249,62 @@ exampleModal.addEventListener('show.bs.modal', event => {
   modalTitle.value = `Set permissions for ${recipient}`
 })
 
-function deleteRunningSolver(){
+function deleteRunningSolver(jobId,solverId){
+
+  jobToDelete = document.getElementById("runningSolverId-" + solverId);
+  jobToDelete.remove();
+
+  fetch(jobUrl + "job/" + jobId + "/" + solverId, {
+    method: 'DELETE',
+    mode: 'cors',
+    headers: {
+      'Access-Control-Allow-Origin':'*',
+      'Authorization':'Bearer ' + localStorage.getItem("token")
+    }
+  })
+    .then((response) => response.json())
+    .then((result) => {
+
+      console.log("stop instance: ", result)
+
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
 
 }
 
-function deleteRunningJob(){
+function deleteRunningJob(jobId){
 
+  jobToDelete = document.getElementById("runningSolution-" + jobId);
+  jobToDelete.remove();
+
+  fetch(jobUrl + "job/" + jobId, {
+    method: 'DELETE',
+    mode: 'cors',
+    headers: {
+      'Access-Control-Allow-Origin':'*',
+      'Authorization':'Bearer ' + localStorage.getItem("token")
+    }
+  })
+    .then((response) => response.json())
+    .then((result) => {
+
+      console.log("stop job: ", result)
+
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
 }
 
 function uploadNewSolver() {
 
   solverName = document.getElementById("solver_id_input").value;
   newsolverUrl = document.getElementById("solver_url_input").value;  
+
+  var data = new FormData()
+  data.append('image', newsolverUrl)
 
   if(solverUrl != null){
     fetch(solverUrl + "solver/" + solverName + "/" + newsolverUrl, {
@@ -269,7 +313,8 @@ function uploadNewSolver() {
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token")
-      }
+      },
+      body: data
     })
       .then((response) => response.json())
       .then((result) => {
