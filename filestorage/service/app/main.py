@@ -4,15 +4,13 @@ from sqlalchemy.orm import Session
 from os.path import join
 from os import remove, getenv
 
-#TODO: Pydantic Schemas for returning data consistently
 from . import crud, models
 from .database import SessionLocal, engine
+from .auth import JWTBearer, decode_jwt
 
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
-
-#TODO: Get running by monday
 
 # Dependency
 def get_db():
@@ -25,20 +23,38 @@ def get_db():
 #Where our files are stored
 OS_DIR = getenv("_STORAGE_DIR", "/mnt/hdd")
 
-a_hundred_mb = 1024*1024*100
+def generic_auth_handler(user_id, token):
+	permissions = decode_jwt(token).get("permissions", None)
+
+	if permissions is None:
+		raise HTTPException(
+			status_code=400, detail="Missing permissions"
+		)
+
+	if not permissions["is_admin"] and user_id != permissions["uuid"]:
+		raise HTTPException(
+			status_code=401, detail="Wrong user for said resource"
+		)
+
+	return permissions
 
 @app.put("/{user_id}/")
-async def write(user_id: str, file: UploadFile, db: Session = Depends(get_db)):
-	#TODO: Check user auth
+async def write(
+		user_id: str, 
+		file: UploadFile, 
+		db: Session = Depends(get_db),
+		token=Depends(JWTBearer())
+	):
+	permissions = generic_auth_handler(user_id, token)
 
-	#TODO: Limit size to prevent exploitation
-	#TODO: Move to file write (dont keep in memory), and update size after (TODO: Is it unsafe?)
+	#The load balancer is expected to limit size, so this isnt an exploit
 	fs = await file.read()
 	fs_size = len(fs)
 
 	#Check user space available
 	usage = crud.get_user_usage(db, user_id)
-	if (usage != None and usage + fs_size > a_hundred_mb):
+	allowed_usage = permissions["storage_limit"]
+	if (usage != None and usage + fs_size > allowed_usage):
 		raise HTTPException(status_code=413, detail="Not enough space")
 
 	#Create file
@@ -56,8 +72,13 @@ async def write(user_id: str, file: UploadFile, db: Session = Depends(get_db)):
 	}
 
 @app.get("/{user_id}/list")
-async def lst(user_id: str, db: Session = Depends(get_db)):
-	#TODO: Check user auth
+async def lst(
+		user_id: str, 
+		db: Session = Depends(get_db),
+		token=Depends(JWTBearer())
+	):
+	permissions = generic_auth_handler(user_id, token)
+
 	qry = crud.get_files(db, user_id)
 	if not qry:
 		raise HTTPException(status_code=404, detail="No files available")
@@ -68,8 +89,14 @@ async def lst(user_id: str, db: Session = Depends(get_db)):
 	}
 
 @app.get("/{user_id}/{item_id}")
-async def read(user_id: str, item_id: int, db: Session = Depends(get_db)):
-	#TODO: Check user auth
+async def read(
+		user_id: str, 
+		item_id: int, 
+		db: Session = Depends(get_db),
+		token=Depends(JWTBearer())
+	):
+	permissions = generic_auth_handler(user_id, token)
+
 	qry = crud.get_file(db, item_id)
 	if not qry:
 		raise HTTPException(status_code=404, detail="File not found")
@@ -77,19 +104,27 @@ async def read(user_id: str, item_id: int, db: Session = Depends(get_db)):
 	return FileResponse(join(OS_DIR, str(item_id)), filename=qry.name)
 
 @app.patch("/{user_id}/{item_id}")
-async def update(user_id: str, item_id: int, file: UploadFile, db: Session = Depends(get_db)):
-	#TODO: Check user auth
+async def update(
+		user_id: str, 
+		item_id: int, 
+		file: UploadFile, 
+		db: Session = Depends(get_db),
+		token=Depends(JWTBearer())
+	):
+	permissions = generic_auth_handler(user_id, token)
+
 	qry = crud.get_file(db, item_id)
 	if not qry:
 		raise HTTPException(status_code=404, detail="File not found")
 
-	#TODO: Limit size to prevent exploitation
+	#The load balancer is expected to limit size, so this isnt an exploit
 	fs = await file.read()
 	fs_size = len(fs)
 
 	#Check user space available
 	usage = crud.get_user_usage(db, user_id)
-	if (usage != None and usage + fs_size > a_hundred_mb):
+	allowed_usage = permissions["storage_limit"]
+	if (usage != None and usage + fs_size > allowed_usage):
 		raise HTTPException(status_code=413, detail="Not enough space")
 
 	with open(join(OS_DIR, str(qry.id)), "wb") as f:
@@ -100,8 +135,14 @@ async def update(user_id: str, item_id: int, file: UploadFile, db: Session = Dep
 	}
 
 @app.delete("/{user_id}/{item_id}")
-async def delete(user_id: str, item_id: int, db: Session = Depends(get_db)):
-	#TODO: Check user auth
+async def delete(
+		user_id: str, 
+		item_id: int, 
+		db: Session = Depends(get_db),
+		token=Depends(JWTBearer())
+	):
+	permissions = generic_auth_handler(user_id, token)
+
 	qry = crud.delete_file(db, item_id)
 	if not qry:
 		raise HTTPException(status_code=404, detail="File not found")

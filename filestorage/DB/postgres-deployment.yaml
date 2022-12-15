@@ -10,6 +10,7 @@ data:
   POSTGRES_USER: admin
   POSTGRES_PASSWORD: psltest
   _POSTGRES_HOST: fs-postgres.default.svc.cluster.local:5432
+  _AUTH_HOST: auth-service.default.svc.cluster.local:5000
   _HOST: 0.0.0.0:9090
   _STORAGE_DIR: /mnt/hdd/dumbaf
 ---
