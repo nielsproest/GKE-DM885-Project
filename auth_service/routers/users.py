@@ -1,6 +1,6 @@
 """ Endpoints relating to the creation, deletion, and modification of users. """
 import json
-
+import uuid as uuid_pkg
 from fastapi import Depends, APIRouter, HTTPException, status, Body
 from decouple import config
 from internal import JWTBearer, sign_jwt, decode_jwt, hash_password, verify_password
@@ -57,13 +57,15 @@ async def create_new_user(
 
     # Passwords are hashed before being stored in the database
     hashed_password = hash_password(password)
-    new_user = User(username=username, password=hashed_password, permissions=base_permissions)
+    uuid = uuid_pkg.uuid4()
+    new_user = User(username=username, password=hashed_password, permissions=base_permissions, uuid=uuid)
+
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
 
     # Generate a JWT token for the user TODO : Make this payload generation use some preset values from the database
-    return {"token": sign_jwt(username, base_permissions)}
+    return {"token": sign_jwt(username, base_permissions, uuid=uuid)}
 
 
 
@@ -101,9 +103,10 @@ async def login_user(
     
     # Retrieve the user's permissions from the database
     permissions = user.permissions
+    uuid = user.uuid
 
     # Generate a JWT token for the user
-    return {"token": sign_jwt(username, permissions)}
+    return {"token": sign_jwt(username, permissions, uuid=uuid)}
 
 
 
@@ -302,7 +305,29 @@ async def get_permissions(
         # Return the user's permissions
         return {"message": user.permissions}
 
+@router.get("/decode_jwt")
+async def _decode_jwt(token=Depends(JWTBearer())):
+
+    decoded_token = decode_jwt(token)
+    permissions = decoded_token.get("permissions", None)
+
+    # Sanity Checks
+    if permissions is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing permissions"
+        )
+
+    if permissions.get("is_admin", False) is False:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Only administators can get user permissions",
+            )
+
+
+    return {"message": decoded_token}
+
+
+
 @router.get("/wave")
 async def wave(token=Depends(JWTBearer())):
-    decode_jwt(token).get("permissions", None)
     return {"message": "Hello World"}

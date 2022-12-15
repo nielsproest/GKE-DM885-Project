@@ -26,7 +26,7 @@ with open(PUBLIC_KEY_FILE, "rb") as f:
 
 
 
-def sign_jwt(user_id: str, payload: dict = None) -> str:
+def sign_jwt(user_id: str, payload: dict = None, uuid = None) -> str:
     """Create and sign a JWT token using the secret private key
 
     Args:
@@ -40,7 +40,10 @@ def sign_jwt(user_id: str, payload: dict = None) -> str:
         str: The signed JWT token
     """
 
-    new_payload = {"user_id": user_id, "expiration": str(time.time() + SESSION_TIME), "permissions": payload or {}}
+    if uuid is None:
+        raise ValueError("UUID is required")
+
+    new_payload = {"user_id": user_id, "expiration": str(time.time() + SESSION_TIME), "permissions": payload or {}, "uuid": str(uuid)}
     token = jwt.encode(new_payload, PRIVATE_KEY, algorithm="RS256")
 
     return token

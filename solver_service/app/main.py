@@ -123,5 +123,6 @@ def verify_image(dockerImage: str):
     #TODO: verify image by building imgage in container
 
     #Get and test image
+    #Test that dockerhub returns 200 when requesting image
 
     return True

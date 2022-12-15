@@ -2,10 +2,10 @@
 name: Build and Deploy jobservice to GKE
 
 on:
-  workflow_dispatch:
   push:
     paths:
         - job_service/app/**
+  workflow_dispatch:
 
 env:
   PROJECT_ID: solveit-369711
@@ -77,5 +77,5 @@ jobs:
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |-
-        kubectl apply -f kubernetes/jobservice.yaml
+        envsubst < kubernetes/jobservice.yaml | kubectl apply -f -
         kubectl rollout status deployment/jobservice-deployment

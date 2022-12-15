@@ -21,23 +21,23 @@ resource "google_container_cluster" "primary" {
   # We can't create a cluster with no node pool defined, but we want to only use
   # separately managed node pools. So we create the smallest possible default
   # node pool and immediately delete it.
-  #remove_default_node_pool = true
-  #initial_node_count       = 1
+  remove_default_node_pool = true
+  initial_node_count       = 1
 
-  #Instead of managing our resources, let google do it
-  ip_allocation_policy {}  #Needed to fix terraform bug #10782
-  enable_autopilot         = true
+  #Autopilot:
+  #ip_allocation_policy {}  #Needed to fix terraform bug #10782
+  #enable_autopilot         = true
 
   network    = google_compute_network.vpc.name
   subnetwork = google_compute_subnetwork.subnet.name
 }
 
 # Separately Managed Node Pool
-/* resource "google_container_node_pool" "primary_nodes" {
+resource "google_container_node_pool" "primary_nodes" {
   name       = "${google_container_cluster.primary.name}"
   location   = var.region
   cluster    = google_container_cluster.primary.name
-  #node_count = var.gke_num_nodes
+  node_count = var.gke_num_nodes
 
   node_config {
     oauth_scopes = [
@@ -57,7 +57,7 @@ resource "google_container_cluster" "primary" {
       disable-legacy-endpoints = "true"
     }
   }
-} */
+}
 
 provider "kubernetes" {
   config_path    = "~/.kube/config"
