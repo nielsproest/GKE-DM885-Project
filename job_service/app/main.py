@@ -105,7 +105,8 @@ async def startup_event():
       r = requests.get(url = auth_url + "/keys/public_key")
       data = r.json()
       print(data)
-      auth_handler.set_public_key(data)
+      print(data["message"])
+      auth_handler.set_public_key(data["message"])
 
 
 @app.get("/job/{job_id}", dependencies=[Depends(JWTBearer())])
@@ -219,11 +220,4 @@ def get_problem_files(mzn_id, dzn_id, decoded_token):
 
 
 # default user: ae5f1ccd-15db-454b-86bc-bcf5968987e4
-
-
-
-
-
-
-
 
