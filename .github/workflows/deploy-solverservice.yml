@@ -2,10 +2,10 @@
 name: Build and Deploy solverservice to GKE
 
 on:
-  workflow_dispatch:
   push:
     paths:
         - solver_service/app/**
+  workflow_dispatch:
 
 env:
   PROJECT_ID: solveit-369711

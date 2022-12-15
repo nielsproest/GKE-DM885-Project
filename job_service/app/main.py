@@ -95,7 +95,8 @@ app.add_middleware(
 )
 
 auth_url = "http://auth-service.default.svc.cluster.local:5000"
-solver_svc_url = "http://solverservice.default.svc.cluster.local:5000"
+solver_svc_url = "http://solverservice.default.svc.cluster.local:8080"
+fs_svc_url = "http://fs-service.default.svc.cluster.local:9090"
 
 
 @app.on_event("startup")
@@ -166,7 +167,7 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
         raise HTTPException(status_code=400, detail="One or more of the requested solvers are not available")
 
     # TODO: Verify that mzn file exists
-    (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id)
+    (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id, user_id)
 
     new_job = crud.create_job(db, create_job_request, user_id)
 
@@ -180,16 +181,21 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
 def get_solvers():
 
     # TODO: Implement call to solver service
-    if False:
+    if os.getenv('KUBERNETES_SERVICE_HOST'):
       r = requests.get(url = solver_svc_url + "/solver")
       data = r.json()
       print(data)
-      return list(data)
+      #return list(data)
 
     return ["hakankj/fzn-picat-sat", "gkgange/geas-mznc2022", "chuffed", "gecode", "OR-Tools"] #TODO: Remove, only for testing
 
-def get_problem_files(mzn_id, dzn_id):
+def get_problem_files(mzn_id, dzn_id, user_id):
     #TODO: Contact file services for mzn
+    if os.getenv('KUBERNETES_SERVICE_HOST'):
+      r = requests.get(url = fs_svc_url + f"/{user_id}/{mzn_id}")
+      data = r.json()
+      print(data)
+
     mzn = test_mzn
 
     if dzn_id != None:
@@ -199,6 +205,5 @@ def get_problem_files(mzn_id, dzn_id):
         dzn = None
 
     return (mzn, dzn)
-
 
 # default user: ae5f1ccd-15db-454b-86bc-bcf5968987e4

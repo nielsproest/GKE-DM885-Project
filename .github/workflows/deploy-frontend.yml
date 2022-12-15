@@ -2,10 +2,10 @@
 name: Build and Deploy frontend to GKE
 
 on:
-  workflow_dispatch:
   push:
     paths:
         - frontend/**
+  workflow_dispatch:
 
 env:
   PROJECT_ID: solveit-369711
