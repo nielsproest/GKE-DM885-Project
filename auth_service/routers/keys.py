@@ -9,16 +9,15 @@ from models import Base, engine
 
 Base.metadata.create_all(bind=engine)
 
+
 @router.get(
     "/public_key",
 )
 async def get_public_key():
-    """ Expose the public key for external authentication. """
+    """Expose the public key for external authentication."""
 
     try:
-        return {"message":
-            ''.join(open(config("PUBLIC_KEY_FILE", "r")).read().splitlines())
-        }
+        return {"message": "".join(open(config("PUBLIC_KEY_FILE", "r")).read())}
     except FileNotFoundError:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -29,4 +28,3 @@ async def get_public_key():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e),
         )
-    
