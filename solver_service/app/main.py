@@ -47,8 +47,7 @@ async def startup_event():
     db = SessionLocal()
     solvers = getAllSolvers(db)
 
-    #Change name, and potentially add more solvers
-
+    #Name and solver url for solvers to be added on startup if they do not exist
     permSolvers = {"fzn-picat-sat": "hakankj/fzn-picat-sat", "geas": "gkgange/geas-mznc2022"}
 
     solverURLs = []
@@ -58,7 +57,6 @@ async def startup_event():
 
     for perm in permSolvers:
         if not permSolvers.get(perm) in solverURLs:
-            print("Pre added solver: " + permSolvers.get(perm))
             cPostSolver(db, perm, permSolvers.get(perm))
     
     if os.getenv('KUBERNETES_SERVICE_HOST'):
@@ -134,12 +132,9 @@ def verify_image(dockerImage: str) -> bool:
     #TODO: verify image by building imgage in container
     #Currently verifies by pulling the image, which is either successful or returns an error if image does not exist
 
-    return True
-
     try:
-        image = client.images.pull(dockerImage)
-    except: 
+        temp = client.images.pull(dockerImage, all_tags=True)
+    except:
         return False
-    print(image)
 
     return True

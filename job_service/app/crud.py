@@ -39,7 +39,7 @@ def create_job(db: Session, job: schemas.CreateJob, user_id: str):
       user_id=user_id,
       mzn_id=job.mzn_id,
       dzn_id=job.dzn_id,
-      result="test",
+      result="",
       timeout=job.timeout,
       status="running")
     db.add(db_job)
