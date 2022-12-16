@@ -83,10 +83,25 @@
         </div>
         <div class="modal-body">
           <p>Set permissions for user</p>
-
+          <div class="input-group">
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="solver_name">VCPUS</span>
+              <input id="user_cpu_input" type="text" class="form-control" placeholder="Maximum number of VCPU's (default 1)" aria-label="Sizing example input" aria-describedby="solver_name">
+            </div>
+            <div class="input-group mb-3">
+              <span class="input-group-text" id="solver_url">RAM</span>
+              <input id="user_ram_input" type="text" class="form-control" placeholder="Maximum ram (default 1024)" aria-label="Sizing example input" aria-describedby="solver_url ">
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" value="" id="admin_checkbox">
+              <label class="form-check-label" for="flexCheckDefault">
+                Should be admin
+              </label>
+            </div>                    
+          </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-primary">Set permissions</button>
+          <button id="" type="button" class="btn btn-primary modal-btn-class" onclick="setPermissions(this.id)">Set permissions</button>
         </div>
       </div>
     </div>

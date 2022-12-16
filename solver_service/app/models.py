@@ -11,5 +11,3 @@ class Solver(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid_helper)
     name = Column(String)
     dockerImage = Column(String)
-
-# LAV MYSQLDB MODULET FRA TUTORIALEN I SIN EGEN FIL

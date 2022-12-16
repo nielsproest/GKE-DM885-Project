@@ -241,18 +241,17 @@ exampleModal.addEventListener('show.bs.modal', event => {
   const recipient = button.getAttribute('data-bs-userId')
   // If necessary, you could initiate an AJAX request here
   // and then do the updating in a callback.
-  //
+
   // Update the modal's content.
   const modalTitle = exampleModal.querySelector('.modal-title')
+  modalTitle.innerHTML = "User id: " + recipient
+  exampleModal.querySelector('.modal-btn-class').id = recipient
   
-  console.log("testing", recipient)
+  // console.log("testing", recipient)
   modalTitle.value = `Set permissions for ${recipient}`
 })
 
 function deleteRunningSolver(jobId,solverId){
-
-  jobToDelete = document.getElementById("runningSolverId-" + solverId);
-  jobToDelete.remove();
 
   fetch(jobUrl + "job/" + jobId + "/" + solverId, {
     method: 'DELETE',
@@ -266,6 +265,8 @@ function deleteRunningSolver(jobId,solverId){
     .then((result) => {
 
       console.log("stop instance: ", result)
+      jobToDelete = document.getElementById("runningSolverId-" + solverId);
+      jobToDelete.remove();
 
     })
     .catch((error) => {
@@ -275,9 +276,6 @@ function deleteRunningSolver(jobId,solverId){
 }
 
 function deleteRunningJob(jobId){
-
-  jobToDelete = document.getElementById("runningSolution-" + jobId);
-  jobToDelete.remove();
 
   fetch(jobUrl + "job/" + jobId, {
     method: 'DELETE',
@@ -291,6 +289,8 @@ function deleteRunningJob(jobId){
     .then((result) => {
 
       console.log("stop job: ", result)
+      jobToDelete = document.getElementById("runningSolution-" + jobId);
+      jobToDelete.remove();
 
     })
     .catch((error) => {
@@ -307,7 +307,7 @@ function uploadNewSolver() {
   data.append('image', newsolverUrl)
 
   if(solverUrl != null){
-    fetch(solverUrl + "solver/" + solverName + "/" + newsolverUrl, {
+    fetch(solverUrl + "solver/" + solverName, {
       method: 'POST',
       mode: 'cors',
       headers: {
@@ -318,7 +318,7 @@ function uploadNewSolver() {
     })
       .then((response) => response.json())
       .then((result) => {
-        
+        console.log("Upload solver: ", result)
         loadSolvers()
         
       })
@@ -382,9 +382,45 @@ function isUserAdmin(){
   }
 }
 
-function logout(){
-          // Delete session token
+function setPermissions(){
+  // Set permissions
 
-          // Back to login 
-          window.location.href = "login.html";
+  var data = new FormData() 
+  cpu = document.getElementById("user_cpu_input").value;
+  ram = document.getElementById("user_ram_input").value;
+  admin = document.querySelector('#admin_checkbox').checked;
+
+  data.append("max_cpu", cpu)
+  data.append("max_ram", ram)
+  data.append("is_admin", admin)
+
+
+  if(authUrl != null){
+    fetch(authUrl + "modify" , {
+      method: 'POST',
+      mode: 'cors',
+      body: data,
+      headers: {
+        'Access-Control-Allow-Origin':'*',
+        'Authorization':'Bearer ' + localStorage.getItem("token")
+      }
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        
+        console.log("permissions results:", result)
+
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }
+}
+
+function logout(){
+  // Delete session token
+  localStorage.removeItem("token")
+
+  // Back to login 
+  window.location.href = "login.html";
 }
