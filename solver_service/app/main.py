@@ -44,29 +44,11 @@ auth_url = "http://auth-service.default.svc.cluster.local:5000"
 
 @app.on_event("startup")
 async def startup_event():
-    db = SessionLocal()
-    solvers = getAllSolvers(db)
-
     #Name and solver url for solvers to be added on startup if they do not exist
     permSolvers = {"fzn-picat-sat": "hakankj/fzn-picat-sat", "geas": "gkgange/geas-mznc2022"}
 
-    solverURLs = []
-
-    for solver in solvers:
-        solverURLs.append(solver.dockerImage)
-
-    for perm in permSolvers:
-        if not permSolvers.get(perm) in solverURLs:
-            cPostSolver(db, perm, permSolvers.get(perm))
-    
-    if os.getenv('KUBERNETES_SERVICE_HOST'):
-        r = requests.get(url = auth_url + "/keys/public_key")
-        data = r.json()
-        setPublicKey(data["message"])
-    else:
-        setPublicKey('''-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvpAXDxizoN4MHs0qJrQ9J/Dc+95mLbT7o/haw2vXuB2LoSp855W/5hpPqyhAkPmKJEzICp6Ke72a2oUVeJb8lckM3km9dxFBvNsbMEpKEOO1/WhmWw8aDwBI7E0s7KAXHSdqCBncB4L3W37O9c6bQ2QrGpfrN82yFXez25tdv1ODc7bzfYFdD5LHNVymYl0E+dR/4P2P/+YxUX7omUI9Bqt6jdw6uERt2tcyT0PFT2DQwf3mtrXCufo68uMfxKP0TN5c1Zan4jwXeiJE4wHPzFgaWTzgKB6xayJqkgI9nhy5KaONIKe+ZCerrsBKztk9R8uH38GdI2rcwCPYi2AkkQIDAQAB
------END PUBLIC KEY-----''')
+    startupDbPrep(permSolvers)
+    startupPkPrep()    
 
 @app.get("/solver", dependencies=[Depends(JWTBearer())])
 def getAllSolvers(db: Session = Depends(get_db)):
@@ -76,22 +58,15 @@ def getAllSolvers(db: Session = Depends(get_db)):
 @app.get("/solver/{id}", dependencies=[Depends(JWTBearer())])
 def getSolver(solverId: str, db: Session = Depends(get_db)):
 
-    if not isValidUuid(solverId):
-        raise HTTPException(status_code=400, detail=f"Id not valid")
+    isValidUuid(solverId)
         
-    solver = cGetSolver(db, solverId)
-
-    return solver
+    return cGetSolver(db, solverId)
 
 @app.delete("/solver/{id}", dependencies=[Depends(JWTBearer())])
 def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
-    admin = decode_jwt(token).get('permissions').get('is_admin')
-    if not admin:
-        raise HTTPException(status_code=401, detail=f"User is not admin") 
-
-    if not isValidUuid(solverId):
-        raise HTTPException(status_code=400, detail=f"Id not valid")
+    isAdmin(token)
+    isValidUuid(solverId)
 
     cDeleteSolver(db, solverId)
 
@@ -100,12 +75,38 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWT
 @app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
 def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
+    isAdmin(token)
+    isInDb(db, image)
+    verify_image(image)
+
+    cPostSolver(db, name, image)
+
+    return {"success"}
+
+def isValidUuid(solverId):
+    try:
+        uuid.UUID(str(solverId))
+        return
+    except ValueError:
+        raise HTTPException(status_code=400, detail=f"Id not valid")
+
+def verify_image(dockerImage: str):
+    #Currently verifies by pulling the image - checking all tags, which is either successful or returns an error if image does not exist
+
+    try:
+        pull = client.images.pull(dockerImage, tag='latest')
+        print(pull)
+    except:
+        raise HTTPException(status_code=400, detail=f"Docker image could not be verified")
+    client.images.remove(dockerImage)
+
+def isAdmin(token: str):
     admin = decode_jwt(token).get('permissions').get('is_admin')
     if not admin:
         raise HTTPException(status_code=401, detail=f"User is not admin") 
 
+def isInDb(db: Session, image: str):
     solvers = getAllSolvers(db)
-
     solverURLs = []
 
     for solver in solvers:
@@ -114,27 +115,25 @@ def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depen
     if image in solverURLs:
         raise HTTPException(status_code=409, detail=f"Image already exists in database")
 
-    if not verify_image(image):
-        raise HTTPException(status_code=400, detail=f"Docker image could not be verified")    
+def startupDbPrep(permSolvers: dict):
+    db = SessionLocal()
+    solvers = getAllSolvers(db)
 
-    cPostSolver(db, name, image)
+    solverURLs = []
 
-    return {"success"}
+    for solver in solvers:
+        solverURLs.append(solver.dockerImage)
 
-def isValidUuid(solverId) -> bool:
-    try:
-        uuid.UUID(str(solverId))
-        return True
-    except ValueError:
-        return False
+    for perm in permSolvers:
+        if not permSolvers.get(perm) in solverURLs:
+            cPostSolver(db, perm, permSolvers.get(perm))
 
-def verify_image(dockerImage: str) -> bool:
-    #TODO: verify image by building imgage in container
-    #Currently verifies by pulling the image, which is either successful or returns an error if image does not exist
-
-    try:
-        temp = client.images.pull(dockerImage, all_tags=True)
-    except:
-        return False
-
-    return True
+def startupPkPrep():
+    if os.getenv('KUBERNETES_SERVICE_HOST'):
+        r = requests.get(url = auth_url + "/keys/public_key")
+        data = r.json()
+        setPublicKey(data["message"])
+    else:
+        setPublicKey('''-----BEGIN PUBLIC KEY-----
+MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvpAXDxizoN4MHs0qJrQ9J/Dc+95mLbT7o/haw2vXuB2LoSp855W/5hpPqyhAkPmKJEzICp6Ke72a2oUVeJb8lckM3km9dxFBvNsbMEpKEOO1/WhmWw8aDwBI7E0s7KAXHSdqCBncB4L3W37O9c6bQ2QrGpfrN82yFXez25tdv1ODc7bzfYFdD5LHNVymYl0E+dR/4P2P/+YxUX7omUI9Bqt6jdw6uERt2tcyT0PFT2DQwf3mtrXCufo68uMfxKP0TN5c1Zan4jwXeiJE4wHPzFgaWTzgKB6xayJqkgI9nhy5KaONIKe+ZCerrsBKztk9R8uH38GdI2rcwCPYi2AkkQIDAQAB
+-----END PUBLIC KEY-----''')
