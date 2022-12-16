@@ -136,6 +136,8 @@ function getAvailableSolvers(){
         .then((response) => response.json())
         .then((result) => {
 
+          console.log("get solvers result: ", result)
+
           solverList.innerHTML = "";
           let solverParser = new DOMParser();
 
@@ -196,8 +198,10 @@ function isUserAdmin(){
 
           console.log("permissions results:", result)
 
+          tokenDecode = parseJwt(localStorage.getItem("token"))
+
           // Not finished
-          if(result.permissions == "yay admin"){
+          if(tokenDecode.is_admin == true){
             settingsElement = document.getElementById("settingsAId");
             settingsElement.classList.remove("disabled");
             settingsElement.setAttribute("aria-disabled", "false");
@@ -292,7 +296,7 @@ function getSolvedSolutions(){
 
 function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
-  console.log(solutionInstanceId)
+  console.log("instance id: ", solutionInstanceId)
 
   fetch(jobUrl + "job/" + solutionInstanceId + "/solvers", {
     method: 'GET',
