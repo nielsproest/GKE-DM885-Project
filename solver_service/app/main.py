@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 import uuid
 import os
 import requests
+import docker
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -21,6 +22,8 @@ def get_db():
         db.close()
 
 app = FastAPI()
+
+client = docker.from_env()
 
 # CHANGE FOR PRODUCTION
 origins = [
@@ -66,7 +69,6 @@ async def startup_event():
         setPublicKey('''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvpAXDxizoN4MHs0qJrQ9J/Dc+95mLbT7o/haw2vXuB2LoSp855W/5hpPqyhAkPmKJEzICp6Ke72a2oUVeJb8lckM3km9dxFBvNsbMEpKEOO1/WhmWw8aDwBI7E0s7KAXHSdqCBncB4L3W37O9c6bQ2QrGpfrN82yFXez25tdv1ODc7bzfYFdD5LHNVymYl0E+dR/4P2P/+YxUX7omUI9Bqt6jdw6uERt2tcyT0PFT2DQwf3mtrXCufo68uMfxKP0TN5c1Zan4jwXeiJE4wHPzFgaWTzgKB6xayJqkgI9nhy5KaONIKe+ZCerrsBKztk9R8uH38GdI2rcwCPYi2AkkQIDAQAB
 -----END PUBLIC KEY-----''')
-    return
 
 @app.get("/solver", dependencies=[Depends(JWTBearer())])
 def getAllSolvers(db: Session = Depends(get_db)):
@@ -111,8 +113,6 @@ def postSolver(name: str, image: str, db: Session = Depends(get_db)):
 
     cPostSolver(db, name, image)
 
-    return
-
 def isValidUuid(solverId) -> bool:
     try:
         uuid.UUID(str(solverId))
@@ -120,18 +120,11 @@ def isValidUuid(solverId) -> bool:
     except ValueError:
         return False
 
-
 def verify_image(dockerImage: str) -> bool:
     #TODO: verify image by building imgage in container
 
-    dockerRepository = "https://hub.docker.com/r/"
-    dockerOfficial = "https://hub.docker.com/_/"
+    image = client.images.search(dockerImage)
 
-    print(dockerOfficial+dockerImage)
-
-    dockerTest = dockerOfficial+dockerImage
-    print(dockerTest)
-    r = requests.get(dockerTest)
-    print(r)
+    print(image)
 
     return True

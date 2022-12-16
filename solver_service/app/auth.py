@@ -7,7 +7,6 @@ def setPublicKey(newKey):
     global PUBLIC_KEY
     PUBLIC_KEY = newKey
     print("Public key is:" + PUBLIC_KEY)
-    return
 
 def validate_token(token: str) -> bool:
     try:
