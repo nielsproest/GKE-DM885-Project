@@ -123,8 +123,8 @@ def isValidUuid(solverId) -> bool:
 def verify_image(dockerImage: str) -> bool:
     #TODO: verify image by building imgage in container
 
-    image = client.images.search(dockerImage)
+    #image = client.images.search(dockerImage)
 
-    print(image)
+    #print(image)
 
     return True
