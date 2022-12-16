@@ -10,7 +10,7 @@ from models import Solver
 from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver
 from database import engine, SessionLocal
 from auth_handler import JWTBearer
-from auth import setPublicKey
+from auth import setPublicKey, decode_jwt
 
 Solver.metadata.create_all(bind=engine)
 
@@ -86,17 +86,25 @@ def getSolver(solverId: str, db: Session = Depends(get_db)):
     return solver
 
 @app.delete("/solver/{id}", dependencies=[Depends(JWTBearer())])
-def deleteSolver(solverId: str, db: Session = Depends(get_db)):
+def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+
+    admin = decode_jwt(token).get('permissions').get('is_admin')
+    if not admin:
+        raise HTTPException(status_code=401, detail=f"User is not admin") 
 
     if not isValidUuid(solverId):
         raise HTTPException(status_code=400, detail=f"Id not valid")
 
     cDeleteSolver(db, solverId)
 
-    return
+    return {"success"}
 
 @app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
-def postSolver(name: str, image: str, db: Session = Depends(get_db)):
+def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+
+    admin = decode_jwt(token).get('permissions').get('is_admin')
+    if not admin:
+        raise HTTPException(status_code=401, detail=f"User is not admin") 
 
     solvers = getAllSolvers(db)
 
@@ -113,6 +121,8 @@ def postSolver(name: str, image: str, db: Session = Depends(get_db)):
 
     cPostSolver(db, name, image)
 
+    return {"success"}
+
 def isValidUuid(solverId) -> bool:
     try:
         uuid.UUID(str(solverId))
@@ -123,6 +133,8 @@ def isValidUuid(solverId) -> bool:
 def verify_image(dockerImage: str) -> bool:
     #TODO: verify image by building imgage in container
     #Currently verifies by pulling the image, which is either successful or returns an error if image does not exist
+
+    return True
 
     try:
         image = client.images.pull(dockerImage)
