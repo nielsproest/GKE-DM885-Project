@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 import uuid
 import os
 import requests
-import docker
+#import docker
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
