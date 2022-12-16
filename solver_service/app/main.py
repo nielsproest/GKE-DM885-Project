@@ -47,8 +47,7 @@ async def startup_event():
     db = SessionLocal()
     solvers = getAllSolvers(db)
 
-    #Change name, and potentially add more solvers
-
+    #Name and solver url for solvers to be added on startup if they do not exist
     permSolvers = {"fzn-picat-sat": "hakankj/fzn-picat-sat", "geas": "gkgange/geas-mznc2022"}
 
     solverURLs = []
@@ -58,7 +57,6 @@ async def startup_event():
 
     for perm in permSolvers:
         if not permSolvers.get(perm) in solverURLs:
-            print("Pre added solver: " + permSolvers.get(perm))
             cPostSolver(db, perm, permSolvers.get(perm))
     
     if os.getenv('KUBERNETES_SERVICE_HOST'):
@@ -88,9 +86,9 @@ def getSolver(solverId: str, db: Session = Depends(get_db)):
 @app.delete("/solver/{id}", dependencies=[Depends(JWTBearer())])
 def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
-    admin = decode_jwt(token).get('permissions').get('is_admin')
-    if not admin:
-        raise HTTPException(status_code=401, detail=f"User is not admin") 
+    #admin = decode_jwt(token).get('permissions').get('is_admin')
+    #if not admin:
+        #raise HTTPException(status_code=401, detail=f"User is not admin") 
 
     if not isValidUuid(solverId):
         raise HTTPException(status_code=400, detail=f"Id not valid")
@@ -102,9 +100,9 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWT
 @app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
 def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
-    admin = decode_jwt(token).get('permissions').get('is_admin')
-    if not admin:
-        raise HTTPException(status_code=401, detail=f"User is not admin") 
+    #admin = decode_jwt(token).get('permissions').get('is_admin')
+    #if not admin:
+        #raise HTTPException(status_code=401, detail=f"User is not admin") 
 
     solvers = getAllSolvers(db)
 
@@ -134,12 +132,10 @@ def verify_image(dockerImage: str) -> bool:
     #TODO: verify image by building imgage in container
     #Currently verifies by pulling the image, which is either successful or returns an error if image does not exist
 
-    return True
+    imageList = client.images.search(dockerImage)
 
-    try:
-        image = client.images.pull(dockerImage)
-    except: 
-        return False
-    print(image)
+    for image in imageList:
+        if image['name'] == dockerImage:
+            return True
 
-    return True
+    return False
