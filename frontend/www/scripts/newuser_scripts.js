@@ -1,5 +1,3 @@
-  // const authUrl = "http://127.0.0.4:5000"
-  //const authUrl = null
    const authUrl = "/api/auth/"
   
   // Create user

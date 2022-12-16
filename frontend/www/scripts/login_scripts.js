@@ -1,6 +1,3 @@
-
-//const authUrl = "http://127.0.0.4:5000"
-//const authUrl = null
 const authUrl = "/api/auth/"
 
 function loginFunction() {
@@ -23,10 +20,13 @@ function loginFunction() {
       .then((response) => response.json())
       .then((result) => {
 
-        // Put JWT in session
-        localStorage.setItem("token", result.token)
+        if("token" in result){
+          // Put JWT in session
+          localStorage.setItem("token", result.token)
 
-        window.location.href = "index.html";
+          window.location.href = "index.html";
+        }
+
       })
       .catch((error) => {
         console.error('Error:', error);

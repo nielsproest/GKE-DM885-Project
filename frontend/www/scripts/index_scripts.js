@@ -1,22 +1,17 @@
-
 document.getElementById("bodyIdIndex").onload = function() {onLoad()};
 
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
 // urls for services
-// const jobUrl = "http://127.0.0.1:8000" // Not finished
-//const jobUrl = null
 const jobUrl = "/api/jobs/"
-// const solverUrl = "http://127.0.0.1:8000"
 const solverUrl = "/api/solver/"
-// const fileUrl = "http://127.0.0.1:8000"
 const fileUrl = "/api/fs/"
 const authUrl = "/api/auth/"
 
 function onLoad(){
     // Is user logged in?
-    if (localStorage.getItem("token") === null) {
+    if (localStorage.getItem("token") === null || localStorage.getItem("token") === "defined" || parseJwt(localStorage.getItem("token")).expiration > Date.now()) {
       window.location.href = "login.html";
     }
 
@@ -448,7 +443,6 @@ function stopInstance(instanceId, jobId){
     .catch((error) => {
       console.error('Error:', error);
     });
-
 }
 
 function parseJwt (token) {
