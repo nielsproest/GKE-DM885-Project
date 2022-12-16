@@ -37,7 +37,6 @@ function uploadModel(){
   if(fileUrl != null){
     fetch(fileUrl + uuid, {
       headers: {
-        "Content-Type": "multipart/form-data",
         'Authorization':'Bearer ' + localStorage.getItem("token")
       },
       body: data,

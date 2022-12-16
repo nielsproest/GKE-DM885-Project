@@ -416,7 +416,7 @@ function setPermissions(){
         console.error('Error:', error);
       });
   }
-}{
+}
 
 function deleteUser(userId){
 

@@ -84,7 +84,7 @@ async def lst(
 	):
 	permissions = generic_auth_handler(user_id, token)
 
-	qry = crud.get_files(db, user_id)
+	qry = crud.get_user_files(db, user_id)
 	if not qry:
 		raise HTTPException(status_code=404, detail="No files available")
 
@@ -166,7 +166,7 @@ async def delete(
 	):
 	permissions = generic_auth_handler(user_id, token)
 
-	qry = crud.get_files(db, user_id)
+	qry = crud.get_user_files(db, user_id, limit=9999)
 	if not qry:
 		raise HTTPException(status_code=404, detail="Files not found")
 
