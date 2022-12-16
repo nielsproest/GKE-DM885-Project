@@ -69,7 +69,7 @@ function getAvailableModels(){
         "Content-Type": "multipart/form-data",
         'Authorization':'Bearer ' + localStorage.getItem("token")
       },
-      method: "PUT"
+      method: "GET"
     })
     .then((response) => response.json())
     .then((result) => {
