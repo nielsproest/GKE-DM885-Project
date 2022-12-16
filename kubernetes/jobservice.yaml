@@ -50,7 +50,7 @@ metadata:
   name: executor
 rules:
 - apiGroups: ["", "batch"]
-  resources: ["namespaces", "jobs", "pods"]
+  resources: ["namespaces", "jobs", "pods", "pods/log"]
   verbs: ["get", "watch", "list", "create"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1

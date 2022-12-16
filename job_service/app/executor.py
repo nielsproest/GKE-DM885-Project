@@ -145,7 +145,6 @@ class Kubernetes:
         return job_list
 
     def start_job(self, job, batch_api, _namespace, q, job_id, db):
-      start_time = time.time()
       batch_api.create_namespaced_job(_namespace, job)
       print(f"starting thread with job: {job.metadata.name}")
 
@@ -173,6 +172,7 @@ class Kubernetes:
                   print("End other solvers")
                   crud.update_solver_instance_result(db, job_id, pod_name.rsplit('-', 1)[0], result)
                   q.put((pod_name.rsplit('-', 1)[0], result))
+                  return
 
               return
 
@@ -192,8 +192,8 @@ class Kubernetes:
     def thread_controller(self, q, jobs, _namespace, job_id, db):
       solver, result = q.get()
       print(f"First thread was: {solver}")
-      for job in jobs:
-        self.batch_api.delete_namespaced_job(name=job.metadata.name, namespace=_namespace, propagation_policy="Foreground")
+      #for job in jobs:
+      #  self.batch_api.delete_namespaced_job(name=job.metadata.name, namespace=_namespace, propagation_policy="Foreground")
 
       crud.found_result(db, job_id, solver, result)
 
@@ -209,11 +209,14 @@ def execute_job(create_job_request, mzn, dzn, db):
 
     has_dzn = dzn != None
 
+
     with open(f"/mnt/{job_id}.mzn", "a") as f:
       f.write(mzn)
     if has_dzn:
       with open(f"/mnt/{job_id}.dzn", "a") as f:
         f.write(dzn)
+
+
 
     # Kubernetes instance
     k8s = Kubernetes()
@@ -242,4 +245,11 @@ def execute_job(create_job_request, mzn, dzn, db):
 
 if __name__ == "__main__":
   execute_job()
+
+
+
+
+
+
+
 
