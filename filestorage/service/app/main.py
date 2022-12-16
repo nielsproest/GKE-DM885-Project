@@ -152,3 +152,25 @@ async def delete(
 	return {
 		"message": "OK"
 	}
+
+@app.delete("/{user_id}/delete")
+async def delete(
+		user_id: str,
+		db: Session = Depends(get_db),
+		token=Depends(JWTBearer())
+	):
+	permissions = generic_auth_handler(user_id, token)
+
+	qry = crud.get_files(db, user_id)
+	if not qry:
+		raise HTTPException(status_code=404, detail="Files not found")
+
+	for i in qry:
+		try:
+			remove(join(OS_DIR, str(i.id)))
+		except:
+			print("File not found ", i)
+
+	return {
+		"message": "OK"
+	}
