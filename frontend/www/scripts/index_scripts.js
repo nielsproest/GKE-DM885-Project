@@ -174,7 +174,7 @@ function getAvailableSolvers(){
               <div class="input-group-text">
                 <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
               </div>
-              <span id="213c7f36-dad8-4316-aaac-1a43a4f9062c" class="input-group-text solver-name-class"> fake-solver </span>
+              <span id="213c7f36-dad8-4316-aaac-1a43a4f9062c" class="input-group-text solver-name-class">fake-solver</span>
               <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
               <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
             </div>
@@ -314,7 +314,7 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
       result.forEach(instance => {
 
-        let listItem = instanceParser.parseFromString('<li class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="stopInstance(this.id)" type="button">Remove running solver</button></li>', 'text/html')
+        let listItem = instanceParser.parseFromString('<li id="runningSolverId-' + instance.id + '" class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="stopInstance(this.id,'+ solutionInstanceId +')" type="button">Remove running solver</button></li>', 'text/html')
         runningSolutionUL.append(listItem.documentElement)
 
       });
@@ -354,9 +354,6 @@ function getStoppedSolvers(stoppedJob){
 function stopRunningJob(jobId){
   console.log("Stopped job: " + jobId)
 
-  jobToDelete = document.getElementById("runningSolution-" + jobId);
-  jobToDelete.remove();
-
   fetch(jobUrl + "job/" + jobId, {
     method: 'DELETE',
     mode: 'cors',
@@ -369,6 +366,9 @@ function stopRunningJob(jobId){
     .then((result) => {
 
       console.log("stop job: ", result)
+
+      jobToDelete = document.getElementById("runningSolution-" + jobId);
+      jobToDelete.remove();
 
     })
     .catch((error) => {
@@ -426,14 +426,35 @@ function startJob(modelIds){
 
 }
 
-function stopInstance(instanceId){
+function stopInstance(instanceId, jobId){
   console.log("Stopped instance: " + instanceId)
+
+  fetch(jobUrl + "job/" + jobId + "/" + instanceId, {
+    method: 'DELETE',
+    mode: 'cors',
+    headers: {
+      'Access-Control-Allow-Origin':'*',
+      'Authorization':'Bearer ' + localStorage.getItem("token")
+    }
+  })
+    .then((response) => response.json())
+    .then((result) => {
+
+      console.log("stop instance: ", result)
+      jobToDelete = document.getElementById("runningSolverId-" + instanceId);
+      jobToDelete.remove();
+
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+
 }
 
 
 function logout(){
     // Delete session token
-    localStorage.removeItem("user_token");
+    localStorage.removeItem("token");
 
     // Back to login
     window.location.href = "login.html";
