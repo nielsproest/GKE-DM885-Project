@@ -212,7 +212,8 @@ function isUserAdmin(){
 
 function getSolvedSolutions(){
     // Get solved solutions from job service
-    wrapperDiv = document.getElementById("runningSolutionsWrapper")
+    let wrapperDiv = document.getElementById("runningSolutionsWrapper");
+    let wrapperFinishedJobs = document.getElementById("accordionWrapper");
 
     if (jobUrl != null) {
       fetch(jobUrl + "job", {
@@ -231,6 +232,7 @@ function getSolvedSolutions(){
           result.forEach(element => {
 
             if(element.status == "running"){
+              wrapperDiv.innerHTML = ""
               //Build a solver html div
               runningSolutionDiv = document.createElement("div");
               runningSolutionDiv.id = "runningSolution-" + element.id
@@ -264,7 +266,7 @@ function getSolvedSolutions(){
               wrapperDiv.appendChild(runningSolutionDiv);
 
             } else {
-
+              wrapperFinishedJobs.innerHTML = "";
               getStoppedSolvers(element);
 
             }
@@ -277,13 +279,11 @@ function getSolvedSolutions(){
     }
 
     // Is the running justs empty?
-    let wrapperRunningJobs = document.getElementById("runningSolutionsWrapper");
-    let runningChildCount = wrapperRunningJobs.childElementCount;
+    let runningChildCount = wrapperDiv.childElementCount;
     if(runningChildCount == 0){
-      wrapperRunningJobs.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
+      wrapperDiv.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
     }
 
-    let wrapperFinishedJobs = document.getElementById("accordionWrapper");
     let finishedChildCount = wrapperFinishedJobs.childElementCount;
     if(finishedChildCount == 0){
       wrapperFinishedJobs.innerHTML = "<h4 class='m-3'>You have no finished jobs</h4>"
