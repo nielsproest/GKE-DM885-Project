@@ -23,21 +23,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
 if os.getenv('KUBERNETES_SERVICE_HOST'):
-  SQLALCHEMY_DATABASE_URL = "postgresql://postgres:psltest@postgres.default.svc.cluster.local:5432/job_service_db"
+  SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@postgres.default.svc.cluster.local:5432/job_service_db"
 else:
-  SQLALCHEMY_DATABASE_URL = "postgresql://postgres:psltest@localhost:5432/job_service_db"
-
-# user = os.environ.get('POSTGRES_USER')
-# password = os.environ.get('POSTGRES_PASSWORD')
-# postgres_db = os.environ.get('POSTGRES_DB')
-# if user and password and postgres_db:
-#   SQLALCHEMY_DATABASE_URL = f"postgresql://{user}:{password}@postgres.default.svc.cluster.local:5432/{postgres_db}"
-#   print(f"postgres URL: {SQLALCHEMY_DATABASE_URL}")
-# else:
-#   print("Could not access POSTGRES environment vars")
-#   print(user)
-#   print(password)
-#  print(postgres_db)
+  SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@localhost:5432/job_service_db"
 
 test_mzn = '''% Colouring Australia using nc colours
 int: nc = 3;
@@ -186,8 +174,10 @@ def get_solver_image(solver_id, decoded_token):
       r = requests.get(url = solver_svc_url + f"/solver/{solver_id}", headers=headers)
       data = r.json()
       print(data)
-      solver_image = data.dockerImage
-      print(solver_image)
+      # Wait for solverservices' auth to work
+      #solver_image = data.dockerImage
+      #print(solver_image)
+
       # TODO: Do try-catch and return 400 if solver does not exist
       #return solver_image
 
@@ -206,7 +196,9 @@ def get_problem_files(mzn_id, dzn_id, decoded_token):
       }
       r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}", headers=headers)
       data = r.json()
-      print(data)
+      #print(data)
+      #print(r.content)
+      # TODO: Handle file not existing
 
     mzn = test_mzn
 

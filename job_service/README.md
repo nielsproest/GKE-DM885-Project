@@ -10,9 +10,8 @@ Start db
 ```
 (in /jobservice/db)
 sudo docker build -t job_service_db ./
-sudo docker run --name job_service_db -d -e POSTGRES_PASSWORD=psltest -p 5432:5432 job_service_db
+sudo docker run --name job_service_db -d -e POSTGRES_PASSWORD=$POSTGRES_PASSWORD -p 5432:5432 job_service_db
 ```
-
 
 Start web server.
 
@@ -62,3 +61,5 @@ http://postgres.default.svc.cluster.local:5432/
 http://jobservice.default.svc.cluster.local:8080/
 http://auth-service.default.svc.cluster.local:5000
 http://fs-service.default.svc.cluster.local:9090
+
+export PROJECT_ID=solveit-369711

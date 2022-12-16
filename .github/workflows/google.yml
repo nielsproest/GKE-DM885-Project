@@ -71,11 +71,13 @@ jobs:
           --tag "eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_DB_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
+          --build-arg POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD_JOBSERVICE }} \
           ./job_service/db
         docker build \
           --tag "eu.gcr.io/$PROJECT_ID/$JOB_SERVICE_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
+          --build-arg POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD_JOBSERVICE }} \
           ./job_service
         docker build \
           --tag "eu.gcr.io/$PROJECT_ID/$FS_SERVICE_IMAGE" \

@@ -36,9 +36,6 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
-        envFrom:
-        - configMapRef:
-            name: postgres-config
         volumeMounts:
           - mountPath: /mnt
             name: job-pvc
@@ -68,17 +65,6 @@ subjects: # points to my ServiceAccount
 - kind: ServiceAccount
   name: jobservice-svc-account # service account to bind to
   namespace: default
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: postgres-config
-  labels:
-    app: postgres
-data:
-  POSTGRES_DB: job_service_db
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: psltest
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
@@ -137,9 +123,6 @@ spec:
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 5432  # Exposes container port
-          envFrom:
-            - configMapRef:
-                name: postgres-config
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: postgredb-vol
