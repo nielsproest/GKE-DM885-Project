@@ -10,7 +10,7 @@ from .auth import JWTBearer, decode_jwt
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+app = FastAPI(root_path="/api/fs" if getenv('KUBERNETES_SERVICE_HOST') else "")
 
 # Dependency
 def get_db():
@@ -63,7 +63,7 @@ async def write(
 		raise HTTPException(status_code=413, detail="Not enough space")
 
 	#Create file
-	qry = crud.create_file(db, file.filename, fs_size, user_id) #TODO: Ownership
+	qry = crud.create_file(db, file.filename, fs_size, user_id)
 	if not qry:
 		raise HTTPException(status_code=500, detail="Unknown error")
 
