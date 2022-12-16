@@ -10,6 +10,9 @@ COPY ./app /code/app
 
 WORKDIR /code/app
 
+ARG POSTGRES_PASSWORD
+ENV POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
 
 # If running behind a proxy like Nginx or Traefik add --proxy-headers

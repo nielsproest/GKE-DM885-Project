@@ -23,7 +23,9 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
 if os.getenv('KUBERNETES_SERVICE_HOST'):
+  os.getenv('POSTGRES_PASSWORD')
   SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@postgres.default.svc.cluster.local:5432/job_service_db"
+  print(SQLALCHEMY_DATABASE_URL)
 else:
   SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@localhost:5432/job_service_db"
 
