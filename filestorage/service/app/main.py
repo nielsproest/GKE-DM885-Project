@@ -38,10 +38,10 @@ def generic_auth_handler(user_id, token):
 
 	return permissions
 
-@app.put("/{user_id}/")
+@app.put("/{user_id}")
 async def write(
-		user_id: str, 
-		file: UploadFile, 
+		user_id: str,
+		file: UploadFile,
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
@@ -67,13 +67,13 @@ async def write(
 		f.write(fs)
 
 	return {
-		"message": "OK", 
+		"message": "OK",
 		"id": qry.id
 	}
 
 @app.get("/{user_id}/list")
 async def lst(
-		user_id: str, 
+		user_id: str,
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
@@ -84,14 +84,14 @@ async def lst(
 		raise HTTPException(status_code=404, detail="No files available")
 
 	return {
-		"message": "OK", 
+		"message": "OK",
 		"lst": qry
 	}
 
 @app.get("/{user_id}/{item_id}")
 async def read(
-		user_id: str, 
-		item_id: int, 
+		user_id: str,
+		item_id: int,
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
@@ -105,9 +105,9 @@ async def read(
 
 @app.patch("/{user_id}/{item_id}")
 async def update(
-		user_id: str, 
-		item_id: int, 
-		file: UploadFile, 
+		user_id: str,
+		item_id: int,
+		file: UploadFile,
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
@@ -136,8 +136,8 @@ async def update(
 
 @app.delete("/{user_id}/{item_id}")
 async def delete(
-		user_id: str, 
-		item_id: int, 
+		user_id: str,
+		item_id: int,
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
