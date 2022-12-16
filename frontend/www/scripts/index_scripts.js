@@ -136,6 +136,8 @@ function getAvailableSolvers(){
         .then((response) => response.json())
         .then((result) => {
 
+          console.log("get solvers result: ", result)
+
           solverList.innerHTML = "";
           let solverParser = new DOMParser();
 
@@ -294,7 +296,7 @@ function getSolvedSolutions(){
 
 function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
-  console.log(solutionInstanceId)
+  console.log("instance id: ", solutionInstanceId)
 
   fetch(jobUrl + "job/" + solutionInstanceId + "/solvers", {
     method: 'GET',
