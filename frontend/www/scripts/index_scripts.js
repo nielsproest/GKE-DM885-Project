@@ -196,8 +196,10 @@ function isUserAdmin(){
 
           console.log("permissions results:", result)
 
+          tokenDecode = parseJwt(localStorage.getItem("token"))
+
           // Not finished
-          if(result.permissions == "yay admin"){
+          if(tokenDecode.is_admin == true){
             settingsElement = document.getElementById("settingsAId");
             settingsElement.classList.remove("disabled");
             settingsElement.setAttribute("aria-disabled", "false");
