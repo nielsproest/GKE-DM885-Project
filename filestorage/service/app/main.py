@@ -2,7 +2,7 @@ from fastapi import Depends, FastAPI, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from os.path import join
-from os import remove, getenv
+from os import remove, getenv, mkdir
 
 from . import crud, models
 from .database import SessionLocal, engine
@@ -22,6 +22,11 @@ def get_db():
 
 #Where our files are stored
 OS_DIR = getenv("_STORAGE_DIR", "/mnt/hdd")
+
+try:
+	mkdir(OS_DIR)
+except:
+	print("Failed to create directory!")
 
 def generic_auth_handler(user_id, token):
 	permissions = decode_jwt(token).get("permissions", None)

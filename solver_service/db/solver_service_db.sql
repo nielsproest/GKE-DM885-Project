@@ -1,1 +1,0 @@
-CREATE DATABASE solver_service_database;

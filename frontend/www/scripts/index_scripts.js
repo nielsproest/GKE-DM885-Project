@@ -1,22 +1,17 @@
-
 document.getElementById("bodyIdIndex").onload = function() {onLoad()};
 
 const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
 // urls for services
-// const jobUrl = "http://127.0.0.1:8000" // Not finished
-//const jobUrl = null
 const jobUrl = "/api/jobs/"
-// const solverUrl = "http://127.0.0.1:8000"
 const solverUrl = "/api/solver/"
-// const fileUrl = "http://127.0.0.1:8000"
 const fileUrl = "/api/fs/"
 const authUrl = "/api/auth/"
 
 function onLoad(){
     // Is user logged in?
-    if (localStorage.getItem("token") === null) {
+    if (localStorage.getItem("token") === null || localStorage.getItem("token") === "defined" || parseJwt(localStorage.getItem("token")).expiration > Date.now()) {
       window.location.href = "login.html";
     }
 
@@ -74,7 +69,7 @@ function getAvailableModels(){
         "Content-Type": "multipart/form-data",
         'Authorization':'Bearer ' + localStorage.getItem("token")
       },
-      method: "PUT"
+      method: "GET"
     })
     .then((response) => response.json())
     .then((result) => {
@@ -141,6 +136,8 @@ function getAvailableSolvers(){
         .then((response) => response.json())
         .then((result) => {
 
+          console.log("get solvers result: ", result)
+
           solverList.innerHTML = "";
           let solverParser = new DOMParser();
 
@@ -201,8 +198,10 @@ function isUserAdmin(){
 
           console.log("permissions results:", result)
 
+          tokenDecode = parseJwt(localStorage.getItem("token"))
+
           // Not finished
-          if(result.permissions == "yay admin"){
+          if(tokenDecode.is_admin == true){
             settingsElement = document.getElementById("settingsAId");
             settingsElement.classList.remove("disabled");
             settingsElement.setAttribute("aria-disabled", "false");
@@ -217,7 +216,8 @@ function isUserAdmin(){
 
 function getSolvedSolutions(){
     // Get solved solutions from job service
-    wrapperDiv = document.getElementById("runningSolutionsWrapper")
+    let wrapperDiv = document.getElementById("runningSolutionsWrapper");
+    let wrapperFinishedJobs = document.getElementById("accordionWrapper");
 
     if (jobUrl != null) {
       fetch(jobUrl + "job", {
@@ -236,6 +236,7 @@ function getSolvedSolutions(){
           result.forEach(element => {
 
             if(element.status == "running"){
+              wrapperDiv.innerHTML = ""
               //Build a solver html div
               runningSolutionDiv = document.createElement("div");
               runningSolutionDiv.id = "runningSolution-" + element.id
@@ -269,7 +270,7 @@ function getSolvedSolutions(){
               wrapperDiv.appendChild(runningSolutionDiv);
 
             } else {
-
+              wrapperFinishedJobs.innerHTML = "";
               getStoppedSolvers(element);
 
             }
@@ -282,13 +283,11 @@ function getSolvedSolutions(){
     }
 
     // Is the running justs empty?
-    let wrapperRunningJobs = document.getElementById("runningSolutionsWrapper");
-    let runningChildCount = wrapperRunningJobs.childElementCount;
+    let runningChildCount = wrapperDiv.childElementCount;
     if(runningChildCount == 0){
-      wrapperRunningJobs.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
+      wrapperDiv.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
     }
 
-    let wrapperFinishedJobs = document.getElementById("accordionWrapper");
     let finishedChildCount = wrapperFinishedJobs.childElementCount;
     if(finishedChildCount == 0){
       wrapperFinishedJobs.innerHTML = "<h4 class='m-3'>You have no finished jobs</h4>"
@@ -297,7 +296,7 @@ function getSolvedSolutions(){
 
 function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
-  console.log(solutionInstanceId)
+  console.log("instance id: ", solutionInstanceId)
 
   fetch(jobUrl + "job/" + solutionInstanceId + "/solvers", {
     method: 'GET',
@@ -448,7 +447,6 @@ function stopInstance(instanceId, jobId){
     .catch((error) => {
       console.error('Error:', error);
     });
-
 }
 
 function parseJwt (token) {

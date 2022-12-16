@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: solverservice
-        image: eu.gcr.io/solveit-369711/solverservice:latest #Få den fra g-cloud
+        image: eu.gcr.io/${PROJECT_ID}/solverservice:latest #Få den fra g-cloud
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
