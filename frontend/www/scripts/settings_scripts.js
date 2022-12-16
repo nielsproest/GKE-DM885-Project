@@ -1,8 +1,11 @@
 const solverUrl = "/api/solver/"
-//const solverUrl = null
 const authUrl = "/api/auth/"
 
 function loadChecker(){
+  if (localStorage.getItem("token") === null || localStorage.getItem("token") === "defined" || parseJwt(localStorage.getItem("token")).expiration > Date.now() || parseJwt(localStorage.getItem("token")).is_admin != true) {
+    window.location.href = "login.html";
+  }
+
   // Can the user be here? (is admin)
   isUserAdmin()
 
@@ -65,7 +68,7 @@ function getAllUsers(){
           accordionWrapperId = "accordionWrapper" + user.id 
 
           let userAppend = userParser.parseFromString(`
-          <div class="user_object border rounded-2 m-1">
+          <div id="user-object-` + user.id + `" class="user_object border rounded-2 m-1">
                 <div class="list-group mb-3">
                   <div class="list-group-item list-group-item-action" aria-current="true">
                     <div class="d-flex w-100 justify-content-between">
@@ -73,7 +76,7 @@ function getAllUsers(){
                       <small>Created: ` + user.created + `</small>
                     </div>
                     <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#setPermissionsModal" data-bs-userId="` + user.id + `">Set permissions</button>
-                    <button type="button" class="btn btn-outline-danger btn-sm">Delete user</button>
+                    <button id="`+ user.id +`" type="button" class="btn btn-outline-danger btn-sm" onclick="deleteUser(this.id)">Delete user</button>
                   </div>
                 </div>
 
@@ -102,7 +105,7 @@ function getAllUsers(){
     let userParser = new DOMParser();
 
     let userAppend = userParser.parseFromString(`
-    <div class="user_object border rounded-2 m-1">
+    <div id="user-object-GUIDFORJOHN" class="user_object border rounded-2 m-1">
           <div class="list-group mb-3">
             <div class="list-group-item list-group-item-action" aria-current="true">
               <div class="d-flex w-100 justify-content-between">
@@ -110,7 +113,7 @@ function getAllUsers(){
                 <small>Created: Fri Nov 18 10:15</small>
               </div>
               <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#setPermissionsModal" data-bs-userId="GUIDFORJOHN">Set permissions</button>
-              <button type="button" class="btn btn-outline-danger btn-sm">Delete user</button>
+              <button id="GUIDFORJOHN" type="button" class="btn btn-outline-danger btn-sm" onclick="deleteUser(this.id)">Delete user</button>
             </div>
           </div>
 
@@ -230,7 +233,6 @@ function getRunningInstances(instanceWrapper, jobId){
       .catch((error) => {
         console.error('Error:', error);
       });
-
 }
 
 const exampleModal = document.getElementById('setPermissionsModal')
@@ -394,7 +396,6 @@ function setPermissions(){
   data.append("max_ram", ram)
   data.append("is_admin", admin)
 
-
   if(authUrl != null){
     fetch(authUrl + "modify" , {
       method: 'POST',
@@ -410,6 +411,83 @@ function setPermissions(){
         
         console.log("permissions results:", result)
 
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }
+}{
+
+function deleteUser(userId){
+
+  if(authUrl != null){
+    fetch(authUrl + "delete" , {
+      method: 'POST',
+      mode: 'cors',
+      body: data,
+      headers: {
+        'Access-Control-Allow-Origin':'*',
+        'Authorization':'Bearer ' + localStorage.getItem("token")
+      }
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        
+        console.log("permissions results:", result)
+        // Remove div
+        userToDelete = document.getElementById("user-object-" + userId);
+        userToDelete.remove();
+
+        deleteAllUsersModels(userId)
+        deleteAllJobs()
+
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }
+}
+
+function deleteAllUsersModels(userId){
+
+  if(fileUrl != null){
+    fetch(fileUrl + "/" + userId + "/delete", {
+      method: 'DELETE',
+      mode: 'cors',
+      headers: {
+        'Access-Control-Allow-Origin':'*',
+        'Authorization':'Bearer ' + localStorage.getItem("token")
+      }
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        
+        console.log("Deleted all user model: ", result)
+        
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  }
+
+}
+
+function deleteAllJobs(){
+
+  if(jobUrl != null){
+    fetch(jobUrl + "/job", {
+      method: 'DELETE',
+      mode: 'cors',
+      headers: {
+        'Access-Control-Allow-Origin':'*',
+        'Authorization':'Bearer ' + localStorage.getItem("token")
+      }
+    })
+      .then((response) => response.json())
+      .then((result) => {
+        
+        console.log("Deleted all user jobs: ", result)
+        
       })
       .catch((error) => {
         console.error('Error:', error);
