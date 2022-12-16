@@ -49,7 +49,7 @@ async def startup_event():
 
     #Change name, and potentially add more solvers
 
-    permSolvers = {"solver1": "hakankj/fzn-picat-sat", "solver2": "gkgange/geas-mznc2022"}
+    permSolvers = {"fzn-picat-sat": "hakankj/fzn-picat-sat", "geas": "gkgange/geas-mznc2022"}
 
     solverURLs = []
 
@@ -58,7 +58,7 @@ async def startup_event():
 
     for perm in permSolvers:
         if not permSolvers.get(perm) in solverURLs:
-            print("added solver: " + permSolvers.get(perm))
+            print("Pre added solver: " + permSolvers.get(perm))
             cPostSolver(db, perm, permSolvers.get(perm))
     
     if os.getenv('KUBERNETES_SERVICE_HOST'):
@@ -79,7 +79,7 @@ def getAllSolvers(db: Session = Depends(get_db)):
 def getSolver(solverId: str, db: Session = Depends(get_db)):
 
     if not isValidUuid(solverId):
-        raise HTTPException(status_code=418, detail=f"Id not valid")
+        raise HTTPException(status_code=400, detail=f"Id not valid")
         
     solver = cGetSolver(db, solverId)
 
@@ -89,7 +89,7 @@ def getSolver(solverId: str, db: Session = Depends(get_db)):
 def deleteSolver(solverId: str, db: Session = Depends(get_db)):
 
     if not isValidUuid(solverId):
-        raise HTTPException(status_code=418, detail=f"Id not valid")
+        raise HTTPException(status_code=400, detail=f"Id not valid")
 
     cDeleteSolver(db, solverId)
 
@@ -97,9 +97,6 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db)):
 
 @app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
 def postSolver(name: str, image: str, db: Session = Depends(get_db)):
-
-    if not verify_image(image):
-        raise HTTPException(status_code=418, detail=f"Docker image could not be verified")
 
     solvers = getAllSolvers(db)
 
@@ -109,7 +106,10 @@ def postSolver(name: str, image: str, db: Session = Depends(get_db)):
         solverURLs.append(solver.dockerImage)
 
     if image in solverURLs:
-        raise HTTPException(status_code=405, detail=f"Image already exists in database")
+        raise HTTPException(status_code=409, detail=f"Image already exists in database")
+
+    if not verify_image(image):
+        raise HTTPException(status_code=400, detail=f"Docker image could not be verified")    
 
     cPostSolver(db, name, image)
 
@@ -122,9 +122,12 @@ def isValidUuid(solverId) -> bool:
 
 def verify_image(dockerImage: str) -> bool:
     #TODO: verify image by building imgage in container
+    #Currently verifies by pulling the image, which is either successful or returns an error if image does not exist
 
-    #image = client.images.search(dockerImage)
-
-    #print(image)
+    try:
+        image = client.images.pull(dockerImage)
+    except: 
+        return False
+    print(image)
 
     return True
