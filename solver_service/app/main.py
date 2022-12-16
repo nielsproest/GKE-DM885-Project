@@ -86,9 +86,9 @@ def getSolver(solverId: str, db: Session = Depends(get_db)):
 @app.delete("/solver/{id}", dependencies=[Depends(JWTBearer())])
 def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
-    #admin = decode_jwt(token).get('permissions').get('is_admin')
-    #if not admin:
-        #raise HTTPException(status_code=401, detail=f"User is not admin") 
+    admin = decode_jwt(token).get('permissions').get('is_admin')
+    if not admin:
+        raise HTTPException(status_code=401, detail=f"User is not admin") 
 
     if not isValidUuid(solverId):
         raise HTTPException(status_code=400, detail=f"Id not valid")
@@ -100,9 +100,9 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWT
 @app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
 def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
-    #admin = decode_jwt(token).get('permissions').get('is_admin')
-    #if not admin:
-        #raise HTTPException(status_code=401, detail=f"User is not admin") 
+    admin = decode_jwt(token).get('permissions').get('is_admin')
+    if not admin:
+        raise HTTPException(status_code=401, detail=f"User is not admin") 
 
     solvers = getAllSolvers(db)
 
@@ -132,10 +132,9 @@ def verify_image(dockerImage: str) -> bool:
     #TODO: verify image by building imgage in container
     #Currently verifies by pulling the image, which is either successful or returns an error if image does not exist
 
-    imageList = client.images.search(dockerImage)
+    try:
+        temp = client.images.pull(dockerImage, all_tags=True)
+    except:
+        return False
 
-    for image in imageList:
-        if image['name'] == dockerImage:
-            return True
-
-    return False
+    return True
