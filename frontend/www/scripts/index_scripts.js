@@ -34,14 +34,13 @@ function onLoad(){
 function uploadModel(){
   var input = document.querySelector('input[type="file"]')
 
+  var uuid = parseJwt(localStorage.getItem("token")).uuid
+
   var data = new FormData()
   data.append('file', input.files[0])
 
-  // Might need to change?
-  username = localStorage.getItem("username");
-
   if(fileUrl != null){
-    fetch(fileUrl + username, {
+    fetch(fileUrl + uuid, {
       headers: {
         "Content-Type": "multipart/form-data",
         'Authorization':'Bearer ' + localStorage.getItem("token")
@@ -65,11 +64,12 @@ function getAvailableModels(){
   // Get the list of models  the user has available
 
   // Might need to change?
-  username = localStorage.getItem("username");
+  var uuid = parseJwt(localStorage.getItem("token")).uuid
+
   modelList = document.getElementById("modelList");
 
   if(fileUrl != null){
-    fetch(fileUrl + username + "/list", {
+    fetch(fileUrl + uuid + "/list", {
       headers: {
         "Content-Type": "multipart/form-data",
         'Authorization':'Bearer ' + localStorage.getItem("token")
@@ -104,10 +104,10 @@ function getAvailableModels(){
 function deleteModel(fileId){
 
   // Might need to change?
-  username = localStorage.getItem("username");
+  var uuid = parseJwt(localStorage.getItem("token")).uuid
 
   if(fileUrl != null){
-    fetch(fileUrl + username + '/' + fileId, {
+    fetch(fileUrl + uuid + '/' + fileId, {
       method: "DELETE",
       headers: {
         'Authorization':'Bearer ' + localStorage.getItem("token")
@@ -449,6 +449,19 @@ function stopInstance(instanceId, jobId){
       console.error('Error:', error);
     });
 
+}
+
+function parseJwt (token) {
+
+  var base64Url = token.split('.')[1];
+
+  var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+
+  var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+  }).join(''));
+
+  return JSON.parse(jsonPayload);
 }
 
 
