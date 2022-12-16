@@ -48,7 +48,7 @@ async def startup_event():
     permSolvers = {"fzn-picat-sat": "hakankj/fzn-picat-sat", "geas": "gkgange/geas-mznc2022"}
 
     startupDbPrep(permSolvers)
-    startupPkPrep()    
+    startupPkPrep()
 
 @app.get("/solver", dependencies=[Depends(JWTBearer())])
 def getAllSolvers(db: Session = Depends(get_db)):
@@ -59,7 +59,7 @@ def getAllSolvers(db: Session = Depends(get_db)):
 def getSolver(solverId: str, db: Session = Depends(get_db)):
 
     isValidUuid(solverId)
-        
+
     return cGetSolver(db, solverId)
 
 @app.delete("/solver/{id}", dependencies=[Depends(JWTBearer())])
@@ -103,7 +103,7 @@ def verify_image(dockerImage: str):
 def isAdmin(token: str):
     admin = decode_jwt(token).get('permissions').get('is_admin')
     if not admin:
-        raise HTTPException(status_code=401, detail=f"User is not admin") 
+        raise HTTPException(status_code=401, detail=f"User is not admin")
 
 def isInDb(db: Session, image: str):
     solvers = getAllSolvers(db)

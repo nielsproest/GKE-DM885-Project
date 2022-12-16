@@ -23,9 +23,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm import Session
 
 if os.getenv('KUBERNETES_SERVICE_HOST'):
-  os.getenv('POSTGRES_PASSWORD')
   SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@postgres.default.svc.cluster.local:5432/job_service_db"
-  print(SQLALCHEMY_DATABASE_URL)
 else:
   SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@localhost:5432/job_service_db"
 
@@ -121,6 +119,14 @@ def delete_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBear
     #TODO: Stop the execution of the job
     return crud.delete_job(db, job_id, uuid)
 
+@app.delete("/job", dependencies=[Depends(JWTBearer())])
+def delete_all_job(db: Session = Depends(get_db), token=Depends(JWTBearer())):
+    decoded_token = auth_handler.decodeJWT(token)
+    uuid = decoded_token.get('uuid')
+
+    #TODO: Stop the execution of the job
+    return crud.delete_all_jobs(db, uuid)
+
 @app.delete("/job/{job_id}/{solver_id}", dependencies=[Depends(JWTBearer())])
 def stop_solver(job_id: str, solver_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
@@ -168,14 +174,14 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
 def get_solver_image(solver_id, decoded_token):
 
     # TODO: Implement call to solver service
-    if os.getenv('KUBERNETES_SERVICE_HOST'):
-      headers = {
-        "Authorization": f"Bearer {decoded_token}",
-        "Content-Type": "application/json"
-      }
-      r = requests.get(url = solver_svc_url + f"/solver/{solver_id}", headers=headers)
-      data = r.json()
-      print(data)
+    # if os.getenv('KUBERNETES_SERVICE_HOST'):
+    #   headers = {
+    #     "Authorization": f"Bearer {decoded_token}",
+    #     "Content-Type": "application/json"
+    #   }
+    #   r = requests.get(url = solver_svc_url + f"/solver/{solver_id}", headers=headers)
+    #   data = r.json()
+    #   print(data)
       # Wait for solverservices' auth to work
       #solver_image = data.dockerImage
       #print(solver_image)
