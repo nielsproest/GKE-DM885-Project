@@ -10,6 +10,9 @@ def get_file(db: Session, file_id: int):
 def get_files(db: Session, skip: int = 0, limit: int = 100):
 	return db.query(models.File).offset(skip).limit(limit).all()
 
+def get_user_files(db: Session, file_id: int, skip: int = 0, limit: int = 100):
+	return db.query(models.File).filter(models.File.id == file_id).offset(skip).limit(limit).all()
+
 def get_user_usage(db: Session, owner: str):
 	qry = db.query(func.sum(models.File.size).label("sum")).filter(models.File.owner == owner)
 	return qry.scalar()
