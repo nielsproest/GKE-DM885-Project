@@ -42,11 +42,7 @@ constraint sa != nsw;
 constraint sa != v;
 constraint q != nsw;
 constraint nsw != v;
-solve satisfy;
-
-output ["wa=\(wa)\t nt=\(nt)\t sa=\(sa)\n",
-        "q=\(q)\t nsw=\(nsw)\t v=\(v)\n",
-         "t=", show(t),  "\n"];'''
+solve satisfy;'''
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
@@ -203,9 +199,12 @@ def get_problem_files(mzn_id, dzn_id, decoded_token):
         "Content-Type": "application/json"
       }
       r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}", headers=headers)
-      data = r.json()
-      #print(data)
-      #print(r.content)
+      print("[DEBUG] r: ")
+      print(r)
+      #data = r.json()
+      #print("[DEBUG] data: ")
+      print("[DEBUG] r.content: ")
+      print(r.content)
       # TODO: Handle file not existing
 
     mzn = test_mzn

@@ -21,6 +21,14 @@ def delete_job(db: Session, job_id: str, user_id: str):
     db.commit()
     return {"success"}
 
+def delete_all_jobs(db: Session, user_id: str):
+    # TODO: Test this
+    jobs = db.query(models.Job).filter(models.Job.user_id == user_id)
+    for job in jobs:
+      db.delete(job)
+    db.commit()
+    return {"success"}
+
 def stop_solver(db: Session, job_id: str, solver_id: str, user_id: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).filter(models.Job.user_id == user_id).first()
     for solver in job.solver_instances:
