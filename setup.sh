@@ -12,13 +12,32 @@ export AUTH_SERVICE_IMAGE=auth_service
 export SOLVER_SERVICE_IMAGE=solverservice
 export FS_SERVICE_IMAGE=fs_service
 
+#Passwords
+export JOB_DB_USER=postgres
+export JOB_DB_PASS=psltest
+export SOLVER_DB_USER=postgres
+export SOLVER_DB_PASS=password
+export FS_DB_USER=admin
+export FS_DB_PASS=psltest
 
-#To use with Ubuntu
-#https://cloud.google.com/sdk/docs/install#linux
-#gcloud auth application-default login
-#sudo snap install kubectl --channel=1.23/stable --classic
-#https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
-#Setup docker
+export AUTH_DB_USER=postgres
+export AUTH_DB_PASS=mypassword
+export AUTH_ADMIN_USER=admin
+export AUTH_ADMIN_PASS=password
+
+#Patch authservice
+sed "s/POSTGRES_USER[^\"]*/POSTGRES_USER=${AUTH_DB_USER}/" auth_service/.env | tee auth_service/.env
+sed "s/POSTGRES_PASSWORD[^\"]*/POSTGRES_PASSWORD=${AUTH_DB_PASS}/" auth_service/.env | tee auth_service/.env
+sed "s/DEFAULT_ADMIN_USERNAME[^\"]*/DEFAULT_ADMIN_USERNAME=${AUTH_ADMIN_USER}/" auth_service/.env | tee auth_service/.env
+sed "s/DEFAULT_ADMIN_PASSWORD[^\"]*/DEFAULT_ADMIN_PASSWORD=${AUTH_ADMIN_PASS}/" auth_service/.env | tee auth_service/.env
+
+echo To use with Ubuntu
+echo https://cloud.google.com/sdk/docs/install#linux
+echo gcloud auth application-default login
+echo gcloud components update
+echo sudo snap install kubectl --channel=1.23/stable --classic
+echo https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+echo Install docker
 
 #TODO: Warnings about config, versions, etc.
 #TODO: Warn about sv-account.tf, they may need to change workload_identity_pool_id
@@ -30,9 +49,12 @@ terraform init --upgrade
 terraform apply
 cd ..
 
-#gcloud auth configure-docker
-#gcloud components install gke-gcloud-auth-plugin
-#gcloud container clusters get-credentials ${PROJECT_ID}-gke --region ${GAR_LOCATION}
+#TODO: Will fail because of jobservice svc account
+#Let it fail, upload jobservice, then terraform again
+
+echo gcloud auth configure-docker
+echo gcloud components install gke-gcloud-auth-plugin
+gcloud container clusters get-credentials ${PROJECT_ID}-gke --region ${GAR_LOCATION}
 
 echo "Docker build"
 docker build \

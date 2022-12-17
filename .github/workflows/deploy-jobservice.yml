@@ -16,6 +16,8 @@ env:
   GKE_ZONE: europe-west4
   REPOSITORY: services-repository
   JOB_SERVICE_IMAGE: jobservice
+  JOB_DB_USER: ${{ secrets.JOB_DB_USER }}
+  JOB_DB_PASS: ${{ secrets.JOB_DB_PASS }}
 
 jobs:
   setup-build-publish-deploy:

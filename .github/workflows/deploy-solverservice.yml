@@ -16,6 +16,8 @@ env:
   GKE_ZONE: europe-west4
   REPOSITORY: services-repository
   SOLVER_SERVICE_IMAGE: solverservice
+  SOLVER_DB_USER: ${{ secrets.SOLVER_DB_USER }}
+  SOLVER_DB_PASS: ${{ secrets.SOLVER_DB_PASS }}
 
 jobs:
   setup-build-publish-deploy:

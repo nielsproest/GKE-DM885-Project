@@ -7,8 +7,8 @@ metadata:
     app: fs-postgres
 data:
   POSTGRES_DB: postgresdb
-  POSTGRES_USER: admin
-  POSTGRES_PASSWORD: psltest
+  POSTGRES_USER: ${FS_DB_USER}
+  POSTGRES_PASSWORD: ${FS_DB_PASS}
   _POSTGRES_HOST: fs-postgres.default.svc.cluster.local:5432
   _AUTH_HOST: auth-service.default.svc.cluster.local:5000
   _HOST: 0.0.0.0:9090
