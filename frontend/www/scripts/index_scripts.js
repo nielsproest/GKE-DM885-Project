@@ -330,12 +330,14 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
 function getStoppedSolvers(stoppedJob){
 
+  let stoppedJobParser = new DOMParser();
+
   let wrapperFinishedJobs = document.getElementById("accordionWrapper");
 
-  let itemstring = `<div class="accordion-item">
+  let itemstring = stoppedJobParser.parseFromString(`<div class="accordion-item">
                       <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                          ` + "Solver: " + stoppedJob.solver + " Create date: " + stoppedJob.createdTime + " Status: " + stoppedJob.status `
+                          ` + "Solver: " + stoppedJob.solver + " Create date: " + stoppedJob.createdTime + " Status: " + stoppedJob.status + `
                         </button>
                       </h2>
                       <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
@@ -346,9 +348,9 @@ function getStoppedSolvers(stoppedJob){
                           Delete result
                         </button>
                       </div>
-                    </div>`;
+                    </div>`,'text/html');
 
-  wrapperFinishedJobs.append(itemstring)
+  wrapperFinishedJobs.append(itemstring.childNodes[0].childNodes[1].childNodes[0])
 
 }
 
