@@ -40,11 +40,10 @@ var int: coins = sum(counts);
 solve minimize coins;
 
 output [
-  "coins = ", show(coins), ";\n",
-  "denoms = ", show(denoms), ";\n",
-  "counts = ", show(counts), ";\n"
-];
-'''
+  "coins = ", show(coins), ";",
+  "denoms = ", show(denoms), ";",
+  "counts = ", show(counts), ";"
+];'''
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
