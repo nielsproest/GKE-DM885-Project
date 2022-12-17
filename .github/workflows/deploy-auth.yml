@@ -55,18 +55,12 @@ jobs:
         cluster_name: ${{ env.GKE_CLUSTER }}
         location: ${{ env.GKE_ZONE }}
 
-    - name: Test1
-      run: cat ./auth_service/.env
-
     - name: Patch auth service variables
       run: |-
         sed -i "s/POSTGRES_USER[^\"]*/POSTGRES_USER=${AUTH_DB_USER}/" ./auth_service/.env
         sed -i "s/POSTGRES_PASSWORD[^\"]*/POSTGRES_PASSWORD=${AUTH_DB_PASS}/" ./auth_service/.env
         sed -i "s/DEFAULT_ADMIN_USERNAME[^\"]*/DEFAULT_ADMIN_USERNAME=${AUTH_ADMIN_USER}/" ./auth_service/.env
         sed -i "s/DEFAULT_ADMIN_PASSWORD[^\"]*/DEFAULT_ADMIN_PASSWORD=${AUTH_ADMIN_PASS}/" ./auth_service/.env
-      
-    - name: Test2
-      run: cat ./auth_service/.env
 
     # Build the Docker image
     - name: Build
