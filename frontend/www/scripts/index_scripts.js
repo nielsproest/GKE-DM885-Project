@@ -73,25 +73,26 @@ function getAvailableModels(){
     .then((response) => response.json())
     .then((result) => {
 
+      modelList.innerHTML = ""
+
       console.log(result);
 
       let modelParser = new DOMParser();
 
       result.lst.forEach(model => {
-        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">"' + model.name + '"<button id="' + model.id + '" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
+        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">"' + model.name + '"<button id="' + model.id + '" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="deleteModel(this.id)" type="button">Delete</button><button id="' + model.id + '" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
         modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
       });
 
+      if(modelList.childElementCount == 0){
+        let modelParser = new DOMParser();
+        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
+        modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
+      }
     })
     .catch((error) => {
       console.error('Error:', error);
     });
-  }
-
-  if(modelList.childElementCount == 0){
-    let modelParser = new DOMParser();
-    let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
-    modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
   }
 }
 
@@ -279,21 +280,25 @@ function getSolvedSolutions(){
             }
           });
 
+          // Is the running justs empty?
+          let runningChildCount = wrapperDiv.childElementCount;
+          console.log("running children:", runningChildCount)
+          if(runningChildCount == 0){
+            console.log("Is 0 and therefore should paste no running jobs", runningChildCount)
+            wrapperDiv.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
+          }
+
+          let finishedChildCount = wrapperFinishedJobs.childElementCount;
+          console.log("finished children:", finishedChildCount)
+          if(finishedChildCount == 0){
+            console.log("Is 0 and therefore should paste no finished jobs", finishedChildCount)
+            wrapperFinishedJobs.innerHTML = "<h4 class='m-3'>You have no finished jobs</h4>"
+          }
+
         })
         .catch((error) => {
           console.error('Error:', error);
         });
-    }
-
-    // Is the running justs empty?
-    let runningChildCount = wrapperDiv.childElementCount;
-    if(runningChildCount == 0){
-      wrapperDiv.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
-    }
-
-    let finishedChildCount = wrapperFinishedJobs.childElementCount;
-    if(finishedChildCount == 0){
-      wrapperFinishedJobs.innerHTML = "<h4 class='m-3'>You have no finished jobs</h4>"
     }
 }
 

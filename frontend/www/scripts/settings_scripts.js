@@ -2,7 +2,7 @@ const solverUrl = "/api/solver/"
 const authUrl = "/api/auth/"
 
 function loadChecker(){
-  if (localStorage.getItem("token") === null || localStorage.getItem("token") === "defined" || parseJwt(localStorage.getItem("token")).expiration > Date.now() || parseJwt(localStorage.getItem("token")).is_admin != true) {
+  if (localStorage.getItem("token") === null || localStorage.getItem("token") === "defined" || parseJwt(localStorage.getItem("token")).expiration < Date.now() || parseJwt(localStorage.getItem("token")).is_admin != true) {
     window.location.href = "login.html";
   }
 
