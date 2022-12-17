@@ -65,7 +65,6 @@ function getAvailableModels(){
   if(fileUrl != null){
     fetch(fileUrl + uuid + "/list", {
       headers: {
-        "Content-Type": "multipart/form-data",
         'Authorization':'Bearer ' + localStorage.getItem("token")
       },
       method: "GET"
@@ -200,7 +199,7 @@ function isUserAdmin(){
           tokenDecode = parseJwt(localStorage.getItem("token"))
 
           // Not finished
-          if(tokenDecode.is_admin == true){
+          if(tokenDecode.message.is_admin == true){
             settingsElement = document.getElementById("settingsAId");
             settingsElement.classList.remove("disabled");
             settingsElement.setAttribute("aria-disabled", "false");
@@ -232,10 +231,11 @@ function getSolvedSolutions(){
 
           let jobParser = new DOMParser();
 
+          wrapperDiv.innerHTML = ""
+
           result.forEach(element => {
 
             if(element.status == "running"){
-              wrapperDiv.innerHTML = ""
               //Build a solver html div
               runningSolutionDiv = document.createElement("div");
               runningSolutionDiv.id = "runningSolution-" + element.id
@@ -312,7 +312,7 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
       result.forEach(instance => {
 
-        let listItem = instanceParser.parseFromString('<li id="runningSolverId-' + instance.id + '" class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="stopInstance(this.id,'+ solutionInstanceId +')" type="button">Remove running solver</button></li>', 'text/html')
+        let listItem = instanceParser.parseFromString('<li id="runningSolverId-' + instance.id + '" class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="stopInstance(this.id, '+ solutionInstanceId.toString() +')" type="button">Remove running solver</button></li>', 'text/html')
         runningSolutionUL.append(listItem.documentElement)
 
       });
