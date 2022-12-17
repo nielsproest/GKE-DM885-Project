@@ -14,8 +14,8 @@ class Job(Base):
     __tablename__ = 'jobs'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid_helper)
     user_id = Column(UUID(as_uuid=True))
-    mzn_id = Column(UUID(as_uuid=True))
-    dzn_id = Column(UUID(as_uuid=True))
+    mzn_id = Column(Integer)
+    dzn_id = Column(Integer)
     result = Column(String)
     winning_solver = Column(String)
     timeout = Column(Integer)
