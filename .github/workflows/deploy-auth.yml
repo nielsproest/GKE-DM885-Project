@@ -62,6 +62,9 @@ jobs:
         sed "s/DEFAULT_ADMIN_USERNAME[^\"]*/DEFAULT_ADMIN_USERNAME=${AUTH_ADMIN_USER}/" auth_service/.env | tee auth_service/.env
         sed "s/DEFAULT_ADMIN_PASSWORD[^\"]*/DEFAULT_ADMIN_PASSWORD=${AUTH_ADMIN_PASS}/" auth_service/.env | tee auth_service/.env
 
+    - name: Test
+      run: cat auth_service/.env
+
     # Build the Docker image
     - name: Build
       run: |-
