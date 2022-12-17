@@ -376,8 +376,11 @@ function stopRunningJob(jobId){
   let wrapper = document.getElementById("runningSolutionsWrapper");
   let childCount = wrapper.childElementCount;
   if (childCount == 0){
+    console.log("Found running solutionWrapper to be empty")
     wrapper.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
   }
+
+  
 
 }
 
