@@ -14,15 +14,18 @@ def validate_token(token: str) -> bool:
         print(PUBLIC_KEY)
         print(token)
         payload = decode_jwt(token)
-        print(payload)
+        print(f'payload: {payload}')
         if time.time() > float(payload["expiration"]):
             return False
 
     except jwt.exceptions.InvalidSignatureError:
+        print("except1")
         return False
     except KeyError:
+        print("except2")
         return False
     except:
+        print("except3")
         return False
 
     return True
