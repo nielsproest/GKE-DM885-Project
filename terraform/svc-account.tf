@@ -86,7 +86,7 @@ resource "google_artifact_registry_repository_iam_policy" "policy" {
   policy_data = data.google_iam_policy.admin.policy_data
 }
 
-
+/*
 resource "kubernetes_service_account" "jobservice-svc-account" {
   metadata {
     name = "jobservice-svc-account"
@@ -101,4 +101,4 @@ resource "kubernetes_secret" "jobservice-svc-account-secret" {
   metadata {
     name = "jobservice-svc-account-secret"
   }
-}
+}*/
