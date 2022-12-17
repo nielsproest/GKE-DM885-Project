@@ -9,8 +9,8 @@ from pydantic import BaseModel
 ### Base models
 
 class JobBase(BaseModel):
-    mzn_id: str
-    dzn_id: Union[str, None] = None
+    mzn_id: int
+    dzn_id: Union[int, None] = None
     timeout: int = 60
 
 class SolverInstance(BaseModel):
@@ -53,7 +53,7 @@ class CreateJob(JobBase):
     class Config:
         schema_extra = {
             "example": {
-                "mzn_id": "6c68de18-43ea-467e-86c9-fd72f7940bec",
+                "mzn_id": 1,
                 "dzn_id": None,
                 "timeout": 120,
                 "solver_list": [
