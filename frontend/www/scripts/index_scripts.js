@@ -332,19 +332,21 @@ function getStoppedSolvers(stoppedJob){
 
   let stoppedJobParser = new DOMParser();
 
-  let wrapperFinishedJobs = document.getElementById("accordionWrapper");
+  let wrapperFinishedJobs = document.getElementById("stoppedSolutionWrapper");
 
-  let itemstring = stoppedJobParser.parseFromString(`<div class="accordion-item">
+  
+
+  let itemstring = stoppedJobParser.parseFromString(`<div id="stoppedJobWrapper-`+ stoppedJob.id +`" class="accordion-item">
                       <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                          ` + "Solver: " + stoppedJob.solver + " Create date: " + stoppedJob.createdTime + " Status: " + stoppedJob.status + `
+                          ` + "Solver: " + stoppedJob.winning_solver + " Create date: " + stoppedJob.time_created + " Status: " + stoppedJob.status + `
                         </button>
                       </h2>
                       <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
                         <div class="accordion-body">
                           ` + "Result: " + stoppedJob.result + `
                         </div>
-                        <button class="accordion-button danger btn" type="button">
+                        <button id="` + stoppedJob.id + `" class="btn-outline-danger btn btn-sm m-1" type="button" onclick="deleteStoppedJob(this.id)">
                           Delete result
                         </button>
                       </div>
@@ -354,8 +356,9 @@ function getStoppedSolvers(stoppedJob){
 
 }
 
-function stopRunningJob(jobId){
-  console.log("Stopped job: " + jobId)
+function deleteStoppedJob(jobId){
+
+  console.log("delete stopped job: " + jobId)
 
   fetch(jobUrl + "job/" + jobId, {
     method: 'DELETE',
@@ -368,7 +371,41 @@ function stopRunningJob(jobId){
     .then((response) => response.json())
     .then((result) => {
 
-      console.log("stop job: ", result)
+      console.log("delete stopped job: ", result)
+
+      jobToDelete = document.getElementById("stoppedJobWrapper-" + jobId);
+      jobToDelete.remove();
+
+    })
+    .catch((error) => {
+      console.error('Error:', error);
+    });
+
+  let wrapper = document.getElementById("stoppedSolutionWrapper");
+  let childCount = wrapper.childElementCount;
+  if (childCount == 0){
+    console.log("Found running solutionWrapper to be empty")
+    wrapper.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
+  }
+
+}
+
+function stopRunningJob(jobId){
+
+  console.log("stop running job: " + jobId)
+
+  fetch(jobUrl + "job/" + jobId, {
+    method: 'DELETE',
+    mode: 'cors',
+    headers: {
+      'Access-Control-Allow-Origin':'*',
+      'Authorization':'Bearer ' + localStorage.getItem("token")
+    }
+  })
+    .then((response) => response.json())
+    .then((result) => {
+
+      console.log("delete running job: ", result)
 
       jobToDelete = document.getElementById("runningSolution-" + jobId);
       jobToDelete.remove();
