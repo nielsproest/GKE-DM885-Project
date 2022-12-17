@@ -217,7 +217,7 @@ function isUserAdmin(){
 function getSolvedSolutions(){
     // Get solved solutions from job service
     let wrapperDiv = document.getElementById("runningSolutionsWrapper");
-    let wrapperFinishedJobs = document.getElementById("accordionWrapper");
+    let wrapperFinishedJobs = document.getElementById("stoppedSolutionWrapper");
 
     if (jobUrl != null) {
       fetch(jobUrl + "job", {
