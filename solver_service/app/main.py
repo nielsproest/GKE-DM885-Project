@@ -85,7 +85,7 @@ def isValidUuid(solverId):
         uuid.UUID(str(solverId))
         return
     except ValueError:
-        raise HTTPException(status_code=400, detail=f"Id not valid")
+        raise HTTPException(status_code=400, detail="Id not valid")
 
 
 def verify_image(dockerImage: str):
@@ -96,7 +96,7 @@ def verify_image(dockerImage: str):
 def isAdmin(token: str):
     admin = decode_jwt(token).get('permissions').get('is_admin')
     if not admin:
-        raise HTTPException(status_code=401, detail=f"User is not admin")
+        raise HTTPException(status_code=401, detail="User is not admin")
 
 def isInDb(db: Session, image: str):
     solvers = getAllSolvers(db)
@@ -106,7 +106,7 @@ def isInDb(db: Session, image: str):
         solverURLs.append(solver.dockerImage)
 
     if image in solverURLs:
-        raise HTTPException(status_code=409, detail=f"Image already exists in database")
+        raise HTTPException(status_code=409, detail="Image already exists in database")
 
 def startupDbPrep(permSolvers: dict):
     db = SessionLocal()

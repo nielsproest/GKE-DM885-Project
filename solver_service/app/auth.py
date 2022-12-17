@@ -19,13 +19,11 @@ def validate_token(token: str) -> bool:
             return False
 
     except jwt.exceptions.InvalidSignatureError:
-        print("except1")
         return False
     except KeyError:
-        print("except2")
         return False
-    except:
-        print("except3")
+    except Exception as e:
+        print(e)
         return False
 
     return True
