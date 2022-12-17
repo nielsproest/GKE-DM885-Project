@@ -155,12 +155,14 @@ class Kubernetes:
                                 timeout_seconds=20):
           if event["object"].status.phase == "Succeeded":
               pod_name = event['object'].metadata.name
+              print(f"pod_name: {pod_name}")
               w.stop()
+              print(f"After first watch stopped")
 
               result = ""
 
               for e in w.stream(func=self.core_api.read_namespaced_pod_log, name=pod_name, namespace=_namespace):
-                print(e)
+                print(f"[FROM LOG]: {e}")
                 result += e + "\n"
                 if e == "----------":
                   print("Contact DB")
@@ -192,14 +194,11 @@ class Kubernetes:
     def thread_controller(self, q, jobs, _namespace, job_id, db):
       solver, result = q.get()
       print(f"First thread was: {solver}")
+      print(f"Result was: {result}")
       #for job in jobs:
       #  self.batch_api.delete_namespaced_job(name=job.metadata.name, namespace=_namespace, propagation_policy="Foreground")
 
       crud.found_result(db, job_id, solver, result)
-
-      # TODO: Stop other threads
-      # TODO: Stop other jobs
-      # TODO: Update database entry for job with result and new status
       return
 
 def execute_job(create_job_request, mzn, dzn, db):
@@ -215,7 +214,6 @@ def execute_job(create_job_request, mzn, dzn, db):
     if has_dzn:
       with open(f"/mnt/{job_id}.dzn", "a") as f:
         f.write(dzn)
-
 
 
     # Kubernetes instance

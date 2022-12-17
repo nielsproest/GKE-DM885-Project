@@ -42,7 +42,11 @@ constraint sa != nsw;
 constraint sa != v;
 constraint q != nsw;
 constraint nsw != v;
-solve satisfy;'''
+solve satisfy;
+
+output ["wa=\(wa)\t nt=\(nt)\t sa=\(sa)\n",
+        "q=\(q)\t nsw=\(nsw)\t v=\(v)\n",
+         "t=", show(t),  "\n"];'''
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
