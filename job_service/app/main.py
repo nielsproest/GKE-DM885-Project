@@ -27,26 +27,24 @@ if os.getenv('KUBERNETES_SERVICE_HOST'):
 else:
   SQLALCHEMY_DATABASE_URL = f"postgresql://postgres:{os.getenv('POSTGRES_PASSWORD')}@localhost:5432/job_service_db"
 
-test_mzn = '''% Colouring Australia using nc colours
-int: nc = 3;
+test_mzn = '''int: amount = 78;
+array[1..4] of int: denoms = [25, 10, 5, 1];
 
-var 1..nc: wa;   var 1..nc: nt;  var 1..nc: sa;   var 1..nc: q;
-var 1..nc: nsw;  var 1..nc: v;   var 1..nc: t;
+array[1..4] of var 0..100: counts;
 
-constraint wa != nt;
-constraint wa != sa;
-constraint nt != sa;
-constraint nt != q;
-constraint sa != q;
-constraint sa != nsw;
-constraint sa != v;
-constraint q != nsw;
-constraint nsw != v;
-solve satisfy;
+% ------------------------------------------
 
-output ["wa=\(wa)\t nt=\(nt)\t sa=\(sa)\n",
-        "q=\(q)\t nsw=\(nsw)\t v=\(v)\n",
-         "t=", show(t),  "\n"];'''
+constraint sum(i in 1..4) ( counts[i] * denoms[i] ) = amount;
+
+var int: coins = sum(counts);
+solve minimize coins;
+
+output [
+  "coins = ", show(coins), ";\n",
+  "denoms = ", show(denoms), ";\n",
+  "counts = ", show(counts), ";\n"
+];
+'''
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
