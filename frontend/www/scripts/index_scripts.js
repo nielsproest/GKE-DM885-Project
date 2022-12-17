@@ -46,6 +46,7 @@ function uploadModel(){
     .then((result) => {
 
       console.log(result)
+      getAvailableModels()
 
     })
     .catch((error) => {
