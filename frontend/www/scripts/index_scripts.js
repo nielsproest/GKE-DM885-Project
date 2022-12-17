@@ -197,6 +197,7 @@ function isUserAdmin(){
           console.log("permissions results:", result)
 
           tokenDecode = parseJwt(localStorage.getItem("token"))
+          console.log(result.message.is_admin == true)
 
           // Not finished
           if(result.message.is_admin == true){
@@ -233,6 +234,7 @@ function getSolvedSolutions(){
           let jobParser = new DOMParser();
 
           wrapperDiv.innerHTML = ""
+          wrapperFinishedJobs.innerHTML = ""
 
           result.forEach(element => {
 
@@ -270,7 +272,7 @@ function getSolvedSolutions(){
               wrapperDiv.appendChild(runningSolutionDiv);
 
             } else {
-              wrapperFinishedJobs.innerHTML = "";
+
               getStoppedSolvers(element);
 
             }
