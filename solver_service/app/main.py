@@ -91,6 +91,7 @@ def isValidUuid(solverId):
 def verify_image(dockerImage: str):
     #Currently verifies by pulling the image - checking all tags, which is either successful or returns an error if image does not exist
     #TODO: Use docker hub api to check images instead
+
     return
 
 def isAdmin(token: str):
@@ -123,11 +124,11 @@ def startupDbPrep(permSolvers: dict):
 
 def startupPkPrep():
 
-    #if os.getenv('KUBERNETES_SERVICE_HOST'):
-        #r = requests.get(url = auth_url + "/keys/public_key")
-        #data = r.json()
-        #setPublicKey(data["message"])
-    #else:
-    setPublicKey('''-----BEGIN PUBLIC KEY-----
+    if os.getenv('KUBERNETES_SERVICE_HOST'):
+        r = requests.get(url = auth_url + "/keys/public_key")
+        data = r.json()
+        setPublicKey(data["message"])
+    else:
+        setPublicKey('''-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvpAXDxizoN4MHs0qJrQ9J/Dc+95mLbT7o/haw2vXuB2LoSp855W/5hpPqyhAkPmKJEzICp6Ke72a2oUVeJb8lckM3km9dxFBvNsbMEpKEOO1/WhmWw8aDwBI7E0s7KAXHSdqCBncB4L3W37O9c6bQ2QrGpfrN82yFXez25tdv1ODc7bzfYFdD5LHNVymYl0E+dR/4P2P/+YxUX7omUI9Bqt6jdw6uERt2tcyT0PFT2DQwf3mtrXCufo68uMfxKP0TN5c1Zan4jwXeiJE4wHPzFgaWTzgKB6xayJqkgI9nhy5KaONIKe+ZCerrsBKztk9R8uH38GdI2rcwCPYi2AkkQIDAQAB
 -----END PUBLIC KEY-----''')
