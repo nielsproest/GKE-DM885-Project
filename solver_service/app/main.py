@@ -2,7 +2,6 @@ from fastapi import FastAPI, Depends, HTTPException
 import uuid
 import os
 import requests
-#import docker
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -90,15 +89,11 @@ def isValidUuid(solverId):
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Id not valid")
 
-# def verify_image(dockerImage: str):
-#     #Currently verifies by pulling the image - checking all tags, which is either successful or returns an error if image does not exist
 
-#     try:
-#         pull = client.images.pull(dockerImage, tag='latest')
-#         print(pull)
-#     except:
-#         raise HTTPException(status_code=400, detail=f"Docker image could not be verified")
-#     client.images.remove(dockerImage)
+def verify_image(dockerImage: str):
+    #Currently verifies by pulling the image - checking all tags, which is either successful or returns an error if image does not exist
+    #TODO: Use docker hub api to check images instead
+    return
 
 def isAdmin(token: str):
     admin = decode_jwt(token).get('permissions').get('is_admin')
