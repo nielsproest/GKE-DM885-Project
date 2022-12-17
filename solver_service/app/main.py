@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 import uuid
 import os
 import requests
-import docker
+#import docker
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -23,7 +23,7 @@ def get_db():
 
 app = FastAPI()
 
-client = docker.from_env()
+#client = docker.from_env()
 
 # CHANGE FOR PRODUCTION
 origins = [
@@ -77,7 +77,7 @@ def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depen
 
     isAdmin(token)
     isInDb(db, image)
-    verify_image(image)
+    #verify_image(image)
 
     cPostSolver(db, name, image)
 
@@ -90,15 +90,15 @@ def isValidUuid(solverId):
     except ValueError:
         raise HTTPException(status_code=400, detail=f"Id not valid")
 
-def verify_image(dockerImage: str):
-    #Currently verifies by pulling the image - checking all tags, which is either successful or returns an error if image does not exist
+# def verify_image(dockerImage: str):
+#     #Currently verifies by pulling the image - checking all tags, which is either successful or returns an error if image does not exist
 
-    try:
-        pull = client.images.pull(dockerImage, tag='latest')
-        print(pull)
-    except:
-        raise HTTPException(status_code=400, detail=f"Docker image could not be verified")
-    client.images.remove(dockerImage)
+#     try:
+#         pull = client.images.pull(dockerImage, tag='latest')
+#         print(pull)
+#     except:
+#         raise HTTPException(status_code=400, detail=f"Docker image could not be verified")
+#     client.images.remove(dockerImage)
 
 def isAdmin(token: str):
     admin = decode_jwt(token).get('permissions').get('is_admin')
