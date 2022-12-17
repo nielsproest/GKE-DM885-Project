@@ -11,10 +11,7 @@ def setPublicKey(newKey):
 
 def validate_token(token: str) -> bool:
     try:
-        print(PUBLIC_KEY)
-        print(token)
         payload = decode_jwt(token)
-        print(f'payload: {payload}')
         if time.time() > float(payload["expiration"]):
             return False
 
