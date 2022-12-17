@@ -17,6 +17,7 @@ class Job(Base):
     mzn_id = Column(UUID(as_uuid=True))
     dzn_id = Column(UUID(as_uuid=True))
     result = Column(String)
+    winning_solver = Column(String)
     timeout = Column(Integer)
     status = Column(String)
     time_created = Column(DateTime(timezone=True), server_default=func.now())

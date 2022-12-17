@@ -30,6 +30,7 @@ class Job(JobBase):
     id: str
     user_id: str
     result: str
+    winning_solver: str
     status: str
     solver_instances: List[SolverInstance] = []
 

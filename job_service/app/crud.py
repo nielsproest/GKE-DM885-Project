@@ -48,6 +48,7 @@ def create_job(db: Session, job: schemas.CreateJob, user_id: str):
       mzn_id=job.mzn_id,
       dzn_id=job.dzn_id,
       result="",
+      winning_solver="",
       timeout=job.timeout,
       status="running")
     db.add(db_job)
@@ -79,6 +80,7 @@ def found_result(db: Session, job_id: str, solver_id: str, result: str):
     for solver in job.solver_instances:
       if str(solver.id) == str(solver_id):
         solver.status = "completed"
+        job.winning_solver = solver.name
       else:
         solver.status = "stopped"
 
