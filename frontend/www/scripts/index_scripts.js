@@ -199,7 +199,8 @@ function isUserAdmin(){
           tokenDecode = parseJwt(localStorage.getItem("token"))
 
           // Not finished
-          if(tokenDecode.message.is_admin == true){
+          if(result.message.is_admin == true){
+
             settingsElement = document.getElementById("settingsAId");
             settingsElement.classList.remove("disabled");
             settingsElement.setAttribute("aria-disabled", "false");
