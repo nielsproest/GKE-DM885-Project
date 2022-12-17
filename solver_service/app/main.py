@@ -22,8 +22,6 @@ def get_db():
 
 app = FastAPI()
 
-#client = docker.from_env()
-
 # CHANGE FOR PRODUCTION
 origins = [
     "http://localhost",
