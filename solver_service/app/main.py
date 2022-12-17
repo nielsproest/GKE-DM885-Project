@@ -74,9 +74,9 @@ def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depen
 
     isAdmin(token)
     isInDb(db, image)
-    verify_image(image)
+    #verify_image(image)
 
-    #cPostSolver(db, name, image)
+    cPostSolver(db, name, image)
 
     return {"success"}
 
