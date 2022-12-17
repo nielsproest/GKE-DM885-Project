@@ -14,7 +14,7 @@ def validate_token(token: str) -> bool:
         print(PUBLIC_KEY)
         print(token)
         payload = decode_jwt(token)
-        print(payload)
+        print(f'payload: {payload}')
         if time.time() > float(payload["expiration"]):
             return False
 
@@ -22,7 +22,8 @@ def validate_token(token: str) -> bool:
         return False
     except KeyError:
         return False
-    except:
+    except Exception as e:
+        print(e)
         return False
 
     return True

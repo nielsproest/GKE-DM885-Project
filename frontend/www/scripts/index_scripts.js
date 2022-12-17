@@ -46,7 +46,7 @@ function uploadModel(){
     .then((result) => {
 
       console.log(result)
-      getAvailableModels()
+      getAvailableModels()  
 
     })
     .catch((error) => {
@@ -129,7 +129,7 @@ function getAvailableSolvers(){
         mode: 'cors',
         headers: {
           'Access-Control-Allow-Origin':'*',
-          'Authorization':'Bearer {' + localStorage.getItem("token") + "}"
+          'Authorization':'Bearer ' + localStorage.getItem("token")
         }
       })
         .then((response) => response.json())
