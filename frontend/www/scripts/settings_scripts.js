@@ -402,7 +402,7 @@ function setPermissions(userId){
     fetch(authUrl + "users/modify" , {
       method: 'POST',
       mode: 'cors',
-      body: '{"uuid":'+ userId +',"data":'+data+'}',
+      body: '{"uuid":'+ userId +',"data":{"max_cpu":'+cpu+', "max_ram":'+ram+', "is_admin":'+admin+'}}',
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token")
