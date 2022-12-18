@@ -1,5 +1,6 @@
 const solverUrl = "/api/solver/"
 const authUrl = "/api/auth/"
+const jobUrl = "/api/jobs/"
 
 function loadChecker(){
   
@@ -95,9 +96,10 @@ function getAllUsers(){
 
           userWrapper.append(userAppend.childNodes[0].childNodes[1].childNodes[0]);
 
+          getRunningSolvers(accordionWrapperId, user.uuid)
         })
 
-        getRunningSolvers(accordionWrapperId, user.id)
+        
 
       })
       .catch((error) => {
@@ -310,14 +312,13 @@ function uploadNewSolver() {
   newsolverUrl = document.getElementById("solver_url_input").value;
 
   if(solverUrl != null){
-    fetch(solverUrl + "solver/" + solverName, {
+    fetch(solverUrl + "solver/" + solverName + "/" + encodeURIComponent(newsolverUrl), {
       method: 'POST',
       mode: 'cors',
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token")
-      },
-      body: '{"image":"' + newsolverUrl + '"}'
+      }
     })
       .then((response) => response.json())
       .then((result) => {
@@ -398,7 +399,7 @@ function setPermissions(){
   data.append("is_admin", admin)
 
   if(authUrl != null){
-    fetch(authUrl + "modify" , {
+    fetch(authUrl + "users/modify" , {
       method: 'POST',
       mode: 'cors',
       body: data,
@@ -422,13 +423,14 @@ function setPermissions(){
 function deleteUser(userId){
 
   if(authUrl != null){
-    fetch(authUrl + "delete" , {
+    fetch(authUrl + "users/delete" , {
       method: 'POST',
       mode: 'cors',
-      body: data,
+      body: {"uuid":userId},
       headers: {
         'Access-Control-Allow-Origin':'*',
-        'Authorization':'Bearer ' + localStorage.getItem("token")
+        'Authorization':'Bearer ' + localStorage.getItem("token"),
+        'Content-Type': 'application/json'
       }
     })
       .then((response) => response.json())
