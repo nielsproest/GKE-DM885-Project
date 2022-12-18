@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from os.path import join
 from os import remove, getenv, mkdir
+from re import sub
 
 from . import crud, models
 from .database import SessionLocal, engine
@@ -44,6 +45,9 @@ def generic_auth_handler(user_id, token):
 
 	return permissions
 
+def sanitize(s):
+	return sub(r'[^A-Za-z0-9 ]+', '', s)
+
 @app.put("/{user_id}")
 async def write(
 		user_id: str,
@@ -64,7 +68,7 @@ async def write(
 		raise HTTPException(status_code=413, detail="Not enough space")
 
 	#Create file
-	qry = crud.create_file(db, file.filename, fs_size, user_id)
+	qry = crud.create_file(db, sanitize(file.filename), fs_size, user_id)
 	if not qry:
 		raise HTTPException(status_code=500, detail="Unknown error")
 
@@ -135,6 +139,8 @@ async def update(
 
 	with open(join(OS_DIR, str(qry.id)), "wb") as f:
 		f.write(fs)
+
+	crud.update_file(db, item_id, sanitize(file.filename), fs_size)
 
 	return {
 		"message": "OK"

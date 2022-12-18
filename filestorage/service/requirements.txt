@@ -6,3 +6,5 @@ psycopg2
 requests
 cryptography==38.0.4
 PyJWT==2.6.0
+pytest
+httpx
