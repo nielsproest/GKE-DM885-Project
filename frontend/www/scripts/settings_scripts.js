@@ -405,6 +405,7 @@ function setPermissions(userId){
       body: '{"uuid":'+ userId +',"data":{"max_cpu":'+cpu+', "max_ram":'+ram+', "is_admin":'+admin+'}}',
       headers: {
         'Access-Control-Allow-Origin':'*',
+        'Content-Type': 'application/json',
         'Authorization':'Bearer ' + localStorage.getItem("token")
       }
     })
