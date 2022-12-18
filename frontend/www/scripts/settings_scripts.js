@@ -2,9 +2,8 @@ const solverUrl = "/api/solver/"
 const authUrl = "/api/auth/"
 
 function loadChecker(){
-
   
-  if (localStorage.getItem("token") === null || localStorage.getItem("token") === "defined" || parseJwt(localStorage.getItem("token")).expiration < Date.now()) {
+  if (localStorage.getItem("token") === null || localStorage.getItem("token") === "defined" || parseJwt(localStorage.getItem("token")).expiration > Date.now()) {
     localStorage.removeItem("token");
     window.location.href = "login.html";
   }

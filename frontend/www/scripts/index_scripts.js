@@ -80,13 +80,13 @@ function getAvailableModels(){
       let modelParser = new DOMParser();
 
       result.lst.forEach(model => {
-        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">"' + model.name + '"<button id="' + model.id + '" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="deleteModel(this.id)" type="button">Delete</button><button id="' + model.id + '" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
+        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">"' + model.name + '"<button id="' + model.id + '" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="' + model.id + '" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
         modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
       });
 
       if(modelList.childElementCount == 0){
         let modelParser = new DOMParser();
-        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-primary btn-sm position-absolute top-50 end-0 translate-middle-y" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
+        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
         modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
       }
     })
@@ -112,6 +112,7 @@ function deleteModel(fileId){
     .then((result) => {
 
       console.log("Delete file result " + result)
+      getAvailableModels()
 
     })
     .catch((error) => {
@@ -286,6 +287,8 @@ function getSolvedSolutions(){
           if(runningChildCount == 0){
             console.log("Is 0 and therefore should paste no running jobs", runningChildCount)
             wrapperDiv.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
+          }else{
+            refreshJobs()
           }
 
           let finishedChildCount = wrapperFinishedJobs.childElementCount;
@@ -344,11 +347,11 @@ function getStoppedSolvers(stoppedJob){
 
   let itemstring = stoppedJobParser.parseFromString(`<div id="stoppedJobWrapper-`+ stoppedJob.id +`" class="accordion-item">
                       <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-`+ stoppedJob.id +`" aria-expanded="false" aria-controls="collapseTwo">
                           ` + "Solver: " + stoppedJob.winning_solver + " Create date: " + stoppedJob.time_created + " Status: " + stoppedJob.status + `
                         </button>
                       </h2>
-                      <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+                      <div id="collapse-` + stoppedJob.id + `" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
                         <div class="accordion-body">
                           ` + "Result: " + stoppedJob.result + `
                         </div>
@@ -381,6 +384,7 @@ function deleteStoppedJob(jobId){
 
       jobToDelete = document.getElementById("stoppedJobWrapper-" + jobId);
       jobToDelete.remove();
+      getSolvedSolutions()
 
     })
     .catch((error) => {
@@ -415,6 +419,7 @@ function stopRunningJob(jobId){
 
       jobToDelete = document.getElementById("runningSolution-" + jobId);
       jobToDelete.remove();
+      getSolvedSolutions()
 
     })
     .catch((error) => {
@@ -427,9 +432,10 @@ function stopRunningJob(jobId){
     console.log("Found running solutionWrapper to be empty")
     wrapper.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
   }
+}
 
-  
-
+function refreshJobs(){
+  setTimeout(() => { getSolvedSolutions() }, 5000);
 }
 
 function startJob(modelIds){
@@ -439,8 +445,23 @@ function startJob(modelIds){
 
   for(let x of Array.from(solverCheckingList.children)) {
 
+    let vcpu = x.querySelector(".vcpu-class").value
+    let ram = x.querySelector(".ram-class").value
+
+    
+
+    if(vcpu == null){
+      vcpu = 1
+    }
+
+    if(ram == null){
+      ram = 1024
+    }
+
+    console.log("vcpu", vcpu, " ram:", ram)
+
     if(x.querySelector(".form-check-input").checked == true){
-      solverList.push('{"id": "' + x.querySelector("span.solver-name-class").id + '", "name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpu":'+ x.querySelector(".vcpu-class").value +' ,"ram": '+ x.querySelector(".ram-class").value +'}')
+      solverList.push('{"id": "' + x.querySelector("span.solver-name-class").id + '", "name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpu":'+ vcpu +' ,"ram": '+ ram +'}')
     }
 
   }
@@ -466,6 +487,7 @@ function startJob(modelIds){
     .then((result) => {
 
       console.log("", result)
+      getSolvedSolutions()
 
     })
     .catch((error) => {
