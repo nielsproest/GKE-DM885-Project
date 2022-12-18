@@ -154,7 +154,7 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
     #TODO: Check permissions for vCPUs and RAM count
 
     for s in create_job_request.solver_list:
-      s.image = get_solver_image(s.id, decoded_token)
+      s.image = get_solver_image(s.id, token)
 
     # TODO: Verify that mzn file exists
     (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id, uuid, token)
@@ -168,43 +168,36 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
 
 
 
-def get_solver_image(solver_id, decoded_token):
+def get_solver_image(solver_id, token):
 
-    # TODO: Implement call to solver service
-    # if os.getenv('KUBERNETES_SERVICE_HOST'):
-    #   headers = {
-    #     "Authorization": f"Bearer {decoded_token}",
-    #     "Content-Type": "application/json"
-    #   }
-    #   r = requests.get(url = solver_svc_url + f"/solver/{solver_id}", headers=headers)
-    #   data = r.json()
-    #   print(data)
-      # Wait for solverservices' auth to work
-      #solver_image = data.dockerImage
-      #print(solver_image)
-
-      # TODO: Do try-catch and return 400 if solver does not exist
-      #return solver_image
-
-    return "hakankj/fzn-picat-sat" #TODO: Remove, only for testing
-    #"gkgange/geas-mznc2022", "hakankj/fzn-picat-sat"
-
-def get_problem_files(mzn_id, dzn_id, uuid, token):
-    #TODO: Contact file services for mzn
-
-    print(f"mzn_id: {mzn_id}")
-    print(f"uuid: {uuid}")
-    print(f"token: {token}")
-
+    #TODO: Implement call to solver service
     if os.getenv('KUBERNETES_SERVICE_HOST'):
       headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
       }
-      r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}", headers=headers)
-      print("[DEBUG] r.text: ")
-      print(r.text)
+      r = requests.get(url = solver_svc_url + f"/solver/{solver_id}", headers=headers)
+      data = r.json()
+      print(f"data: {data}")
+      solver_image = data["dockerImage"]
+      print(f"solver_image: {solver_image}")
 
+      # TODO: Do try-catch and return 400 if solver does not exist
+    else:
+      solver_image = "hakankj/fzn-picat-sat"
+
+    return solver_image
+    #"gkgange/geas-mznc2022", "hakankj/fzn-picat-sat"
+
+def get_problem_files(mzn_id, dzn_id, uuid, token):
+
+    headers = {
+      "Authorization": f"Bearer {token}",
+      "Content-Type": "application/json"
+    }
+
+    if os.getenv('KUBERNETES_SERVICE_HOST'):
+      r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}", headers=headers)
       mzn = r.text
 
       # TODO: Handle file not existing.
@@ -212,7 +205,12 @@ def get_problem_files(mzn_id, dzn_id, uuid, token):
       mzn = test_mzn
 
     if dzn_id != None:
-        #TODO: Contact file services for dzn
+      if os.getenv('KUBERNETES_SERVICE_HOST'):
+        r = requests.get(url = fs_svc_url + f"/{uuid}/{dzn_id}", headers=headers)
+        dzn = r.text
+
+        # TODO: Handle file not existing.
+      else:
         dzn = "max_per_block = [1, 2, 1, 2, 1]"
     else:
         dzn = None
