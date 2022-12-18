@@ -386,7 +386,7 @@ function isUserAdmin(){
   }
 }
 
-function setPermissions(){
+function setPermissions(userId){
   // Set permissions
 
   var data = new FormData()
@@ -399,12 +399,13 @@ function setPermissions(){
   data.append("is_admin", admin)
 
   if(authUrl != null){
-    fetch(authUrl + "modify" , {
+    fetch(authUrl + "users/modify" , {
       method: 'POST',
       mode: 'cors',
-      body: data,
+      body: '{"uuid":"'+ userId +'","data":{"max_cpu":'+cpu+', "max_ram":'+ram+', "is_admin":'+admin+'}}',
       headers: {
         'Access-Control-Allow-Origin':'*',
+        'Content-Type': 'application/json',
         'Authorization':'Bearer ' + localStorage.getItem("token")
       }
     })
@@ -423,10 +424,10 @@ function setPermissions(){
 function deleteUser(userId){
 
   if(authUrl != null){
-    fetch(authUrl + "delete" , {
+    fetch(authUrl + "users/delete" , {
       method: 'POST',
       mode: 'cors',
-      body: {"uuid":userId},
+      body: '{"uuid":'+ userid +'}',
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token"),

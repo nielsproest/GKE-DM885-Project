@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from os.path import join
 from os import remove, getenv, mkdir
+from re import sub
 
 from . import crud, models
 from .database import SessionLocal, engine
@@ -21,7 +22,7 @@ def get_db():
 		db.close()
 
 #Where our files are stored
-OS_DIR = getenv("_STORAGE_DIR", "/mnt/hdd")
+OS_DIR = getenv("_STORAGE_DIR", "/mnt/hdd/dumbaf")
 
 try:
 	mkdir(OS_DIR)
@@ -29,19 +30,23 @@ except:
 	print("Failed to create directory!")
 
 def generic_auth_handler(user_id, token):
-	permissions = decode_jwt(token).get("permissions", None)
+	decoded_token = decode_jwt(token)
+	permissions = decoded_token.get("permissions", None)
 
 	if permissions is None:
 		raise HTTPException(
 			status_code=400, detail="Missing permissions"
 		)
 
-	if not permissions["is_admin"] and user_id != permissions["uuid"]:
+	if not permissions["is_admin"] and user_id != decoded_token["uuid"]:
 		raise HTTPException(
 			status_code=401, detail="Wrong user for said resource"
 		)
 
 	return permissions
+
+def sanitize(s):
+	return sub(r'[^A-Za-z0-9 ]+ _.' , '', s)
 
 @app.put("/{user_id}")
 async def write(
@@ -63,7 +68,7 @@ async def write(
 		raise HTTPException(status_code=413, detail="Not enough space")
 
 	#Create file
-	qry = crud.create_file(db, file.filename, fs_size, user_id)
+	qry = crud.create_file(db, sanitize(file.filename), fs_size, user_id)
 	if not qry:
 		raise HTTPException(status_code=500, detail="Unknown error")
 
@@ -134,6 +139,8 @@ async def update(
 
 	with open(join(OS_DIR, str(qry.id)), "wb") as f:
 		f.write(fs)
+
+	crud.update_file(db, item_id, sanitize(file.filename), fs_size)
 
 	return {
 		"message": "OK"
