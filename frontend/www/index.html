@@ -48,7 +48,42 @@
 
                         </div>
                     </div>
-                  
+
+                    <!-- DZN input-->
+                    <p class="text-start mt-3" style="color:lightskyblue;">Have you uploaded an external datafile? If so, you can select it below by clicking the button! <i class="bi bi-info-circle" 
+                      data-bs-toggle="tooltip" data-bs-placement="top"
+                      data-bs-custom-class="custom-tooltip"
+                      data-bs-title="Only files with the file extension '.dzn' will show up here"></i></p>
+                    <div id="dzn-wrapper">
+                      <p>
+                        <button class="btn btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                          Show .dzn options
+                        </button>
+                      </p>
+                      <div class="collapse" id="collapseExample">
+                        <div id="dzn-radio-btn-wrapper" class="card card-body">
+                          <div class="custom-control custom-radio m-1">
+                            <input type="radio" id="customRadio1" name="customRadio" class="custom-control-input">
+                            <label class="custom-control-label" for="customRadio1">None</label>
+                          </div>
+                          <div class="custom-control custom-radio m-1 d-flex w-100 justify-content-between">
+                            <div>
+                            <input type="radio" id="customRadio1" name="customRadio" class="custom-control-input">
+                            <label class="custom-control-label" for="customRadio1">some_data.dzn</label>
+                            </div>
+                            <button id="some_data_id" class="btn btn-outline-danger btn-sm" type="button" id="inputGroupFileAddon03" onclick="deleteModel(this.id)">Delete .dzn</button>
+                          </div>
+                          <div class="custom-control custom-radio m-1 d-flex w-100 justify-content-between">
+                            <div>
+                            <input type="radio" id="customRadio2" name="customRadio" class="custom-control-input">
+                            <label class="custom-control-label" for="customRadio2">some_other_data.dzn</label>
+                            </div>
+                            <button id="some_other_data_id" class="btn btn-outline-danger btn-sm" type="button" id="inputGroupFileAddon03" onclick="deleteModel(this.id)">Delete .dzn</button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
                     <!-- Available models -->
                     <p class="text-start mt-3" style="color:lightskyblue;">You have uploaded a model! Wanna SolveIt?</p>
                     <ul id="modelList" class="list-group list-group-flush">

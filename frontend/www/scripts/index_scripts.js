@@ -20,7 +20,7 @@ function onLoad(){
     getAvailableModels()
 
     // Activate the settings button (if admin user)
-    isUserAdmin()
+    //isUserAdmin()
 
     // Calls DB that holds solutions
     getSolvedSolutions()
@@ -80,13 +80,13 @@ function getAvailableModels(){
       let modelParser = new DOMParser();
 
       result.lst.forEach(model => {
-        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">"' + model.name + '"<button id="' + model.id + '" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="' + model.id + '" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
+        let modelToAppend = modelParser.parseFromString('<li class="list-group-item d-flex w-100 justify-content-between"><p>"' + model.name + '"</p><div><button id="' + model.id + '" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="' + model.id + '" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></div></li>', 'text/html');
         modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
       });
 
       if(modelList.childElementCount == 0){
         let modelParser = new DOMParser();
-        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
+        let modelToAppend = modelParser.parseFromString('<li class="list-group-item d-flex w-100 justify-content-between"><p>fake.mzn</p><button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
         modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
       }
     })

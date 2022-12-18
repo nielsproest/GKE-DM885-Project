@@ -65,24 +65,26 @@ function getAllUsers(){
         userWrapper.innerHTML = "";
         let userParser = new DOMParser();
 
-        result.forEach(user => {
+        result.message.forEach(user => {
 
-          accordionWrapperId = "accordionWrapper" + user.id
+          accordionWrapperId = "accordionWrapper" + user.uuid
+
+          // <small>Created: ` + user.created + `</small> In case users gets created time :)
 
           let userAppend = userParser.parseFromString(`
-          <div id="user-object-` + user.id + `" class="user_object border rounded-2 m-1">
+          <div id="user-object-` + user.uuid + `" class="user_object border rounded-2 m-1">
                 <div class="list-group mb-3">
                   <div class="list-group-item list-group-item-action" aria-current="true">
                     <div class="d-flex w-100 justify-content-between">
-                      <h5 class="mb-1">` + user.name + `</h5>
-                      <small>Created: ` + user.created + `</small>
+                      <h5 class="mb-1">` + user.username + `</h5>
+                      
                     </div>
-                    <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#setPermissionsModal" data-bs-userId="` + user.id + `">Set permissions</button>
-                    <button id="`+ user.id +`" type="button" class="btn btn-outline-danger btn-sm" onclick="deleteUser(this.id)">Delete user</button>
+                    <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#setPermissionsModal" data-bs-userId="` + user.uuid + `">Set permissions</button>
+                    <button id="`+ user.uuid +`" type="button" class="btn btn-outline-danger btn-sm" onclick="deleteUser(this.id)">Delete user</button>
                   </div>
                 </div>
 
-                <p class="text-start lh-1 m-3" style="color:lightskyblue;">` + user.name + ` running solvers:</p>
+                <p class="text-start lh-1 m-3" style="color:lightskyblue;">` + user.username + ` running solvers:</p>
 
                 <div class="accordion" id="` + accordionWrapperId + `">
 
@@ -307,9 +309,6 @@ function uploadNewSolver() {
   solverName = document.getElementById("solver_id_input").value;
   newsolverUrl = document.getElementById("solver_url_input").value;
 
-  var data = new FormData()
-  data.append('image', newsolverUrl)
-
   if(solverUrl != null){
     fetch(solverUrl + "solver/" + solverName, {
       method: 'POST',
@@ -318,7 +317,7 @@ function uploadNewSolver() {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token")
       },
-      body: data
+      body: '{"image":"' + newsolverUrl + '"}'
     })
       .then((response) => response.json())
       .then((result) => {
