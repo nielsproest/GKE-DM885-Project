@@ -97,7 +97,7 @@ function getAvailableModels(){
           let datafileToAppend = modelParser.parseFromString(`
             <div class="custom-control custom-radio m-1 d-flex w-100 justify-content-between">
               <div>
-              <input type="radio" id="customRadio-`+ model.id +`" name="customRadio" class="custom-control-input">
+              <input type="radio" id="customRadio-`+ model.id +`" name="customRadio" value="`+ model.id +`" class="custom-control-input radio-control-input">
               <label class="custom-control-label" for="customRadio-`+ model.id +`">`+ model.name +`</label>
               </div>
               <button id="`+ model.id +`" class="btn btn-outline-danger btn-sm" type="button" id="inputGroupFileAddon03" onclick="deleteModel(this.id)">Delete .dzn</button>
@@ -494,15 +494,38 @@ function startJob(modelIds){
 
   console.log(solverList)
 
+  let bodystring = ""
+
+  const matches = document.querySelectorAll(".radio-control-input");
+  let dznChecked = 0
+  let dznId = ""
+
+  matches.forEach( element => {
+    if(element.checked == true){
+      dznChecked = 1
+      dznId = element.value
+    }
+  })
+
+  if(dznChecked == 1){
+    bodystring = `{
+      "mzn_id": "` + modelIds + `",
+      "dzn_id": "`+ dznId +`",
+      "timeout": 120,
+      "solver_list": [` + solverList.toString() + `]
+    }`;
+  } else {
+    bodystring = `{
+      "mzn_id": "` + modelIds + `",
+      "timeout": 120,
+      "solver_list": [` + solverList.toString() + `]
+    }`;
+  }
+
   fetch(jobUrl + "job", {
     method: 'POST',
     mode: 'cors',
-    body: `{
-      "mzn_id": "` + modelIds + `",
-      "dzn_id": "` + +`",
-      "timeout": 120,
-      "solver_list": [` + solverList.toString() + `]
-    }`,
+    body: bodystring,
     headers: {
       'Access-Control-Allow-Origin':'*',
       'Authorization':'Bearer ' + localStorage.getItem("token"),
@@ -560,7 +583,6 @@ function parseJwt (token) {
 
   return JSON.parse(jsonPayload);
 }
-
 
 function logout(){
     // Delete session token
