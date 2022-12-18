@@ -52,14 +52,14 @@ def getAllSolvers(db: Session = Depends(get_db)):
 
     return cGetAllSolvers(db)
 
-@app.get("/solver/{id}", dependencies=[Depends(JWTBearer())])
+@app.get("/solver/{solverId}", dependencies=[Depends(JWTBearer())])
 def getSolver(solverId: str, db: Session = Depends(get_db)):
 
     isValidUuid(solverId)
 
     return cGetSolver(db, solverId)
 
-@app.delete("/solver/{id}", dependencies=[Depends(JWTBearer())])
+@app.delete("/solver/{solverId}", dependencies=[Depends(JWTBearer())])
 def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
     isAdmin(token)
