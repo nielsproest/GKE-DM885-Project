@@ -21,9 +21,15 @@ async def create_new_user(
     db: Session = Depends(get_database),
 ):
 
-    if (username := payload.get("username", None)) is None:
+    try:
+        if (username := payload.get("username", None)) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
+            )
+    except AttributeError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
+            status_code=status.UnsupportedMediaType,
+            detail="Invalid content type, remember to set content-type to application/json",
         )
 
     if len(username) < config("USERNAME_MIN_LENGTH", cast=int, default=3):
@@ -76,9 +82,15 @@ async def login_user(
     db: Session = Depends(get_database),
 ):
 
-    if (username := payload.get("username", None)) is None:
+    try:
+        if (username := payload.get("username", None)) is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
+            )
+    except AttributeError:
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Missing username"
+            status_code=status.UnsupportedMediaType,
+            detail="Invalid content type, remember to set content-type to application/json",
         )
 
     if (password := payload.get("password", None)) is None:
@@ -120,7 +132,14 @@ async def modify_user(
     db: Session = Depends(get_database),
 ):
 
-    permissions = decode_jwt(token).get("permissions", None)
+    try:
+        permissions = decode_jwt(token).get("permissions", None)
+    except AttributeError:
+        raise HTTPException(
+            status_code=status.UnsupportedMediaType,
+            detail="Invalid content type, remember to set content-type to application/json",
+        )
+
     if permissions is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing permissions"
@@ -173,7 +192,13 @@ async def delete_user(
     db: Session = Depends(get_database),
 ):
 
-    permissions = decode_jwt(token).get("permissions", None)
+    try:
+        permissions = decode_jwt(token).get("permissions", None)
+    except AttributeError:
+        raise HTTPException(
+            status_code=status.UnsupportedMediaType,
+            detail="Invalid content type, remember to set content-type to application/json",
+        )
 
     # Sanity Checks
     if permissions is None:
@@ -224,7 +249,13 @@ async def is_username_available(username: str, db: Session = Depends(get_databas
 @router.get("/list_users")
 async def list_users(token=Depends(JWTBearer()), db: Session = Depends(get_database)):
 
-    permissions = decode_jwt(token).get("permissions", None)
+    try:
+        permissions = decode_jwt(token).get("permissions", None)
+    except AttributeError:
+        raise HTTPException(
+            status_code=status.UnsupportedMediaType,
+            detail="Invalid content type, remember to set content-type to application/json",
+        )
 
     # Sanity Checks
     if permissions is None:
@@ -242,7 +273,9 @@ async def list_users(token=Depends(JWTBearer()), db: Session = Depends(get_datab
     users = db.query(User).all()
 
     # Return a list of all users
-    return {"message": [{"username": user.username, "uuid": user.uuid} for user in users]}
+    return {
+        "message": [{"username": user.username, "uuid": user.uuid} for user in users]
+    }
 
 
 @router.get("/get_my_permissions")
@@ -250,7 +283,13 @@ async def get_my_permissions(
     token=Depends(JWTBearer()), db: Session = Depends(get_database)
 ):
 
-    uuid = decode_jwt(token).get("uuid", None)
+    try:
+        uuid = decode_jwt(token).get("uuid", None)
+    except AttributeError:
+        raise HTTPException(
+            status_code=status.UnsupportedMediaType,
+            detail="Invalid content type, remember to set content-type to application/json",
+        )
 
     # Sanity Checks, this should never happen as we're decoding the JWT token
     if uuid is None:
@@ -274,7 +313,13 @@ async def get_my_permissions(
 async def get_permissions(
     uuid: str, token=Depends(JWTBearer()), db: Session = Depends(get_database)
 ):
-    permissions = decode_jwt(token).get("permissions", None)
+    try:
+        permissions = decode_jwt(token).get("permissions", None)
+    except AttributeError:
+        raise HTTPException(
+            status_code=status.UnsupportedMediaType,
+            detail="Invalid content type, remember to set content-type to application/json",
+        )
 
     # Sanity Checks
     if permissions is None:
@@ -308,7 +353,14 @@ async def get_permissions(
 async def _decode_jwt(token=Depends(JWTBearer())):
 
     decoded_token = decode_jwt(token)
-    permissions = decoded_token.get("permissions", None)
+
+    try:
+        permissions = decoded_token.get("permissions", None)
+    except AttributeError:
+        raise HTTPException(
+            status_code=status.UnsupportedMediaType,
+            detail="Invalid content type, remember to set content-type to application/json",
+        )
 
     # Sanity Checks
     if permissions is None:
