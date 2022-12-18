@@ -157,7 +157,7 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
       s.image = get_solver_image(s.id, decoded_token)
 
     # TODO: Verify that mzn file exists
-    (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id, decoded_token)
+    (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id, uuid, token)
 
     new_job = crud.create_job(db, create_job_request, uuid)
 
@@ -189,26 +189,27 @@ def get_solver_image(solver_id, decoded_token):
     return "hakankj/fzn-picat-sat" #TODO: Remove, only for testing
     #"gkgange/geas-mznc2022", "hakankj/fzn-picat-sat"
 
-def get_problem_files(mzn_id, dzn_id, decoded_token):
+def get_problem_files(mzn_id, dzn_id, uuid, token):
     #TODO: Contact file services for mzn
 
-    uuid = decoded_token.get('uuid')
+    print(f"mzn_id: {mzn_id}")
+    print(f"uuid: {uuid}")
+    print(f"token: {token}")
 
     if os.getenv('KUBERNETES_SERVICE_HOST'):
       headers = {
-        "Authorization": f"Bearer {decoded_token}",
+        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
       }
       r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}", headers=headers)
-      print("[DEBUG] r: ")
-      print(r)
-      #data = r.json()
-      #print("[DEBUG] data: ")
       print("[DEBUG] r.content: ")
       print(r.content)
-      # TODO: Handle file not existing
 
-    mzn = test_mzn
+      mzn = r.content
+
+      # TODO: Handle file not existing.
+    else:
+      mzn = test_mzn
 
     if dzn_id != None:
         #TODO: Contact file services for dzn
