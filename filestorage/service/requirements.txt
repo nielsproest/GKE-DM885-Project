@@ -1,5 +1,5 @@
 python-multipart
-uvicorn
+uvicorn[standard]
 fastapi
 sqlalchemy
 psycopg2
