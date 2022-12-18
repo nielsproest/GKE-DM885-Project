@@ -33,14 +33,18 @@ sed -i "s/DEFAULT_ADMIN_PASSWORD[^\"]*/DEFAULT_ADMIN_PASSWORD=${AUTH_ADMIN_PASS}
 
 echo To use with Ubuntu
 echo https://cloud.google.com/sdk/docs/install#linux
+echo Run these commands:
+echo gcloud auth login
 echo gcloud auth application-default login
 echo gcloud components update
 echo sudo snap install kubectl --channel=1.23/stable --classic
 echo https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
 echo Install docker
+echo WARNING: Terraform may fail in svc-account.tf, you may need to change workload_identity_pool_id to something else
+echo Please follow these steps and press enter \(or ignore them if you\'ve done this before\)
+read varname
+gcloud config set project ${PROJECT_ID}
 
-#TODO: Warnings about config, versions, etc.
-#TODO: Warn about sv-account.tf, they may need to change workload_identity_pool_id
 
 echo "Terraform apply"
 cd terraform
@@ -49,8 +53,10 @@ terraform init --upgrade
 terraform apply
 cd ..
 
-echo gcloud auth configure-docker
+gcloud auth configure-docker
 echo gcloud components install gke-gcloud-auth-plugin
+echo Please follow these steps and press enter
+read varname
 gcloud container clusters get-credentials ${PROJECT_ID}-gke --region ${GAR_LOCATION}
 
 echo "Docker build"
