@@ -77,5 +77,7 @@ jobs:
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |-
+        kubectl delete deployment frontend-deployment
+        kubectl delete svc frontend
         envsubst < kubernetes/frontend.yaml | kubectl apply -f -
         kubectl rollout status deployment/frontend-deployment
