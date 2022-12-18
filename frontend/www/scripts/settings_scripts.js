@@ -386,7 +386,7 @@ function isUserAdmin(){
   }
 }
 
-function setPermissions(){
+function setPermissions(userId){
   // Set permissions
 
   var data = new FormData()
@@ -402,7 +402,7 @@ function setPermissions(){
     fetch(authUrl + "users/modify" , {
       method: 'POST',
       mode: 'cors',
-      body: data,
+      body: '{"uuid":'+ userId +',"data":'+data+'}',
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token")
@@ -426,7 +426,7 @@ function deleteUser(userId){
     fetch(authUrl + "users/delete" , {
       method: 'POST',
       mode: 'cors',
-      body: {"uuid":userId},
+      body: '{"uuid":'+ userid +'}',
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token"),
