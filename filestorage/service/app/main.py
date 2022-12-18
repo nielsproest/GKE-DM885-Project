@@ -46,7 +46,7 @@ def generic_auth_handler(user_id, token):
 	return permissions
 
 def sanitize(s):
-	return sub(r'[^A-Za-z0-9 ]+', '', s)
+	return sub(r'[^A-Za-z0-9 ]+ _.' , '', s)
 
 @app.put("/{user_id}")
 async def write(
