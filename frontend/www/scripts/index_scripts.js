@@ -46,7 +46,7 @@ function uploadModel(){
     .then((result) => {
 
       console.log(result)
-      getAvailableModels()  
+      getAvailableModels()
 
     })
     .catch((error) => {
@@ -179,6 +179,7 @@ function getAvailableSolvers(){
               <span id="` + solver.id + `"  class="input-group-text solver-name-class">` + solver.name + `</span>
               <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
               <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
+              <input type="text" aria-label="timeout" placeholder="Timeout (Default: 60s)" class="form-control timeout-class">
             </div>
             `, 'text/html')
 
@@ -371,7 +372,7 @@ function getStoppedSolvers(stoppedJob){
 
   let wrapperFinishedJobs = document.getElementById("stoppedSolutionWrapper");
 
-  
+
 
   let itemstring = stoppedJobParser.parseFromString(`<div id="stoppedJobWrapper-`+ stoppedJob.id +`" class="accordion-item">
                       <h2 class="accordion-header">
@@ -475,6 +476,7 @@ function startJob(modelIds){
 
     let vcpu = x.querySelector(".vcpu-class").value
     let ram = x.querySelector(".ram-class").value
+    let timeout = x.querySelector(".timeout-class").value
 
     if(vcpu == null){
       vcpu = 1
@@ -484,10 +486,14 @@ function startJob(modelIds){
       ram = 1024
     }
 
-    console.log("vcpu", vcpu, " ram:", ram)
+    if(timeout == null){
+      timeout = 60
+    }
+
+    console.log("vcpu", vcpu, " ram:", ram, " timeout:", timeout)
 
     if(x.querySelector(".form-check-input").checked == true){
-      solverList.push('{"id": "' + x.querySelector("span.solver-name-class").id + '", "name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpu":'+ vcpu +' ,"ram": '+ ram +'}')
+      solverList.push('{"id": "' + x.querySelector("span.solver-name-class").id + '", "name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpu":'+ vcpu +' ,"ram": '+ ram + ', "timeout": ' + timeout +'}')
     }
 
   }
