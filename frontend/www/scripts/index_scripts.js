@@ -353,7 +353,7 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
       result.forEach(instance => {
 
-        let listItem = instanceParser.parseFromString('<li id="runningSolverId-' + instance.id + '" class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="stopInstance(this.id, '+ solutionInstanceId.toString() +')" type="button">Remove running solver</button>Current result: '+ instance.result.replace(/\n/g, '<br>') +'</li>', 'text/html')
+        let listItem = instanceParser.parseFromString('<li id="runningSolverId-' + instance.id + '" class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="stopInstance(this.id, '+ solutionInstanceId.toString() +')" type="button">Remove running solver</button> '+ (instance.result ? "Current result: " + instance.result.replace(/\n/g, '<br>') : "No result yet") +'</li>', 'text/html')
         runningSolutionUL.append(listItem.childNodes[0].childNodes[1].childNodes[0])
 
       });
