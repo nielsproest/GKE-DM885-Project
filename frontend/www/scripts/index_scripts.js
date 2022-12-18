@@ -20,7 +20,7 @@ function onLoad(){
     getAvailableModels()
 
     // Activate the settings button (if admin user)
-    //isUserAdmin()
+    isUserAdmin()
 
     // Calls DB that holds solutions
     getSolvedSolutions()
@@ -102,7 +102,7 @@ function getAvailableModels(){
               </div>
               <button id="`+ model.id +`" class="btn btn-outline-danger btn-sm" type="button" id="inputGroupFileAddon03" onclick="deleteModel(this.id)">Delete .dzn</button>
             </div>
-          `);
+          `, 'text/html');
 
           dznList.append(datafileToAppend.childNodes[0].childNodes[1].childNodes[0]);
 
@@ -476,8 +476,6 @@ function startJob(modelIds){
     let vcpu = x.querySelector(".vcpu-class").value
     let ram = x.querySelector(".ram-class").value
 
-    
-
     if(vcpu == null){
       vcpu = 1
     }
@@ -501,6 +499,7 @@ function startJob(modelIds){
     mode: 'cors',
     body: `{
       "mzn_id": "` + modelIds + `",
+      "dzn_id": "` + +`",
       "timeout": 120,
       "solver_list": [` + solverList.toString() + `]
     }`,
