@@ -202,10 +202,10 @@ def get_problem_files(mzn_id, dzn_id, uuid, token):
         "Content-Type": "application/json"
       }
       r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}", headers=headers)
-      print("[DEBUG] r.content: ")
-      print(r.content)
+      print("[DEBUG] r.text: ")
+      print(r.text)
 
-      mzn = r.content
+      mzn = r.text
 
       # TODO: Handle file not existing.
     else:
