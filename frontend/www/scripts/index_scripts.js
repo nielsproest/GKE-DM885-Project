@@ -62,6 +62,8 @@ function getAvailableModels(){
   var uuid = parseJwt(localStorage.getItem("token")).uuid
 
   modelList = document.getElementById("modelList");
+  dznList = document.getElementById("dzn-radio-btn-wrapper");
+
 
   if(fileUrl != null){
     fetch(fileUrl + uuid + "/list", {
@@ -74,19 +76,45 @@ function getAvailableModels(){
     .then((result) => {
 
       modelList.innerHTML = ""
+      dznList.innerHTML = `
+      <div class="custom-control custom-radio m-1">
+        <input type="radio" id="customRadio1" name="customRadio" class="custom-control-input">
+        <label class="custom-control-label" for="customRadio1">None</label>
+      </div>
+      `;
 
       console.log(result);
 
       let modelParser = new DOMParser();
 
       result.lst.forEach(model => {
-        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">"' + model.name + '"<button id="' + model.id + '" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="' + model.id + '" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
-        modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
+
+        if(model.name.split(".")[1] == "mzn"){
+          let modelToAppend = modelParser.parseFromString('<li class="list-group-item d-flex w-100 justify-content-between"><p>"' + model.name + '"</p><div><button id="' + model.id + '" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="' + model.id + '" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></div></li>', 'text/html');
+          modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
+        } else if (model.name.split(".")[1] == "dzn"){
+
+          let datafileToAppend = modelParser.parseFromString(`
+            <div class="custom-control custom-radio m-1 d-flex w-100 justify-content-between">
+              <div>
+              <input type="radio" id="customRadio-`+ model.id +`" name="customRadio" class="custom-control-input">
+              <label class="custom-control-label" for="customRadio-`+ model.id +`">`+ model.name +`</label>
+              </div>
+              <button id="`+ model.id +`" class="btn btn-outline-danger btn-sm" type="button" id="inputGroupFileAddon03" onclick="deleteModel(this.id)">Delete .dzn</button>
+            </div>
+          `, 'text/html');
+
+          dznList.append(datafileToAppend.childNodes[0].childNodes[1].childNodes[0]);
+
+        } else {
+          console.log("Found invalid model/datafile: ", model.name)
+        }
+
       });
 
       if(modelList.childElementCount == 0){
         let modelParser = new DOMParser();
-        let modelToAppend = modelParser.parseFromString('<li class="list-group-item">fake.mzn<button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
+        let modelToAppend = modelParser.parseFromString('<li class="list-group-item d-flex w-100 justify-content-between"><p>fake.mzn</p><button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
         modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
       }
     })
@@ -448,8 +476,6 @@ function startJob(modelIds){
     let vcpu = x.querySelector(".vcpu-class").value
     let ram = x.querySelector(".ram-class").value
 
-    
-
     if(vcpu == null){
       vcpu = 1
     }
@@ -473,6 +499,7 @@ function startJob(modelIds){
     mode: 'cors',
     body: `{
       "mzn_id": "` + modelIds + `",
+      "dzn_id": "` + +`",
       "timeout": 120,
       "solver_list": [` + solverList.toString() + `]
     }`,
