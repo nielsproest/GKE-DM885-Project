@@ -242,7 +242,7 @@ async def list_users(token=Depends(JWTBearer()), db: Session = Depends(get_datab
     users = db.query(User).all()
 
     # Return a list of all users
-    return {"message": [user.username for user in users]}
+    return {"message": [{"username": user.username, "uuid": user.uuid} for user in users]}
 
 
 @router.get("/get_my_permissions")
