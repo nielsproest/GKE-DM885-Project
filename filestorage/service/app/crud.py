@@ -24,6 +24,11 @@ def create_file(db: Session, name: str, size: int, owner: str):
 	db.refresh(db_user)
 	return db_user
 
+def update_file(db: Session, id: int, name: str, size: int):
+	db_upd = db.query(models.File).filter(models.File.id == id).update({"size": size, "name": name})
+	db.commit()
+	return db_upd
+
 def delete_file(db: Session, id: int):
 	db_del = db.query(models.File).filter(models.File.id == id).delete()
 	db.commit()

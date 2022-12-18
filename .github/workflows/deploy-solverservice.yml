@@ -79,5 +79,6 @@ jobs:
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |-
+        kubectl delete deployment solverservice-deployment
         envsubst < kubernetes/solverservice.yaml | kubectl apply -f -
         kubectl rollout status deployment/solverservice-deployment

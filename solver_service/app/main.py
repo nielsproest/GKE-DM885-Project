@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException
 import uuid
 import os
 import requests
+from urllib.parse import unquote
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
@@ -69,12 +70,20 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWT
 
     return {"success"}
 
-@app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
+@app.post("/solver/{name}/{image}", dependencies=[Depends(JWTBearer())])
 def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+
+    image = unquote(image)
+    print(image)
+
+    if "hub.docker.com/r/" in image:
+        test = image.index("/r/")
+        image = image[test + 3:]
+    print(image)
 
     isAdmin(token)
     isInDb(db, image)
-    #verify_image(image)
+    verify_image(image)
 
     cPostSolver(db, name, image)
 
@@ -89,10 +98,22 @@ def isValidUuid(solverId):
 
 
 def verify_image(dockerImage: str):
-    #Currently verifies by pulling the image - checking all tags, which is either successful or returns an error if image does not exist
-    #TODO: Use docker hub api to check images instead
+    #TODO: if not on docker hub 
 
-    return
+    namespace: str
+    repository: str
+    temp: list
+
+    if "/" in dockerImage:
+        temp = dockerImage.split("/")
+        namespace = temp[0]
+        repository = temp[1]
+    else:
+        raise HTTPException(status_code=400, detail="Not a valid docker hub image")
+
+    r = requests.get(f"https://hub.docker.com/v2/namespaces/{namespace}/repositories/{repository}/tags")
+    if r.status_code == 404:
+        raise HTTPException(status_code=404, detail="Docker image not found")
 
 def isAdmin(token: str):
     admin = decode_jwt(token).get('permissions').get('is_admin')
