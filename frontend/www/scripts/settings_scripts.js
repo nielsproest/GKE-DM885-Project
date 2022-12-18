@@ -2,7 +2,10 @@ const solverUrl = "/api/solver/"
 const authUrl = "/api/auth/"
 
 function loadChecker(){
-  if (localStorage.getItem("token") === null || localStorage.getItem("token") === "defined" || parseJwt(localStorage.getItem("token")).expiration < Date.now() || parseJwt(localStorage.getItem("token")).is_admin != true) {
+
+  
+  if (localStorage.getItem("token") === null || localStorage.getItem("token") === "defined" || parseJwt(localStorage.getItem("token")).expiration < Date.now()) {
+    localStorage.removeItem("token");
     window.location.href = "login.html";
   }
 
@@ -372,9 +375,9 @@ function isUserAdmin(){
         
         console.log("permissions results:", result)
 
-        // Not finished
-        if(result.permissions != "yay admin"){
-          window.location.href = "index.html";
+        if(result.message.is_admin != true){
+          localStorage.removeItem("token");
+          window.location.href = "login.html";
         }
 
       })
