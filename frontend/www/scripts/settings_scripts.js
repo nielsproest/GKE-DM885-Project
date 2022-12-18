@@ -399,7 +399,7 @@ function setPermissions(){
   data.append("is_admin", admin)
 
   if(authUrl != null){
-    fetch(authUrl + "modify" , {
+    fetch(authUrl + "users/modify" , {
       method: 'POST',
       mode: 'cors',
       body: data,
@@ -423,7 +423,7 @@ function setPermissions(){
 function deleteUser(userId){
 
   if(authUrl != null){
-    fetch(authUrl + "delete" , {
+    fetch(authUrl + "users/delete" , {
       method: 'POST',
       mode: 'cors',
       body: {"uuid":userId},
