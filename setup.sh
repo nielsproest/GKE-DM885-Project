@@ -26,10 +26,10 @@ export AUTH_ADMIN_USER=admin
 export AUTH_ADMIN_PASS=password
 
 #Patch authservice
-sed "s/POSTGRES_USER[^\"]*/POSTGRES_USER=${AUTH_DB_USER}/" auth_service/.env | tee auth_service/.env
-sed "s/POSTGRES_PASSWORD[^\"]*/POSTGRES_PASSWORD=${AUTH_DB_PASS}/" auth_service/.env | tee auth_service/.env
-sed "s/DEFAULT_ADMIN_USERNAME[^\"]*/DEFAULT_ADMIN_USERNAME=${AUTH_ADMIN_USER}/" auth_service/.env | tee auth_service/.env
-sed "s/DEFAULT_ADMIN_PASSWORD[^\"]*/DEFAULT_ADMIN_PASSWORD=${AUTH_ADMIN_PASS}/" auth_service/.env | tee auth_service/.env
+sed -i "s/POSTGRES_USER[^\"]*/POSTGRES_USER=${AUTH_DB_USER}/" auth_service/.env
+sed -i "s/POSTGRES_PASSWORD[^\"]*/POSTGRES_PASSWORD=${AUTH_DB_PASS}/" auth_service/.env
+sed -i "s/DEFAULT_ADMIN_USERNAME[^\"]*/DEFAULT_ADMIN_USERNAME=${AUTH_ADMIN_USER}/" auth_service/.env
+sed -i "s/DEFAULT_ADMIN_PASSWORD[^\"]*/DEFAULT_ADMIN_PASSWORD=${AUTH_ADMIN_PASS}/" auth_service/.env
 
 echo To use with Ubuntu
 echo https://cloud.google.com/sdk/docs/install#linux
@@ -48,9 +48,6 @@ printf "project_id = \"${PROJECT_ID}\"\nregion = \"${GAR_LOCATION}\"\n" > terraf
 terraform init --upgrade
 terraform apply
 cd ..
-
-#TODO: Will fail because of jobservice svc account
-#Let it fail, upload jobservice, then terraform again
 
 echo gcloud auth configure-docker
 echo gcloud components install gke-gcloud-auth-plugin
@@ -87,9 +84,6 @@ envsubst < filestorage/DB/postgres-deployment.yaml | kubectl apply -f -
 envsubst < filestorage/fs-deployment.yaml | kubectl apply -f -
 envsubst < kubernetes/solverservice.yaml | kubectl apply -f -
 envsubst < kubernetes/frontend.yaml | kubectl apply -f -
-#envsubst < kubernetes/grafana.yaml | kubectl apply -f -
-#envsubst < kubernetes/prometheus.yaml | kubectl apply -f -
-#kubectl apply -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/release/bundle.yaml
 
 echo "Update kubernetes services"
 kubectl rollout status deployment/auth-database
