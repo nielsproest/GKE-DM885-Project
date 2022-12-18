@@ -19,6 +19,17 @@ env:
   AUTH_SERVICE_DB_IMAGE: auth_service_database
   AUTH_SERVICE_IMAGE: auth_service
   FS_SERVICE_IMAGE: fs_service
+  JOB_DB_USER: ${{ secrets.JOB_DB_USER }}
+  JOB_DB_PASS: ${{ secrets.JOB_DB_PASS }}
+  SOLVER_DB_USER: ${{ secrets.SOLVER_DB_USER }}
+  SOLVER_DB_PASS: ${{ secrets.SOLVER_DB_PASS }}
+  FS_DB_USER: ${{ secrets.FS_DB_USER }}
+  FS_DB_PASS: ${{ secrets.FS_DB_PASS }}
+  AUTH_DB_USER: ${{ secrets.AUTH_DB_USER }}
+  AUTH_DB_PASS: ${{ secrets.AUTH_DB_PASS }}
+  AUTH_ADMIN_USER: ${{ secrets.AUTH_ADMIN_USER }}
+  AUTH_ADMIN_PASS: ${{ secrets.AUTH_ADMIN_PASS }}
+
 
 jobs:
   setup-build-publish-deploy:
@@ -53,6 +64,13 @@ jobs:
       with:
         cluster_name: ${{ env.GKE_CLUSTER }}
         location: ${{ env.GKE_ZONE }}
+
+    - name: Patch auth service variables
+      run: |-
+        sed -i "s/POSTGRES_USER[^\"]*/POSTGRES_USER=${AUTH_DB_USER}/" ./auth_service/.env
+        sed -i "s/POSTGRES_PASSWORD[^\"]*/POSTGRES_PASSWORD=${AUTH_DB_PASS}/" ./auth_service/.env
+        sed -i "s/DEFAULT_ADMIN_USERNAME[^\"]*/DEFAULT_ADMIN_USERNAME=${AUTH_ADMIN_USER}/" ./auth_service/.env
+        sed -i "s/DEFAULT_ADMIN_PASSWORD[^\"]*/DEFAULT_ADMIN_PASSWORD=${AUTH_ADMIN_PASS}/" ./auth_service/.env
 
     # Build the Docker image
     - name: Build

@@ -15,7 +15,7 @@ function loadChecker(){
   // Load admin details
   loadSolvers()
   getAllUsers()
-} 
+}
 
 function loadSolvers(){
 
@@ -34,12 +34,12 @@ function loadSolvers(){
         solverList = document.getElementById("solverList")
         solverList.innerHTML = "";
         let solverParser = new DOMParser();
-        
+
         result.forEach(solver => {
           let solverToAppend = solverParser.parseFromString('<li class="list-group-item d-flex w-100 justify-content-between">' + solver.name + '<button id="' + solver.id + '" type="button" class="btn btn-outline-danger btn-sm" onclick="deleteSolver(this.id)">Delete solver</button></li>', 'text/html')
           solverList.append(solverToAppend.documentElement)
         })
-        
+
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -52,7 +52,7 @@ function getAllUsers(){
   userWrapper = document.getElementById("userWrapper")
 
   if(authUrl != null){
-    fetch(authUrl + "list_users", {
+    fetch(authUrl + "users/list_users", {
       method: 'GET',
       mode: 'cors',
       headers: {
@@ -65,10 +65,10 @@ function getAllUsers(){
 
         userWrapper.innerHTML = "";
         let userParser = new DOMParser();
-        
+
         result.forEach(user => {
 
-          accordionWrapperId = "accordionWrapper" + user.id 
+          accordionWrapperId = "accordionWrapper" + user.id
 
           let userAppend = userParser.parseFromString(`
           <div id="user-object-` + user.id + `" class="user_object border rounded-2 m-1">
@@ -97,7 +97,7 @@ function getAllUsers(){
         })
 
         getRunningSolvers(accordionWrapperId, user.id)
-        
+
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -126,7 +126,7 @@ function getAllUsers(){
             <div class="accordion-item">
               <h2 class="accordion-header" id="headingOne">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                  Running job: BIBD2.mzn. Started: 9:49 
+                  Running job: BIBD2.mzn. Started: 9:49
                 </button>
               </h2>
               <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
@@ -167,11 +167,11 @@ function getRunningSolvers(wrapperId, userId){
     })
       .then((response) => response.json())
       .then((result) => {
-        
+
         runningSolversElement = document.getElementById(wrapperId)
         let runningSolverParser = new DOMParser();
 
-        result.forEach(job => { 
+        result.forEach(job => {
           if(job.status == "running"){
 
             runningSolvers = runningSolverParser.parseFromString(`
@@ -223,7 +223,7 @@ function getRunningInstances(instanceWrapper, jobId){
 
         runningInstanceElement = document.getElementById(instanceWrapper)
         let instanceParser = new DOMParser();
-        
+
         result.forEach(instance => {
 
           let listItem = instanceParser.parseFromString('<li id="runningSolverId-' + instance.id + '" class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="deleteRunningSolver(this.id, ' + jobId + ')" type="button">Remove running solver</button></li>', 'text/html')
@@ -251,7 +251,7 @@ exampleModal.addEventListener('show.bs.modal', event => {
   const modalTitle = exampleModal.querySelector('.modal-title')
   modalTitle.innerHTML = "User id: " + recipient
   exampleModal.querySelector('.modal-btn-class').id = recipient
-  
+
   // console.log("testing", recipient)
   modalTitle.value = `Set permissions for ${recipient}`
 })
@@ -306,7 +306,7 @@ function deleteRunningJob(jobId){
 function uploadNewSolver() {
 
   solverName = document.getElementById("solver_id_input").value;
-  newsolverUrl = document.getElementById("solver_url_input").value;  
+  newsolverUrl = document.getElementById("solver_url_input").value;
 
   var data = new FormData()
   data.append('image', newsolverUrl)
@@ -325,7 +325,7 @@ function uploadNewSolver() {
       .then((result) => {
         console.log("Upload solver: ", result)
         loadSolvers()
-        
+
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -347,9 +347,9 @@ function deleteSolver(solverId) {
     })
       .then((response) => response.json())
       .then((result) => {
-        
+
         loadSolvers()
-        
+
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -372,7 +372,7 @@ function isUserAdmin(){
     })
       .then((response) => response.json())
       .then((result) => {
-        
+
         console.log("permissions results:", result)
 
         if(result.message.is_admin != true){
@@ -390,7 +390,7 @@ function isUserAdmin(){
 function setPermissions(){
   // Set permissions
 
-  var data = new FormData() 
+  var data = new FormData()
   cpu = document.getElementById("user_cpu_input").value;
   ram = document.getElementById("user_ram_input").value;
   admin = document.querySelector('#admin_checkbox').checked;
@@ -411,7 +411,7 @@ function setPermissions(){
     })
       .then((response) => response.json())
       .then((result) => {
-        
+
         console.log("permissions results:", result)
 
       })
@@ -435,7 +435,7 @@ function deleteUser(userId){
     })
       .then((response) => response.json())
       .then((result) => {
-        
+
         console.log("permissions results:", result)
         // Remove div
         userToDelete = document.getElementById("user-object-" + userId);
@@ -464,9 +464,9 @@ function deleteAllUsersModels(userId){
     })
       .then((response) => response.json())
       .then((result) => {
-        
+
         console.log("Deleted all user model: ", result)
-        
+
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -488,9 +488,9 @@ function deleteAllJobs(){
     })
       .then((response) => response.json())
       .then((result) => {
-        
+
         console.log("Deleted all user jobs: ", result)
-        
+
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -515,6 +515,6 @@ function logout(){
   // Delete session token
   localStorage.removeItem("token")
 
-  // Back to login 
+  // Back to login
   window.location.href = "login.html";
 }

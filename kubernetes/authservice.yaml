@@ -46,8 +46,8 @@ metadata:
     app: auth-database
 data:
   POSTGRES_DB: userdb
-  POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: mypassword
+  POSTGRES_USER: ${AUTH_DB_USER}
+  POSTGRES_PASSWORD: ${AUTH_DB_PASS}
 ---
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
