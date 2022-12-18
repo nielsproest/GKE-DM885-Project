@@ -204,6 +204,7 @@ function getAvailableSolvers(){
               <span id="213c7f36-dad8-4316-aaac-1a43a4f9062c" class="input-group-text solver-name-class">fake-solver</span>
               <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
               <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
+              <input type="text" aria-label="timeout" placeholder="Timeout (Default: 60s)" class="form-control timeout-class">
             </div>
             `, 'text/html')
 
@@ -487,13 +488,13 @@ function startJob(modelIds){
     }
 
     if(timeout == null){
-      timeout = 60
+      timeout = 120
     }
 
     console.log("vcpu", vcpu, " ram:", ram, " timeout:", timeout)
 
     if(x.querySelector(".form-check-input").checked == true){
-      solverList.push('{"id": "' + x.querySelector("span.solver-name-class").id + '", "name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpu":'+ vcpu +' ,"ram": '+ ram + ', "timeout": ' + timeout +'}')
+      solverList.push('{"id": "' + x.querySelector("span.solver-name-class").id + '", "name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpus": '+ vcpu +',"ram": '+ ram + ', "timeout": ' + timeout +'}')
     }
 
   }
