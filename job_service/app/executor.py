@@ -163,6 +163,7 @@ class Kubernetes:
           if event["object"].status.phase == "Succeeded":
               pod_name = event['object'].metadata.name
               print(f"pod_name: {pod_name}")
+              #crud.set_pod_name(db, job_id, pod_name.rsplit('-', 1)[0], pod_name)
               w.stop()
               print(f"After first watch stopped")
 
@@ -220,6 +221,13 @@ class Kubernetes:
         crud.found_result(db, job_id, "Job failed", "")
       return
 
+def stop_job(solver_id, _namespace):
+    k8s = Kubernetes()
+    batch_api = client.BatchV1Api()
+
+    batch_api.delete_namespaced_job(name=solver_id, namespace=_namespace, propagation_policy="Foreground")
+
+
 def execute_job(create_job_request, mzn, dzn, db):
 
     job_id = str(create_job_request.id)
@@ -233,7 +241,6 @@ def execute_job(create_job_request, mzn, dzn, db):
     if has_dzn:
       with open(f"/mnt/{job_id}.dzn", "a") as f:
         f.write(dzn)
-
 
 
     # Kubernetes instance
