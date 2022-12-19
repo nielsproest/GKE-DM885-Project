@@ -169,26 +169,26 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
     permissions = decoded_token.get('permissions')
+    print(decoded_token)
 
 
-    # Check vcpu usage
-    # requested_vcpus = 0
-    # for solver in create_job_request.solver_list:
-    #   requested_vcpus += solver.vcpus
+    #Check vcpu usage
+    requested_vcpus = 0
+    for solver in create_job_request.solver_list:
+      requested_vcpus += solver.vcpus
 
-    # num_vcpus_in_use = crud.num_vcpus_in_use(db, uuid)
-    # if num_vcpus_in_use + requested_vcpus > int(permissions.get('vcpu')):
-    #   raise HTTPException(status_code=401, detail="User using too many vCPUs")
+    num_vcpus_in_use = crud.num_vcpus_in_use(db, uuid)
+    if num_vcpus_in_use + requested_vcpus > int(permissions.get('vcpu')):
+      raise HTTPException(status_code=401, detail="User using too many vCPUs")
 
-    # Check ram usage
-    # requested_ram = 0
-    # for solver in create_job_request.solver_list:
-    #   requested_ram += solver.ram
+    #Check ram usage
+    requested_ram = 0
+    for solver in create_job_request.solver_list:
+      requested_ram += solver.ram
 
-    # ram_in_use = crud.ram_in_use(db, uuid)
-    # print(ram_in_use)
-    # if ram_in_use + requested_ram > int(permissions.get('ram')):
-    #   raise HTTPException(status_code=401, detail="User using too much RAM")
+    ram_in_use = crud.ram_in_use(db, uuid)
+    if ram_in_use + requested_ram > int(permissions.get('ram')):
+      raise HTTPException(status_code=401, detail="User using too much RAM")
 
     #TODO: Check permissions for RAM
 
@@ -223,7 +223,7 @@ def get_solver_image(solver_id, token):
 
       # TODO: Do try-catch and return 400 if solver does not exist
     else:
-      solver_image = "hakankj/fzn-picat-sat"
+      solver_image = "gkgange/geas-mznc2022"
 
     return solver_image
     #"gkgange/geas-mznc2022", "hakankj/fzn-picat-sat", "laurentperron/or-tools-minizinc-challenge"

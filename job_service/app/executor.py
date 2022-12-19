@@ -144,7 +144,7 @@ class Kubernetes:
                   template=pod[0],
                   completions=1,
                   active_deadline_seconds=pod[1],
-                  ttl_seconds_after_finished=10),
+                  ttl_seconds_after_finished=1),
             )
             job_list.append(job)
             index += 1
@@ -154,18 +154,24 @@ class Kubernetes:
     def start_job(self, job, batch_api, _namespace, q, job_id, timeout, db):
       batch_api.create_namespaced_job(_namespace, job)
       print(f"starting thread with job: {job.metadata.name}")
+      instance_id = None
 
       w = watch.Watch()
       for event in w.stream(func=self.core_api.list_namespaced_pod,
                                 namespace=_namespace,
                                 label_selector=f"job-name={job.metadata.name}",
                                 timeout_seconds=timeout):
-          if event["object"].status.phase == "Succeeded":
+          if event["object"].status.phase == "Running" or event["object"].status.phase == "Succeeded":
               pod_name = event['object'].metadata.name
               print(f"pod_name: {pod_name}")
-              #crud.set_pod_name(db, job_id, pod_name.rsplit('-', 1)[0], pod_name)
+              instance_id = pod_name.rsplit('-', 1)[0]
+              print(f"instance_id: {instance_id}")
               w.stop()
-              print(f"After first watch stopped")
+
+              if crud.is_job_completed(db, job_id):
+                print(f"Solver {instance_id} was pending when job was completed")
+                q.put((instance_id, None))
+                return
 
               result = ""
               log_watch = watch.Watch()
@@ -174,58 +180,82 @@ class Kubernetes:
                   print(f"[FROM LOG]: {e}")
                   result += e + "\n"
                   if e == "----------":
-                    print("Contact DB")
-                    print(f"job_id: {job_id}")
-                    print(f"PODNAME: {pod_name.rsplit('-', 1)[0]}")
-                    crud.update_solver_instance_result(db, job_id, pod_name.rsplit('-', 1)[0], result)
+                    print(f"Contact DB, pod {instance_id}")
+                    crud.update_solver_instance_result(db, job_id, instance_id, result, "running")
                   elif e == "==========":
                     print("End other solvers")
-                    crud.update_solver_instance_result(db, job_id, pod_name.rsplit('-', 1)[0], result)
-                    q.put((pod_name.rsplit('-', 1)[0], result))
+                    crud.update_solver_instance_result(db, job_id, instance_id, result, "running")
+                    print(f"Putting instance_id: {instance_id}, in q")
+                    q.put((instance_id, result))
                     log_watch.stop()
                     return
-              except Exception as e:
-                print(e)
+              except Exception as exception:
+                print(exception)
                 print(f"pod :({pod_name}), has been terminated")
+                print(f"Putting instance_id: {instance_id}, in q")
+                q.put((instance_id, None))
                 log_watch.stop()
                 return
 
+              print("Ended in unexpected place")
+              print(f"Putting instance_id: {instance_id}, in q")
+              q.put((instance_id, None))
               return
 
           # TODO: Clean up this code:
           # event.type: ADDED, MODIFIED, DELETED
-          if event["type"] == "DELETED":
-              # Pod was deleted while we were waiting for it to start.
+          if event["type"] == "DELETED" or event["type"] == "Warning" or event["object"].status.phase == "Failed":
               logging.info("Deleted before it started")
               w.stop()
+              print(f"Putting instance_id: {instance_id}, in q")
+              q.put((instance_id, None))
               return
 
-      q.put((None, None))
+      print(f"Putting instance_id: {instance_id}, in q")
+      q.put((instance_id, None))
 
       return
 
 
     def thread_controller(self, q, jobs, _namespace, job_id, db):
       solver, result = q.get()
-      print(f"First thread was: {solver}")
+      print(f"Thread was: {solver}")
       print(f"Result was: {result}")
       #TODO: Remove these comments
-
       #TODO Delete temp file from storage
-      for job in jobs:
-        self.batch_api.delete_namespaced_job(name=job.metadata.name, namespace=_namespace, propagation_policy="Foreground")
 
       if solver != None:
-        crud.found_result(db, job_id, solver, result)
-      else:
-        crud.found_result(db, job_id, "Job failed", "")
+        if result != None:
+          print(f"First solver: {solver}")
+          crud.found_result(db, job_id, solver, result)
+          for job in jobs:
+            try:
+              self.batch_api.delete_namespaced_job(name=job.metadata.name, namespace=_namespace, body = client.V1DeleteOptions(api_version='v1', kind="DeleteOptions", propagation_policy="Background") )
+            except:
+              print("Couldn't shut down: {solver}, since it was already shut down")
+          return
+        else:
+          print(f"Shutting down: {solver}")
+          for job in jobs:
+            if str(job.metadata.name) == str(solver):
+              try:
+                self.batch_api.delete_namespaced_job(name=job.metadata.name, namespace=_namespace, body = client.V1DeleteOptions(api_version='v1', kind="DeleteOptions", propagation_policy="Background"))
+              except:
+                print("Couldn't shut down: {solver}, since it was already shut down")
+          crud.update_solver_instance_result(db, job_id, solver, "[SOLVER FAILED]", "failed")
+          if crud.running_solvers_left(db, job_id) > 0:
+            print("Restarting thread_controller")
+            self.thread_controller(q, jobs, _namespace, job_id, db)
+          else:
+            print("Entire Job failed")
+            crud.found_result(db, job_id, None, "[JOB FAILED]")
       return
 
 def stop_job(solver_id, _namespace):
     k8s = Kubernetes()
     batch_api = client.BatchV1Api()
 
-    batch_api.delete_namespaced_job(name=solver_id, namespace=_namespace, propagation_policy="Foreground")
+    batch_api.delete_namespaced_job(name=solver_id, namespace=_namespace, body = client.V1DeleteOptions(api_version='v1', kind="DeleteOptions", propagation_policy="Background"))
 
 
 def execute_job(create_job_request, mzn, dzn, db):
@@ -236,11 +266,13 @@ def execute_job(create_job_request, mzn, dzn, db):
     has_dzn = dzn != None
 
 
-    with open(f"/mnt/{job_id}.mzn", "a") as f:
+    with open(f"/mnt/{job_id}.mzn", "w") as f:
       f.write(mzn)
     if has_dzn:
-      with open(f"/mnt/{job_id}.dzn", "a") as f:
+      with open(f"/mnt/{job_id}.dzn", "w") as f:
         f.write(dzn)
+
+
 
 
     # Kubernetes instance
@@ -280,13 +312,4 @@ if __name__ == "__main__":
 
 
 
-
-
-
-
-
-
-
-
-
-
+#echo "int: amount = 78; array[1..4] of int: denoms = [25, 10, 5, 1];  array[1..4] of var 0..100: counts;  constraint sum(i in 1..4) ( counts[i] * denoms[i] ) = amount;  var int: coins = sum(counts); solve minimize coins;  output [   \"coins = \", show(coins), \";\",   \"denoms = \", show(denoms), \";\",   \"counts = \", show(counts), \";\" ];" > 788698e0-4301-4c7d-b94d-85a4b3b18e56.mzn

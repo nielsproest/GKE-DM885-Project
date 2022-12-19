@@ -25,15 +25,14 @@ def get_solver_instances(db: Session, job_id: str):
 
 def get_user_from_job(db: Session, job_id: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
-    return job.user_id
+    if job:
+      return job.user_id
+    else:
+      return None
 
 def delete_job(db: Session, job_id: str):
-    #TODO: Check that user owns this JOB
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
     if job:
-      db.delete(job)
-      db.commit()
-
       print("attempting to stop job")
       for solver in job.solver_instances:
         try:
@@ -41,12 +40,13 @@ def delete_job(db: Session, job_id: str):
           print(f"successfully stopped solver: {solver.id}")
         except:
           print(f"failed to stopped solver: {solver.id} (it was already stopped)")
+      db.delete(job)
+      db.commit()
       return {"success"}
     else:
       return {"failure"}
 
 def delete_all_jobs(db: Session, user_id: str):
-    # TODO: Test this
     jobs = db.query(models.Job).filter(models.Job.user_id == user_id)
     for job in jobs:
       db.delete(job)
@@ -55,22 +55,31 @@ def delete_all_jobs(db: Session, user_id: str):
 
 def stop_solver(db: Session, job_id: str, solver_id: str, user_id: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).filter(models.Job.user_id == user_id).first()
-    for solver in job.solver_instances:
+    if job:
+      print("attempting to stop solver")
+      try:
+        executor.stop_job(solver_id, "default")
+        print("successfully stopped solver")
+      except:
+        print("failed to stopped solver (it was already stopped)")
+      for solver in job.solver_instances:
         if str(solver.id) == str(solver_id):
           db.delete(solver)
           db.commit()
-    print("attempting to stop solver")
-    try:
-      executor.stop_job(solver_id, "default")
-      print("successfully stopped solver")
-      return {"success"}
-    except:
-      print("failed to stopped solver (it was already stopped)")
       return {"success"}
 
 def solvers_left(db, job_id: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
     return len(job.solver_instances)
+
+def running_solvers_left(db, job_id: str):
+    job = db.query(models.Job).filter(models.Job.id == job_id).first()
+    solver_count = 0
+    for solver in job.solver_instances:
+      if solver.status == "running":
+        solver_count += 1
+    print(f"RUNNING SOLVERS LEFT {solver_count}")
+    return solver_count
 
 def create_job(db: Session, job: schemas.CreateJob, user_id: str):
     db_job = models.Job(
@@ -92,15 +101,17 @@ def create_job(db: Session, job: schemas.CreateJob, user_id: str):
           job_id=db_job.id
         )
         db_job.solver_instances.append(db_solver)
+
     db.commit()
     db.refresh(db_job)
     return db_job
 
-def update_solver_instance_result(db: Session, job_id: str, solver_id: str, result: str):
+def update_solver_instance_result(db: Session, job_id: str, solver_id: str, result: str, status: str):
     solvers = db.query(models.Job).filter(models.Job.id == job_id).first().solver_instances
     for solver in solvers:
         if str(solver.id) == str(solver_id):
           solver.result = result
+          solver.status = status
           db.commit()
           return {"success"}
     return {"error"}
@@ -141,9 +152,6 @@ def ram_in_use(db, user_id: str):
     return ram_sum
 
 def set_pod_name(db, job_id: str, solver_id: str, pod_name: str):
-    print(f"job_id: {job_id}")
-    print(f"solver_id: {solver_id}")
-    print(f"pod_name: {pod_name}")
     solvers = db.query(models.Job).filter(models.Job.id == job_id).first().solver_instances
     for solver in solvers:
         if str(solver.id) == str(solver_id):
@@ -151,3 +159,10 @@ def set_pod_name(db, job_id: str, solver_id: str, pod_name: str):
           db.commit()
           return {"success"}
     return {"error"}
+
+def is_job_completed(db, job_id: str):
+  job = db.query(models.Job).filter(models.Job.id == job_id).first()
+  if job:
+    return job.status == "completed"
+  else:
+    return True
