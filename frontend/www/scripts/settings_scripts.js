@@ -85,7 +85,7 @@ function getAllUsers(){
                   </div>
                 </div>
 
-                <p class="text-start lh-1 m-3" style="color:lightskyblue;">` + user.username + ` Stopped and running solutions:</p>
+                <p class="text-start lh-1 m-3" style="color:lightskyblue;">Stopped and running solutions:</p>
                 <div class="accordion" id="running-` + accordionWrapperId + `">
 
                 </div>
@@ -221,8 +221,9 @@ function getSolvers(runningwrapperId, stoppedwrapperId, userId){
                 <div class="accordion-body">
                   <div id="stoppedSolutionsWrapper-`+ userId + counter + `">
                     <div id="runningSolution-` + job.id + `" class="runningSolution m-3 border rounded-2">
-                      <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Job: ` + job.name + `. Started: ` + job.time_created + ` <button id="` + job.id + `" class="btn btn-outline-danger btn-sm m-3" type="button" onclick="deleteRunningJob(this.id)">Delete job</button></p>
-                      <div>` + job.result.replace(/\n/g, '<br>') + `</div> 
+                      <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Job: ` + job.name + `. Started: ` + job.time_created + `</p>
+                      <div>Result: ` + job.result.replace(/\n/g, '<br>') + `</div>
+                      <button id="` + job.id + `" class="btn btn-outline-danger btn-sm m-3" type="button" onclick="deleteRunningJob(this.id)">Delete job</button>
                     </div>
                   </div>
                 </div>
@@ -296,6 +297,8 @@ exampleModal.addEventListener('show.bs.modal', event => {
 
 function deleteRunningSolver(jobId,solverId){
 
+  console.log("Trying to delete running solver:",jobId, solverId)
+
   fetch(jobUrl + "job/" + jobId + "/" + solverId, {
     method: 'DELETE',
     mode: 'cors',
@@ -351,9 +354,12 @@ function uploadNewSolver() {
   newsolverUrl = document.getElementById("solver_url_input").value;
 
   if(solverUrl != null){
-    fetch(solverUrl + "solver/" + solverName + "/" + encodeURIComponent(newsolverUrl), {
+    fetch(solverUrl + "solver/" + solverName, {
       method: 'POST',
       mode: 'cors',
+      body: JSON.stringify({
+        "image": newsolverUrl
+      }),
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token")
