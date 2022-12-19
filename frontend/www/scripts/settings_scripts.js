@@ -164,7 +164,7 @@ function getAllUsers(){
 function getSolvers(runningwrapperId, stoppedwrapperId, userId){
 
   if (jobUrl != null) {
-    fetch(jobUrl + "job", {
+    fetch(jobUrl + userId + "/job", {
       method: 'GET',
       mode: 'cors',
       headers: {
@@ -503,7 +503,7 @@ function deleteUser(userId){
         userToDelete.remove();
 
         deleteAllUsersModels(userId)
-        deleteAllJobs()
+        deleteAllJobs(userId)
 
         getAllUsers()
 
@@ -517,7 +517,7 @@ function deleteUser(userId){
 function deleteAllUsersModels(userId){
 
   if(fileUrl != null){
-    fetch(fileUrl + userId + "/delete", {
+    fetch(fileUrl + userId + "2/delete", {
       method: 'DELETE',
       mode: 'cors',
       headers: {
@@ -538,10 +538,10 @@ function deleteAllUsersModels(userId){
 
 }
 
-function deleteAllJobs(){
+function deleteAllJobs(userId){
 
   if(jobUrl != null){
-    fetch(jobUrl + "/job", {
+    fetch(jobUrl + "/" + userId + "/jobs", {
       method: 'DELETE',
       mode: 'cors',
       headers: {
