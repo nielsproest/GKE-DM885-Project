@@ -1,6 +1,7 @@
 const solverUrl = "/api/solver/"
 const authUrl = "/api/auth/"
 const jobUrl = "/api/jobs/"
+const fileUrl = "/api/fs/"
 
 function loadChecker(){
   
@@ -85,9 +86,12 @@ function getAllUsers(){
                   </div>
                 </div>
 
-                <p class="text-start lh-1 m-3" style="color:lightskyblue;">` + user.username + ` running solvers:</p>
+                <p class="text-start lh-1 m-3" style="color:lightskyblue;">Stopped and running solutions:</p>
+                <div class="accordion" id="running-` + accordionWrapperId + `">
 
-                <div class="accordion" id="` + accordionWrapperId + `">
+                </div>
+
+                <div class="accordion" id="stopped-` + accordionWrapperId + `">
 
                 </div>
 
@@ -96,7 +100,7 @@ function getAllUsers(){
 
           userWrapper.append(userAppend.childNodes[0].childNodes[1].childNodes[0]);
 
-          getRunningSolvers(accordionWrapperId, user.uuid)
+          getSolvers("running-" + accordionWrapperId,"stopped-" + accordionWrapperId, user.uuid)
         })
 
         
@@ -157,7 +161,7 @@ function getAllUsers(){
 
 }
 
-function getRunningSolvers(wrapperId, userId){
+function getSolvers(runningwrapperId, stoppedwrapperId, userId){
 
   if (jobUrl != null) {
     fetch(jobUrl + "job", {
@@ -171,24 +175,28 @@ function getRunningSolvers(wrapperId, userId){
       .then((response) => response.json())
       .then((result) => {
 
-        runningSolversElement = document.getElementById(wrapperId)
-        let runningSolverParser = new DOMParser();
+        runningSolversElement = document.getElementById(runningwrapperId)
+        runningSolversElement = document.getElementById(stoppedwrapperId)
+        let solverParser = new DOMParser();
 
         result.forEach(job => {
+
+          var counter = 0;
+
           if(job.status == "running"){
 
-            runningSolvers = runningSolverParser.parseFromString(`
+            runningSolvers = solverParser.parseFromString(`
               <div class="accordion-item">
-                <h2 class="accordion-header" id="headingOne">
-                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                    Running job: ` + job.name + `. Started: ` + job.time_created + `
+                <h2 class="accordion-header" id="heading-`+ userId +`">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#running-collapse-`+userId + counter + `" aria-expanded="true" aria-controls="collapseOne">
+                    Running job: ` + job.solver + `. Started: ` + job.time_created + `
                   </button>
                 </h2>
-                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div id="running-collapse-`+ userId + counter + `" class="accordion-collapse collapse" aria-labelledby="heading-`+ userId +`" data-bs-parent="#accordionExample">
                   <div class="accordion-body">
-                    <div id="runningSolutionsWrapper">
+                    <div id="runningSolutionsWrapper-`+ userId + counter + `">
                       <div id="runningSolution-` + job.id + `" class="runningSolution m-3 border rounded-2">
-                        <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Running job: ` + job.name + `. Started: ` + job.time_created + ` <button id="` + job.id + `" class="btn btn-outline-danger btn-sm" type="button" onclick="deleteRunningJob(this.id)">Delete job</button></p>
+                        <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Running job: ` + job.name + `. Started: ` + job.time_created + ` <button id="` + job.id + `" class="btn btn-outline-danger btn-sm m-3" type="button" onclick="deleteRunningJob(this.id)">Delete job</button></p>
                         <ul id="running-instance-list-` + job.id + `" class="list-group">
                         </ul>
                       </div>
@@ -201,7 +209,35 @@ function getRunningSolvers(wrapperId, userId){
             runningSolversElement.append(runningSolvers.childNodes[0].childNodes[1].childNodes[0]);
             getRunningInstances("running-instance-list-" + job.id, job.id);
 
+          } else {
+
+            stoppedSolvers = solverParser.parseFromString(`
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingstopped-`+ userId + counter +`">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stopped-collapse-`+ userId + counter + `" aria-expanded="true" aria-controls="collapseOne">
+                  Solution: ` + job.winning_solver + `. Started: ` + job.time_created + `
+                </button>
+              </h2>
+              <div id="stopped-collapse-`+ userId + counter + `" class="accordion-collapse collapse" aria-labelledby="headingstopped-`+ userId + counter +`" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                  <div id="stoppedSolutionsWrapper-`+ userId + counter + `">
+                    <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Job: ` + job.name + `. Started: ` + job.time_created + `</p>
+                    <div id="runningSolution-` + job.id + `" class="runningSolution m-3 border rounded-2">
+                      
+                      <div><span class="badge badge-primary m-1">Results:</span> ` + job.result.replace(/\n/g, '<br>') + `</div>
+                      <button id="` + job.id + `" class="btn btn-outline-danger btn-sm m-3" type="button" onclick="deleteRunningJob(this.id)">Delete job</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `, 'text/html');
+
+          runningSolversElement.append(stoppedSolvers.childNodes[0].childNodes[1].childNodes[0]);
+
           }
+
+          counter = counter + 1;
         })
 
       })
@@ -226,6 +262,8 @@ function getRunningInstances(instanceWrapper, jobId){
 
         runningInstanceElement = document.getElementById(instanceWrapper)
         let instanceParser = new DOMParser();
+
+        runningInstanceElement.innerHTML = "";
 
         result.forEach(instance => {
 
@@ -261,6 +299,8 @@ exampleModal.addEventListener('show.bs.modal', event => {
 
 function deleteRunningSolver(jobId,solverId){
 
+  console.log("Trying to delete running solver:",jobId, solverId)
+
   fetch(jobUrl + "job/" + jobId + "/" + solverId, {
     method: 'DELETE',
     mode: 'cors',
@@ -275,6 +315,8 @@ function deleteRunningSolver(jobId,solverId){
       console.log("stop instance: ", result)
       jobToDelete = document.getElementById("runningSolverId-" + solverId);
       jobToDelete.remove();
+
+      getAllUsers()
 
     })
     .catch((error) => {
@@ -300,6 +342,8 @@ function deleteRunningJob(jobId){
       jobToDelete = document.getElementById("runningSolution-" + jobId);
       jobToDelete.remove();
 
+      getAllUsers()
+
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -312,11 +356,15 @@ function uploadNewSolver() {
   newsolverUrl = document.getElementById("solver_url_input").value;
 
   if(solverUrl != null){
-    fetch(solverUrl + "solver/" + solverName + "/" + encodeURIComponent(newsolverUrl), {
+    fetch(solverUrl + "solver/" + solverName, {
       method: 'POST',
       mode: 'cors',
+      body: JSON.stringify({
+        "image": newsolverUrl
+      }),
       headers: {
         'Access-Control-Allow-Origin':'*',
+        'Content-Type': 'application/json',
         'Authorization':'Bearer ' + localStorage.getItem("token")
       }
     })
@@ -336,7 +384,7 @@ function uploadNewSolver() {
 function deleteSolver(solverId) {
 
   if(solverUrl != null){
-    fetch(solverUrl + "solver/{id}?solverId=" + solverId, {
+    fetch(solverUrl + "solver/" + solverId, {
       method: 'DELETE',
       mode: 'cors',
       headers: {
@@ -347,6 +395,7 @@ function deleteSolver(solverId) {
       .then((response) => response.json())
       .then((result) => {
 
+        console.log(result)
         loadSolvers()
 
       })
@@ -402,7 +451,14 @@ function setPermissions(userId){
     fetch(authUrl + "users/modify" , {
       method: 'POST',
       mode: 'cors',
-      body: '{"uuid":"'+ userId +'","data":{"max_cpu":'+cpu+', "max_ram":'+ram+', "is_admin":'+admin+'}}',
+      body: JSON.stringify({
+        "uuid": userId,
+        "data": {
+            "max_cpu": cpu,
+            "max_ram": ram,
+            "is_admin": admin
+        }
+      }),
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Content-Type': 'application/json',
@@ -413,6 +469,10 @@ function setPermissions(userId){
       .then((result) => {
 
         console.log("permissions results:", result)
+
+        if("token" in result){
+          localStorage.setItem("token", result.token)
+        }
 
       })
       .catch((error) => {
@@ -427,7 +487,7 @@ function deleteUser(userId){
     fetch(authUrl + "users/delete" , {
       method: 'POST',
       mode: 'cors',
-      body: '{"uuid":'+ userid +'}',
+      body: '{"uuid":"'+ userId +'"}',
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token"),
@@ -445,6 +505,8 @@ function deleteUser(userId){
         deleteAllUsersModels(userId)
         deleteAllJobs()
 
+        getAllUsers()
+
       })
       .catch((error) => {
         console.error('Error:', error);
@@ -455,7 +517,7 @@ function deleteUser(userId){
 function deleteAllUsersModels(userId){
 
   if(fileUrl != null){
-    fetch(fileUrl + "/" + userId + "/delete", {
+    fetch(fileUrl + userId + "/delete", {
       method: 'DELETE',
       mode: 'cors',
       headers: {

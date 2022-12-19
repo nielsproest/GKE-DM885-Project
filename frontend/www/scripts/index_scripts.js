@@ -543,7 +543,15 @@ function startJob(modelIds){
     .then((response) => response.json())
     .then((result) => {
 
-      console.log("", result)
+      console.log(result)
+
+      if("detail" in result){
+        warningDiv = document.getElementById("solverWarningDiv");
+        let warningString = '<div class="alert alert-danger" role="alert">'+ result.detail +'</div>  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'
+
+        warningDiv.innerHTML = warningString;
+      }
+
       getSolvedSolutions()
 
     })

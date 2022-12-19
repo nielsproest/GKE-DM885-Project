@@ -46,7 +46,7 @@ def generic_auth_handler(user_id, token):
 	return permissions
 
 def sanitize(s):
-	return sub(r'[^A-Za-z0-9 ]+ _.' , '', s)
+	return sub(r'[^A-Za-z0-9 ]+ _.-' , '', s)
 
 @app.put("/{user_id}")
 async def write(
@@ -55,6 +55,12 @@ async def write(
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
+	"""
+		Writes a file as given user_id
+		Returns the file id.
+		Requires authorization as given user or admin 
+		(in the form of HTTP Header Authorization: Bearer INSERT_TOKEN)
+	"""
 	permissions = generic_auth_handler(user_id, token)
 
 	#The load balancer is expected to limit size, so this isnt an exploit
@@ -87,6 +93,10 @@ async def lst(
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
+	"""
+		Lists a given user's files
+		Requires authorization as given user or admin
+	"""
 	permissions = generic_auth_handler(user_id, token)
 
 	qry = crud.get_user_files(db, user_id)
@@ -105,6 +115,10 @@ async def read(
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
+	"""
+		Returns a file from a user
+		Requires authorization as given user or admin
+	"""
 	permissions = generic_auth_handler(user_id, token)
 
 	qry = crud.get_file(db, item_id)
@@ -121,6 +135,10 @@ async def update(
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
+	"""
+		Updates a user's file
+		Requires authorization as given user or admin
+	"""
 	permissions = generic_auth_handler(user_id, token)
 
 	qry = crud.get_file(db, item_id)
@@ -153,6 +171,10 @@ async def delete(
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
+	"""
+		Deletes a user's file
+		Requires authorization as given user or admin
+	"""
 	permissions = generic_auth_handler(user_id, token)
 
 	qry = crud.delete_file(db, item_id)
@@ -166,11 +188,15 @@ async def delete(
 	}
 
 @app.delete("/{user_id}/delete")
-async def delete(
+async def delete2(
 		user_id: str,
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())
 	):
+	"""
+		Deletes all a users files
+		Requires authorization as given user or admin
+	"""
 	permissions = generic_auth_handler(user_id, token)
 
 	qry = crud.get_user_files(db, user_id, limit=9999)
