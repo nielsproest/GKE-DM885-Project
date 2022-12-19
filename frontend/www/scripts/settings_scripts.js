@@ -382,7 +382,7 @@ function uploadNewSolver() {
 function deleteSolver(solverId) {
 
   if(solverUrl != null){
-    fetch(solverUrl + "solver/{id}?solverId=" + solverId, {
+    fetch(solverUrl + "solver/" + solverId, {
       method: 'DELETE',
       mode: 'cors',
       headers: {
@@ -393,6 +393,7 @@ function deleteSolver(solverId) {
       .then((response) => response.json())
       .then((result) => {
 
+        console.log(result)
         loadSolvers()
 
       })
