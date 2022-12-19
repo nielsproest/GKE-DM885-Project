@@ -85,12 +85,11 @@ function getAllUsers(){
                   </div>
                 </div>
 
-                <p class="text-start lh-1 m-3" style="color:lightskyblue;">` + user.username + ` running solvers:</p>
+                <p class="text-start lh-1 m-3" style="color:lightskyblue;">` + user.username + ` Stopped and running solutions:</p>
                 <div class="accordion" id="running-` + accordionWrapperId + `">
 
                 </div>
 
-                <p class="text-start lh-1 m-3" style="color:lightskyblue;">stopped solvers:</p>
                 <div class="accordion" id="stopped-` + accordionWrapperId + `">
 
                 </div>
@@ -180,18 +179,21 @@ function getSolvers(runningwrapperId, stoppedwrapperId, userId){
         let solverParser = new DOMParser();
 
         result.forEach(job => {
+
+          var counter = 0;
+
           if(job.status == "running"){
 
             runningSolvers = solverParser.parseFromString(`
               <div class="accordion-item">
                 <h2 class="accordion-header" id="headingOne">
-                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#running-collapse-`+userId+`" aria-expanded="true" aria-controls="collapseOne">
-                    Running job: ` + job.name + `. Started: ` + job.time_created + `
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#running-collapse-`+userId + counter + `" aria-expanded="true" aria-controls="collapseOne">
+                    Running job: ` + job.solver + `. Started: ` + job.time_created + `
                   </button>
                 </h2>
-                <div id="running-collapse-`+userId+`" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div id="running-collapse-`+ userId + counter + `" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                   <div class="accordion-body">
-                    <div id="runningSolutionsWrapper">
+                    <div id="runningSolutionsWrapper-`+ userId + counter + `">
                       <div id="runningSolution-` + job.id + `" class="runningSolution m-3 border rounded-2">
                         <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Running job: ` + job.name + `. Started: ` + job.time_created + ` <button id="` + job.id + `" class="btn btn-outline-danger btn-sm m-3" type="button" onclick="deleteRunningJob(this.id)">Delete job</button></p>
                         <ul id="running-instance-list-` + job.id + `" class="list-group">
@@ -211,13 +213,13 @@ function getSolvers(runningwrapperId, stoppedwrapperId, userId){
             stoppedSolvers = solverParser.parseFromString(`
             <div class="accordion-item">
               <h2 class="accordion-header" id="headingOne">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stopped-collapse-`+userId+`" aria-expanded="true" aria-controls="collapseOne">
-                  Solution: ` + job.name + `. Started: ` + job.time_created + `
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stopped-collapse-`+ userId + counter + `" aria-expanded="true" aria-controls="collapseOne">
+                  Solution: ` + job.winning_solver + `. Started: ` + job.time_created + `
                 </button>
               </h2>
-              <div id="stopped-collapse-`+userId+`" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+              <div id="stopped-collapse-`+ userId + counter + `" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                 <div class="accordion-body">
-                  <div id="runningSolutionsWrapper">
+                  <div id="stoppedSolutionsWrapper-`+ userId + counter + `">
                     <div id="runningSolution-` + job.id + `" class="runningSolution m-3 border rounded-2">
                       <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Job: ` + job.name + `. Started: ` + job.time_created + ` <button id="` + job.id + `" class="btn btn-outline-danger btn-sm m-3" type="button" onclick="deleteRunningJob(this.id)">Delete job</button></p>
                       <div>` + job.result.replace(/\n/g, '<br>') + `</div> 
@@ -231,6 +233,8 @@ function getSolvers(runningwrapperId, stoppedwrapperId, userId){
           runningSolversElement.append(stoppedSolvers.childNodes[0].childNodes[1].childNodes[0]);
 
           }
+
+          counter = counter + 1;
         })
 
       })
@@ -307,6 +311,8 @@ function deleteRunningSolver(jobId,solverId){
       jobToDelete = document.getElementById("runningSolverId-" + solverId);
       jobToDelete.remove();
 
+      getAllUsers()
+
     })
     .catch((error) => {
       console.error('Error:', error);
@@ -330,6 +336,8 @@ function deleteRunningJob(jobId){
       console.log("stop job: ", result)
       jobToDelete = document.getElementById("runningSolution-" + jobId);
       jobToDelete.remove();
+
+      getAllUsers()
 
     })
     .catch((error) => {
@@ -482,6 +490,8 @@ function deleteUser(userId){
 
         deleteAllUsersModels(userId)
         deleteAllJobs()
+
+        getAllUsers()
 
       })
       .catch((error) => {
