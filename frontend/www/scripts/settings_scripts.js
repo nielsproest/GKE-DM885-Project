@@ -487,7 +487,7 @@ function deleteUser(userId){
     fetch(authUrl + "users/delete" , {
       method: 'POST',
       mode: 'cors',
-      body: '{"uuid":'+ userId +'}',
+      body: '{"uuid":"'+ userId +'"}',
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token"),
@@ -517,7 +517,7 @@ function deleteUser(userId){
 function deleteAllUsersModels(userId){
 
   if(fileUrl != null){
-    fetch(fileUrl + "/" + userId + "/delete", {
+    fetch(fileUrl + userId + "/delete", {
       method: 'DELETE',
       mode: 'cors',
       headers: {
