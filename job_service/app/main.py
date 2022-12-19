@@ -105,8 +105,13 @@ def get_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer(
 def get_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
+    permissions = decoded_token.get('permissions')
+    user_from_job = crud.get_user_from_job(db, job_id)
 
-    return crud.get_solver_instances(db, job_id, uuid)
+    if permissions.get('is_admin') or user_from_job == uuid:
+      return crud.get_solver_instances(db, job_id)
+    else:
+      raise HTTPException(status_code=401, detail="You do not have authorization to list this resource")
 
 @app.delete("/job/{job_id}", dependencies=[Depends(JWTBearer())])
 def delete_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):

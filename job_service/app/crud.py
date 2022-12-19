@@ -16,9 +16,12 @@ def get_job(db: Session, job_id: str, user_id: str):
 def get_jobs(db: Session, user_id: str):
     return list(db.query(models.Job).filter(models.Job.user_id == user_id))
 
-def get_solver_instances(db: Session, job_id: str, user_id: str):
-    solvers = db.query(models.Job).filter(models.Job.user_id == user_id).filter(models.Job.id == job_id).first().solver_instances
-    return list(solvers)
+def get_solver_instances(db: Session, job_id: str):
+    job = db.query(models.Job).filter(models.Job.id == job_id).first()
+    if job:
+      return list(job.solver_instances)
+    else:
+      return []
 
 def get_user_from_job(db: Session, job_id: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
