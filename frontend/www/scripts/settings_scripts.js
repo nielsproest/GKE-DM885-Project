@@ -213,12 +213,12 @@ function getSolvers(runningwrapperId, stoppedwrapperId, userId){
 
             stoppedSolvers = solverParser.parseFromString(`
             <div class="accordion-item">
-              <h2 class="accordion-header" id="headingstopped-`+ userId +`">
+              <h2 class="accordion-header" id="headingstopped-`+ userId + counter +`">
                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stopped-collapse-`+ userId + counter + `" aria-expanded="true" aria-controls="collapseOne">
                   Solution: ` + job.winning_solver + `. Started: ` + job.time_created + `
                 </button>
               </h2>
-              <div id="stopped-collapse-`+ userId + counter + `" class="accordion-collapse collapse" aria-labelledby="headingstopped-`+ userId +`" data-bs-parent="#accordionExample">
+              <div id="stopped-collapse-`+ userId + counter + `" class="accordion-collapse collapse" aria-labelledby="headingstopped-`+ userId + counter +`" data-bs-parent="#accordionExample">
                 <div class="accordion-body">
                   <div id="stoppedSolutionsWrapper-`+ userId + counter + `">
                     <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Job: ` + job.name + `. Started: ` + job.time_created + `</p>
