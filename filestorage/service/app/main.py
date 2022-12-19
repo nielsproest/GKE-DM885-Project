@@ -101,11 +101,41 @@ async def lst(
 
 	qry = crud.get_user_files(db, user_id)
 	if not qry:
-		raise HTTPException(status_code=404, detail="No files available")
+		qry = []
 
 	return {
 		"message": "OK",
 		"lst": qry
+	}
+
+@app.delete("/{user_id}/delete")
+async def delete_all(
+		user_id: str,
+		db: Session = Depends(get_db),
+		token=Depends(JWTBearer())
+	):
+	"""
+		Deletes all a users files
+		Requires authorization as given user or admin
+	"""
+	permissions = generic_auth_handler(user_id, token)
+
+	qry = crud.get_user_files(db, user_id)
+	if not qry:
+		return {
+			"message": "OK"
+		}
+
+	for i in qry:
+		try:
+			remove(join(OS_DIR, str(i.id)))
+		except:
+			print("File not found ", i)
+
+	crud.delete_user_files(db, user_id)
+
+	return {
+		"message": "OK"
 	}
 
 @app.get("/{user_id}/{item_id}")
@@ -123,7 +153,7 @@ async def read(
 
 	qry = crud.get_file(db, item_id)
 	if not qry:
-		raise HTTPException(status_code=404, detail="File not found")
+		raise HTTPException(status_code=410, detail="File not found")
 
 	return FileResponse(join(OS_DIR, str(item_id)), filename=qry.name)
 
@@ -143,7 +173,7 @@ async def update(
 
 	qry = crud.get_file(db, item_id)
 	if not qry:
-		raise HTTPException(status_code=404, detail="File not found")
+		raise HTTPException(status_code=410, detail="File not found")
 
 	#The load balancer is expected to limit size, so this isnt an exploit
 	fs = await file.read()
@@ -179,35 +209,9 @@ async def delete(
 
 	qry = crud.delete_file(db, item_id)
 	if not qry:
-		raise HTTPException(status_code=404, detail="File not found")
+		raise HTTPException(status_code=410, detail="File not found")
 
 	remove(join(OS_DIR, str(item_id)))
-
-	return {
-		"message": "OK"
-	}
-
-@app.delete("/{user_id}/delete")
-async def delete2(
-		user_id: str,
-		db: Session = Depends(get_db),
-		token=Depends(JWTBearer())
-	):
-	"""
-		Deletes all a users files
-		Requires authorization as given user or admin
-	"""
-	permissions = generic_auth_handler(user_id, token)
-
-	qry = crud.get_user_files(db, user_id, limit=9999)
-	if not qry:
-		raise HTTPException(status_code=404, detail="Files not found")
-
-	for i in qry:
-		try:
-			remove(join(OS_DIR, str(i.id)))
-		except:
-			print("File not found ", i)
 
 	return {
 		"message": "OK"

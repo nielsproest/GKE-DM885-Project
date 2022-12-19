@@ -1,15 +1,6 @@
 import requests, pytest, httpx
-
-auth_url = "http://127.0.0.1:5000"
-fs_url = "http://127.0.0.1:9090"
-
-@pytest.fixture
-def get_token():
-	with requests.post(auth_url + "/users/login", json={
-		"username": "admin",
-		"password": "password"
-		}) as r:
-		return r.json()["token"]
+from config import *
+from auth_test import get_token
 
 @pytest.fixture
 def test_create_file(get_token):
@@ -98,6 +89,15 @@ def test_mass_delete(get_token, test_delete):
 
 		response = client.delete(
 			f"{fs_url}/test/delete",
+			headers={"Authorization": f"Bearer {get_token}"},
+		)
+		assert response.status_code == 200
+		assert response.json()["message"] == "OK"
+
+		response = client.get(
+			fs_url + "/test/list",
 			headers={"Authorization": f"Bearer {get_token}"}
 		)
 		assert response.status_code == 200
+		assert response.json()["message"] == "OK"
+		assert len(response.json()["lst"]) == 0

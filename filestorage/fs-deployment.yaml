@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
         - name: fs-service
-          image: eu.gcr.io/${PROJECT_ID}/fs_service@sha256:454c5ebae086384c37e8e3ccd74cbff92c7a8da47cf47e2617dc61dae9ad3c9d # Sets Image
+          image: eu.gcr.io/${PROJECT_ID}/fs_service@latest # Sets Image
           imagePullPolicy: "IfNotPresent"
           ports:
             - containerPort: 9090  # Exposes container port
