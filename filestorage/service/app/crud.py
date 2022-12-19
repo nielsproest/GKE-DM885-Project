@@ -10,8 +10,8 @@ def get_file(db: Session, file_id: int):
 def get_files(db: Session, skip: int = 0, limit: int = 100):
 	return db.query(models.File).offset(skip).limit(limit).all()
 
-def get_user_files(db: Session, owner: str, skip: int = 0, limit: int = 100):
-	return db.query(models.File).filter(models.File.owner == owner).offset(skip).limit(limit).all()
+def get_user_files(db: Session, owner: str):
+	return db.query(models.File).filter(models.File.owner == owner).all()
 
 def get_user_usage(db: Session, owner: str):
 	qry = db.query(func.sum(models.File.size).label("sum")).filter(models.File.owner == owner)
@@ -31,5 +31,10 @@ def update_file(db: Session, id: int, name: str, size: int):
 
 def delete_file(db: Session, id: int):
 	db_del = db.query(models.File).filter(models.File.id == id).delete()
+	db.commit()
+	return db_del
+
+def delete_user_files(db: Session, owner: str):
+	db_del = db.query(models.File).filter(models.File.owner == owner).delete()
 	db.commit()
 	return db_del
