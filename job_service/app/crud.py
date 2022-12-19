@@ -141,7 +141,7 @@ def num_vcpus_in_use(db, user_id: str):
     vcpu_sum = 0
     for job in jobs:
       for solver in job.solver_instances:
-        if solver.status == "running" and solver.time_created + datetime.timedelta(hours=1,seconds=solver.timeout) > utc.localize(datetime.datetime.now()):
+        if job.status == "running" and solver.time_created + datetime.timedelta(hours=1,seconds=solver.timeout) > utc.localize(datetime.datetime.now()):
           vcpu_sum += solver.vcpus
           print(vcpu_sum)
     return vcpu_sum
@@ -151,7 +151,7 @@ def ram_in_use(db, user_id: str):
     ram_sum = 0
     for job in jobs:
       for solver in job.solver_instances:
-        if solver.status == "running" and solver.time_created + datetime.timedelta(hours=1,seconds=solver.timeout) > utc.localize(datetime.datetime.now()):
+        if job.status == "running" and solver.time_created + datetime.timedelta(hours=1,seconds=solver.timeout) > utc.localize(datetime.datetime.now()):
           ram_sum += solver.ram
           print(ram_sum)
     return ram_sum
