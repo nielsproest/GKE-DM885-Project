@@ -9,7 +9,7 @@ from decouple import config
 from routers import *
 from internal.auth import sign_jwt, decode_jwt
 
-app = FastAPI()
+app = FastAPI(root_path="/api/auth" if os.getenv('KUBERNETES_SERVICE_HOST') else "")
 
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(keys.router, prefix="/keys", tags=["keys"])
