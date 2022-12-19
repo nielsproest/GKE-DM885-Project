@@ -1,6 +1,6 @@
 {
     "is_admin": false,
-    "vcpu": 6,
-    "ram": 8096,
+    "vcpu": 1000,
+    "ram": 2048,
     "storage_limit": 10485760
 }
