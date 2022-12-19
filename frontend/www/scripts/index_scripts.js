@@ -254,10 +254,10 @@ function getSolvedSolutions(){
     let wrapperDiv = document.getElementById("runningSolutionsWrapper");
     let wrapperFinishedJobs = document.getElementById("stoppedSolutionWrapper");
 
-    userId = parseJwt(localStorage.getItem("token"))
+    userId = parseJwt(localStorage.getItem("token")).user_id
 
     if (jobUrl != null) {
-      fetch(jobUrl + "/" + userId + "/job", {
+      fetch(jobUrl + userId + "/job", {
         method: 'GET',
         mode: 'cors',
         headers: {
