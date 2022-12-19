@@ -62,7 +62,7 @@ def get_db():
         db.close()
 
 
-app = FastAPI()
+app = FastAPI(root_path="/api/jobs" if os.getenv('KUBERNETES_SERVICE_HOST') else "")
 
 # CHANGE FOR PRODUCTION
 origins = [
@@ -105,45 +105,62 @@ def get_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer(
 def get_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
+    permissions = decoded_token.get('permissions')
+    user_from_job = crud.get_user_from_job(db, job_id)
 
-    return crud.get_solver_instances(db, job_id, uuid)
+    if permissions.get('is_admin') or str(user_from_job) == str(uuid):
+      return crud.get_solver_instances(db, job_id)
+    else:
+      raise HTTPException(status_code=401, detail="You do not have authorization to list this resource")
 
 @app.delete("/job/{job_id}", dependencies=[Depends(JWTBearer())])
 def delete_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
+    permissions = decoded_token.get('permissions')
+    user_from_job = crud.get_user_from_job(db, job_id)
 
-    #TODO: Stop the execution of the job
-    return crud.delete_job(db, job_id, uuid)
+    if permissions.get('is_admin') or str(user_from_job) == str(uuid):
+      return crud.delete_job(db, job_id)
+    else:
+      raise HTTPException(status_code=401, detail="You do not have authorization to delete this resource")
 
-@app.delete("/job", dependencies=[Depends(JWTBearer())])
-def delete_all_job(db: Session = Depends(get_db), token=Depends(JWTBearer())):
+@app.delete("/{user_id}/jobs", dependencies=[Depends(JWTBearer())])
+def delete_all_job(user_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
+    permissions = decoded_token.get('permissions')
 
-    #TODO: Stop the execution of the job
-    return crud.delete_all_jobs(db, uuid)
+    if permissions.get('is_admin') or str(user_id) == str(uuid):
+      return crud.delete_all_jobs(db, user_id)
+    else:
+      raise HTTPException(status_code=401, detail="You do not have authorization to delete this resource")
 
 @app.delete("/job/{job_id}/{solver_id}", dependencies=[Depends(JWTBearer())])
 def stop_solver(job_id: str, solver_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
+    permissions = decoded_token.get('permissions')
+    user_from_job = crud.get_user_from_job(db, job_id)
 
-    result = crud.stop_solver(db, job_id, solver_id, uuid)
-    #TODO: Stop the execution of the solver
+    if permissions.get('is_admin') or str(user_from_job) == str(uuid):
+      result = crud.stop_solver(db, job_id, solver_id, user_from_job)
+      if crud.solvers_left(db, job_id) < 1:
+          crud.delete_job(db, job_id)
+      return result
+    else:
+      raise HTTPException(status_code=401, detail="You do not have authorization to delete this resource")
 
-    if crud.solvers_left(db, job_id) < 1:
-        # TODO: Does not seem to work...
-        crud.delete_job(db, job_id)
-        #TODO: Stop the execution of the job
-    return result
-
-@app.get("/job", dependencies=[Depends(JWTBearer())])
-def get_job_list(db: Session = Depends(get_db), token=Depends(JWTBearer())):
+@app.get("/{user_id}/job", dependencies=[Depends(JWTBearer())])
+def get_job_list(user_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
+    permissions = decoded_token.get('permissions')
 
-    return crud.get_jobs(db, uuid)
+    if permissions.get('is_admin') or str(user_id) == str(uuid):
+      return crud.get_jobs(db, user_id)
+    else:
+      raise HTTPException(status_code=401, detail="You do not have authorization to list this resource")
 
 
 @app.post("/job", dependencies=[Depends(JWTBearer())])
@@ -151,7 +168,29 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
 
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
-    #TODO: Check permissions for vCPUs and RAM count
+    permissions = decoded_token.get('permissions')
+    print(decoded_token)
+
+
+    #Check vcpu usage
+    requested_vcpus = 0
+    for solver in create_job_request.solver_list:
+      requested_vcpus += solver.vcpus
+
+    num_vcpus_in_use = crud.num_vcpus_in_use(db, uuid)
+    if num_vcpus_in_use + requested_vcpus > int(permissions.get('vcpu')):
+      raise HTTPException(status_code=401, detail="User using too many vCPUs")
+
+    #Check ram usage
+    requested_ram = 0
+    for solver in create_job_request.solver_list:
+      requested_ram += solver.ram
+
+    ram_in_use = crud.ram_in_use(db, uuid)
+    if ram_in_use + requested_ram > int(permissions.get('ram')):
+      raise HTTPException(status_code=401, detail="User using too much RAM")
+
+    #TODO: Check permissions for RAM
 
     for s in create_job_request.solver_list:
       s.image = get_solver_image(s.id, token)
@@ -184,10 +223,10 @@ def get_solver_image(solver_id, token):
 
       # TODO: Do try-catch and return 400 if solver does not exist
     else:
-      solver_image = "hakankj/fzn-picat-sat"
+      solver_image = "gkgange/geas-mznc2022"
 
     return solver_image
-    #"gkgange/geas-mznc2022", "hakankj/fzn-picat-sat"
+    #"gkgange/geas-mznc2022", "hakankj/fzn-picat-sat", "laurentperron/or-tools-minizinc-challenge"
 
 def get_problem_files(mzn_id, dzn_id, uuid, token):
 

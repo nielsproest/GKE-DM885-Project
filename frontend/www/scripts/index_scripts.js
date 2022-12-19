@@ -15,6 +15,8 @@ function onLoad(){
       window.location.href = "login.html";
     }
 
+    welcome()
+
     // Find the available solvers and available models and load the check buttons for the available solvers
     getAvailableSolvers()
     getAvailableModels()
@@ -46,7 +48,7 @@ function uploadModel(){
     .then((result) => {
 
       console.log(result)
-      getAvailableModels()  
+      getAvailableModels()
 
     })
     .catch((error) => {
@@ -179,6 +181,7 @@ function getAvailableSolvers(){
               <span id="` + solver.id + `"  class="input-group-text solver-name-class">` + solver.name + `</span>
               <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
               <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
+              <input type="text" aria-label="timeout" placeholder="Timeout (Default: 60s)" class="form-control timeout-class">
             </div>
             `, 'text/html')
 
@@ -203,6 +206,7 @@ function getAvailableSolvers(){
               <span id="213c7f36-dad8-4316-aaac-1a43a4f9062c" class="input-group-text solver-name-class">fake-solver</span>
               <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
               <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
+              <input type="text" aria-label="timeout" placeholder="Timeout (Default: 60s)" class="form-control timeout-class">
             </div>
             `, 'text/html')
 
@@ -250,8 +254,10 @@ function getSolvedSolutions(){
     let wrapperDiv = document.getElementById("runningSolutionsWrapper");
     let wrapperFinishedJobs = document.getElementById("stoppedSolutionWrapper");
 
+    userId = parseJwt(localStorage.getItem("token")).uuid
+
     if (jobUrl != null) {
-      fetch(jobUrl + "job", {
+      fetch(jobUrl + userId + "/job", {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -352,7 +358,7 @@ function getRunningSolvers(solutionInstanceId, runningSolutionUL){
 
       result.forEach(instance => {
 
-        let listItem = instanceParser.parseFromString('<li id="runningSolverId-' + instance.id + '" class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="stopInstance(this.id, '+ solutionInstanceId.toString() +')" type="button">Remove running solver</button>Current result: '+ instance.result +'</li>', 'text/html')
+        let listItem = instanceParser.parseFromString('<li id="runningSolverId-' + instance.id + '" class="list-group-item">Solver: ' + instance.name + '<button id="' + instance.id + '" class="btn btn-outline-danger btn-sm position-absolute top-50 end-0 translate-middle-y" onClick="stopInstance(this.id, \''+ solutionInstanceId.toString() +'\')" type="button">Remove running solver</button> '+ (instance.result ? "Current result: " + instance.result.replace(/\n/g, '<br>') : "No result yet") +'</li>', 'text/html')
         runningSolutionUL.append(listItem.childNodes[0].childNodes[1].childNodes[0])
 
       });
@@ -371,7 +377,7 @@ function getStoppedSolvers(stoppedJob){
 
   let wrapperFinishedJobs = document.getElementById("stoppedSolutionWrapper");
 
-  
+
 
   let itemstring = stoppedJobParser.parseFromString(`<div id="stoppedJobWrapper-`+ stoppedJob.id +`" class="accordion-item">
                       <h2 class="accordion-header">
@@ -381,7 +387,7 @@ function getStoppedSolvers(stoppedJob){
                       </h2>
                       <div id="collapse-` + stoppedJob.id + `" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
                         <div class="accordion-body">
-                          ` + "Result: " + stoppedJob.result + `
+                          ` + "Result: " + stoppedJob.result.replace(/\n/g, '<br>') + `
                         </div>
                         <button id="` + stoppedJob.id + `" class="btn-outline-danger btn btn-sm m-1" type="button" onclick="deleteStoppedJob(this.id)">
                           Delete result
@@ -475,6 +481,7 @@ function startJob(modelIds){
 
     let vcpu = x.querySelector(".vcpu-class").value
     let ram = x.querySelector(".ram-class").value
+    let timeout = x.querySelector(".timeout-class").value
 
     if(vcpu.length <= 0){
       vcpu = 1
@@ -484,10 +491,14 @@ function startJob(modelIds){
       ram = 1024
     }
 
-    console.log("vcpu", vcpu, " ram:", ram)
+    if(timeout == null){
+      timeout = 120
+    }
+
+    console.log("vcpu", vcpu, " ram:", ram, " timeout:", timeout)
 
     if(x.querySelector(".form-check-input").checked == true){
-      solverList.push('{"id": "' + x.querySelector("span.solver-name-class").id + '", "name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpu":'+ vcpu +' ,"ram": '+ ram +'}')
+      solverList.push('{"id": "' + x.querySelector("span.solver-name-class").id + '", "name": "'+ x.querySelector("span.solver-name-class").innerHTML +'", "vcpus": '+ vcpu +',"ram": '+ ram + ', "timeout": ' + timeout +'}')
     }
 
   }
@@ -536,7 +547,15 @@ function startJob(modelIds){
     .then((response) => response.json())
     .then((result) => {
 
-      console.log("", result)
+      console.log(result)
+
+      if("detail" in result){
+        warningDiv = document.getElementById("solverWarningDiv");
+        let warningString = '<div class="alert alert-danger" role="alert">'+ result.detail +'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
+
+        warningDiv.innerHTML = warningString;
+      }
+
       getSolvedSolutions()
 
     })
@@ -582,6 +601,14 @@ function parseJwt (token) {
   }).join(''));
 
   return JSON.parse(jsonPayload);
+}
+
+function welcome () {
+
+  username = parseJwt(localStorage.getItem("token")).user_id
+  welcomeDiv = document.getElementById("welcomeBox");
+  welcome.innerHTML = "Welcome " + username + "!"
+
 }
 
 function logout(){

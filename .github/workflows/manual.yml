@@ -1,16 +1,16 @@
-name: Build and Deploy to GKE
+name: EXTRA | Build and Deploy to GKE
 
 on:
   workflow_dispatch:
   push:
-    branches: [ "deploy" ]
+    branches: [ "extras" ]
 
 env:
-  PROJECT_ID: solveit-369711
-  WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-  SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
+  PROJECT_ID: testdev-372012
+  WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER_EXTRA }}
+  SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT_EXTRA }}
   GAR_LOCATION: europe-west4
-  GKE_CLUSTER: solveit-369711-gke
+  GKE_CLUSTER: testdev-372012-gke
   GKE_ZONE: europe-west4
   REPOSITORY: services-repository
   JOB_SERVICE_DB_IMAGE: jobservice_db
