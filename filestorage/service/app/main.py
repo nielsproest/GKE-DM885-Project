@@ -188,7 +188,7 @@ async def delete(
 	}
 
 @app.delete("/{user_id}/delete")
-async def delete(
+async def delete2(
 		user_id: str,
 		db: Session = Depends(get_db),
 		token=Depends(JWTBearer())

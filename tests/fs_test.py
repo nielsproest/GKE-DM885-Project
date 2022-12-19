@@ -61,6 +61,7 @@ def test_patch(get_token, test_create_file):
 		)
 		assert response.status_code == 200
 
+@pytest.fixture
 def test_read_patch(get_token, test_create_file, test_patch):
 	t_file = "test2.csv"
 	t_str = "The test string should be different"
@@ -73,7 +74,8 @@ def test_read_patch(get_token, test_create_file, test_patch):
 		assert response.status_code == 200
 		assert response.content == t_str.encode('ascii')
 
-def test_delete(get_token, test_create_file):
+@pytest.fixture
+def test_delete(get_token, test_create_file, test_read_patch):
 	with httpx.Client() as client:
 		response = client.delete(
 			f"{fs_url}/test/{test_create_file}",
@@ -81,9 +83,21 @@ def test_delete(get_token, test_create_file):
 		)
 		assert response.status_code == 200
 
-#def test_mass_delete():
-#	response = client.delete(
-#		f"{fs_url}/test/delete",
-#		headers={"Authorization": f"Bearer {app.token}"}
-#	)
-#	assert response.status_code == 200
+def test_mass_delete(get_token, test_delete):
+	t_file = "test.csv"
+	t_str = "The test string should be unique"
+
+	with httpx.Client() as client:
+		response = client.put(
+			f"{fs_url}/test",
+			headers={"Authorization": f"Bearer {get_token}"},
+			files={"file": (t_file, t_str)},
+		)
+		assert response.status_code == 200
+		assert response.json()["message"] == "OK"
+
+		response = client.delete(
+			f"{fs_url}/test/delete",
+			headers={"Authorization": f"Bearer {get_token}"}
+		)
+		assert response.status_code == 200
