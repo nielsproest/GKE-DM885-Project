@@ -254,7 +254,7 @@ function getSolvedSolutions(){
     let wrapperDiv = document.getElementById("runningSolutionsWrapper");
     let wrapperFinishedJobs = document.getElementById("stoppedSolutionWrapper");
 
-    userId = parseJwt(localStorage.getItem("token")).user_id
+    userId = parseJwt(localStorage.getItem("token")).uuid
 
     if (jobUrl != null) {
       fetch(jobUrl + userId + "/job", {
