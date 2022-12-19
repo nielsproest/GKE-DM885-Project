@@ -1,10 +1,9 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Body
 import uuid
 import os
 import requests
 from urllib.parse import unquote
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Depends, APIRouter, HTTPException, status, Body
 from sqlalchemy.orm import Session
 
 from models import Solver
@@ -72,24 +71,16 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWT
     return {"success"}
 
 @app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
-def postSolver(name: str,
-    payload=Body(
-        {
-            "image": "some-image-here"
-        }
-    ),
-    db: Session = Depends(get_db), token=Depends(JWTBearer())):
+def postSolver(name: str, payload=Body({"image": "some-image-here"}), db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
-    #print(image)
-    #image = unquote(image)
-    #print(image)
+    image = payload.get("image", None)
 
     isAdmin(token)
-    isInDb(db, payload.get("image"))
+    isInDb(db, image)
     
-    response = verify_image(payload.get("image"))
+    response = verify_image(image)
     
-    cPostSolver(db, name, payload.get("image"))
+    cPostSolver(db, name, image)
 
     return {response}
 
@@ -115,6 +106,8 @@ def verify_image(image: str) -> str:
             status = req.status_code    
     except:
         status = 400
+
+
     if "hub.docker.com/r/" in image:
         splitString = image.index("/r/")
         image = image[splitString + 3:]
@@ -131,14 +124,16 @@ def verify_image(image: str) -> str:
             raise HTTPException(status_code=404, detail="Docker image not found")
 
         return "success"
-    elif "/" in image and status != 200:
+    elif "/" in image and status == 400:
         splitString = image.split("/")
         if len(splitString) == 2:
             namespace = splitString[0]
             repository = splitString[1]
             r = requests.get(f"https://hub.docker.com/v2/namespaces/{namespace}/repositories/{repository}/tags")
             if r.status_code == 200:
-                return "success"        
+                return "success"
+            elif r.status_code == 404:
+                raise HTTPException(status_code=404, detail="Docker image not found")
     else:
         return "not on docker hub"
     #Is not docker link
