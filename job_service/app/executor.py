@@ -163,9 +163,7 @@ class Kubernetes:
                                 timeout_seconds=timeout):
           if event["object"].status.phase == "Running" or event["object"].status.phase == "Succeeded":
               pod_name = event['object'].metadata.name
-              print(f"pod_name: {pod_name}")
               instance_id = pod_name.rsplit('-', 1)[0]
-              print(f"instance_id: {instance_id}")
               w.stop()
 
               if crud.is_job_completed(db, job_id):
@@ -180,25 +178,18 @@ class Kubernetes:
                   print(f"[FROM LOG]: {e}")
                   result += e + "\n"
                   if e == "----------":
-                    print(f"Contact DB, pod {instance_id}")
                     crud.update_solver_instance_result(db, job_id, instance_id, result, "running")
                   elif e == "==========":
-                    print("End other solvers")
                     crud.update_solver_instance_result(db, job_id, instance_id, result, "running")
-                    print(f"Putting instance_id: {instance_id}, in q")
                     q.put((instance_id, result))
                     log_watch.stop()
                     return
               except Exception as exception:
                 print(exception)
-                print(f"pod :({pod_name}), has been terminated")
-                print(f"Putting instance_id: {instance_id}, in q")
                 q.put((instance_id, None))
                 log_watch.stop()
                 return
 
-              print("Ended in unexpected place")
-              print(f"Putting instance_id: {instance_id}, in q")
               q.put((instance_id, None))
               return
 
@@ -207,11 +198,9 @@ class Kubernetes:
           if event["type"] == "DELETED" or event["type"] == "Warning" or event["object"].status.phase == "Failed":
               logging.info("Deleted before it started")
               w.stop()
-              print(f"Putting instance_id: {instance_id}, in q")
               q.put((instance_id, None))
               return
 
-      print(f"Putting instance_id: {instance_id}, in q")
       q.put((instance_id, None))
 
       return
@@ -233,6 +222,10 @@ class Kubernetes:
               self.batch_api.delete_namespaced_job(name=job.metadata.name, namespace=_namespace, body = client.V1DeleteOptions(api_version='v1', kind="DeleteOptions", propagation_policy="Background") )
             except:
               print("Couldn't shut down: {solver}, since it was already shut down")
+            if os.path.exists("/mnt/{job_id}.mzn"):
+              os.remove("/mnt/{job_id}.mzn")
+            if os.path.exists("/mnt/{job_id}.dzn"):
+              os.remove("/mnt/{job_id}.dzn")
           return
         else:
           print(f"Shutting down: {solver}")
@@ -262,16 +255,13 @@ def execute_job(create_job_request, mzn, dzn, db):
 
     job_id = str(create_job_request.id)
     pod_id = job_id
-
     has_dzn = dzn != None
-
 
     with open(f"/mnt/{job_id}.mzn", "w") as f:
       f.write(mzn)
     if has_dzn:
       with open(f"/mnt/{job_id}.dzn", "w") as f:
         f.write(dzn)
-
 
 
 
