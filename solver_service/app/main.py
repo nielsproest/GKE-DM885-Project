@@ -70,7 +70,7 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWT
 
     return {"success"}
 
-@app.post("/solver/{name}/", dependencies=[Depends(JWTBearer())])
+@app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
 def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
     #print(image)
