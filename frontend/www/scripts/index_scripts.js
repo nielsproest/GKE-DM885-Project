@@ -547,7 +547,7 @@ function startJob(modelIds){
 
       if("detail" in result){
         warningDiv = document.getElementById("solverWarningDiv");
-        let warningString = '<div class="alert alert-danger" role="alert">'+ result.detail.value +'</div>'
+        let warningString = '<div class="alert alert-danger" role="alert">'+ result.detail +'</div>  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'
 
         warningDiv.innerHTML = warningString;
       }

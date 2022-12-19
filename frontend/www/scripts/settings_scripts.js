@@ -468,6 +468,10 @@ function setPermissions(userId){
 
         console.log("permissions results:", result)
 
+        if("token" in result){
+          localStorage.setItem("token", result.token)
+        }
+
       })
       .catch((error) => {
         console.error('Error:', error);
