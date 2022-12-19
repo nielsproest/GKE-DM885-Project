@@ -3,7 +3,7 @@ name: EXTRA | Build and Deploy to GKE
 on:
   workflow_dispatch:
   push:
-    branches: [ "deploy" ]
+    branches: [ "extras" ]
 
 env:
   PROJECT_ID: testdev-372012
