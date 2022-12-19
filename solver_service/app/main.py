@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, Body
 import uuid
 import os
 import requests
@@ -70,24 +70,19 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWT
 
     return {"success"}
 
-@app.post("/solver/{name}/{image}", dependencies=[Depends(JWTBearer())])
-def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+@app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
+def postSolver(name: str, payload=Body({"image": "some-image-here"}), db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
-    image = unquote(image)
-    print(image)
-
-    if "hub.docker.com/r/" in image:
-        test = image.index("/r/")
-        image = image[test + 3:]
-    print(image)
+    image = payload.get("image", None)
 
     isAdmin(token)
     isInDb(db, image)
-    verify_image(image)
-
+    
+    response = verify_image(image)
+    
     cPostSolver(db, name, image)
 
-    return {"success"}
+    return {response}
 
 def isValidUuid(solverId):
     try:
@@ -97,23 +92,51 @@ def isValidUuid(solverId):
         raise HTTPException(status_code=400, detail="Id not valid")
 
 
-def verify_image(dockerImage: str):
-    #TODO: if not on docker hub 
-
+def verify_image(image: str) -> str:
     namespace: str
     repository: str
-    temp: list
+    splitString: list
+    status: int
 
-    if "/" in dockerImage:
-        temp = dockerImage.split("/")
-        namespace = temp[0]
-        repository = temp[1]
+    try:
+        req = requests.get(image, timeout=5)
+        if req.status_code is None:
+            status = 400
+        else:
+            status = req.status_code    
+    except:
+        status = 400
+
+
+    if "hub.docker.com/r/" in image:
+        splitString = image.index("/r/")
+        image = image[splitString + 3:]
+
+        if "/" in image:
+            splitString = image.split("/")
+            namespace = splitString[0]
+            repository = splitString[1]
+        else:
+            raise HTTPException(status_code=400, detail="Not a valid docker hub image")
+
+        r = requests.get(f"https://hub.docker.com/v2/namespaces/{namespace}/repositories/{repository}/tags")
+        if r.status_code == 404:
+            raise HTTPException(status_code=404, detail="Docker image not found")
+
+        return "success"
+    elif "/" in image and status == 400:
+        splitString = image.split("/")
+        if len(splitString) == 2:
+            namespace = splitString[0]
+            repository = splitString[1]
+            r = requests.get(f"https://hub.docker.com/v2/namespaces/{namespace}/repositories/{repository}/tags")
+            if r.status_code == 200:
+                return "success"
+            elif r.status_code == 404:
+                raise HTTPException(status_code=404, detail="Docker image not found")
     else:
-        raise HTTPException(status_code=400, detail="Not a valid docker hub image")
-
-    r = requests.get(f"https://hub.docker.com/v2/namespaces/{namespace}/repositories/{repository}/tags")
-    if r.status_code == 404:
-        raise HTTPException(status_code=404, detail="Docker image not found")
+        return "not on docker hub"
+    #Is not docker link
 
 def isAdmin(token: str):
     admin = decode_jwt(token).get('permissions').get('is_admin')

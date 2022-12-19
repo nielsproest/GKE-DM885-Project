@@ -151,7 +151,18 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
 
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
-    #TODO: Check permissions for vCPUs and RAM count
+    permissions = decoded_token.get('permissions')
+
+    requested_vcpus = 0
+    for solver in create_job_request.solver_list:
+      requested_vcpus += solver.vcpus
+
+    num_vcpus_in_use = crud.num_vcpus_in_use(db, uuid)
+    print(num_vcpus_in_use)
+    if num_vcpus_in_use + requested_vcpus > int(permissions.get('vcpu')):
+      raise HTTPException(status_code=401, detail="User using too many vCPUs")
+
+    #TODO: Check permissions for RAM
 
     for s in create_job_request.solver_list:
       s.image = get_solver_image(s.id, token)
@@ -187,7 +198,7 @@ def get_solver_image(solver_id, token):
       solver_image = "hakankj/fzn-picat-sat"
 
     return solver_image
-    #"gkgange/geas-mznc2022", "hakankj/fzn-picat-sat"
+    #"gkgange/geas-mznc2022", "hakankj/fzn-picat-sat", "laurentperron/or-tools-minizinc-challenge"
 
 def get_problem_files(mzn_id, dzn_id, uuid, token):
 

@@ -1,8 +1,13 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import delete
+from dateutil import parser
+import datetime
 import uuid
+import pytz
 
 import models, schemas
+
+utc=pytz.UTC
 
 def get_job(db: Session, job_id: str, user_id: str):
     return db.query(models.Job).filter(models.Job.user_id == user_id).filter(models.Job.id == job_id).first()
@@ -49,7 +54,6 @@ def create_job(db: Session, job: schemas.CreateJob, user_id: str):
       dzn_id=job.dzn_id,
       result="",
       winning_solver="",
-      timeout=job.timeout,
       status="running")
     db.add(db_job)
     for solver in job.solver_list:
@@ -57,6 +61,9 @@ def create_job(db: Session, job: schemas.CreateJob, user_id: str):
           status="running",
           name=solver.name,
           image=solver.image,
+          vcpus=solver.vcpus,
+          timeout=solver.timeout,
+          ram=solver.ram,
           job_id=db_job.id
         )
         db_job.solver_instances.append(db_solver)
@@ -86,3 +93,14 @@ def found_result(db: Session, job_id: str, solver_id: str, result: str):
 
     db.commit()
     return {"success"}
+
+
+def num_vcpus_in_use(db, user_id: str):
+    jobs = db.query(models.Job).filter(models.Job.user_id == user_id)
+    vcpu_sum = 0
+    for job in jobs:
+      for solver in job.solver_instances:
+        if solver.status == "running" and solver.time_created + datetime.timedelta(hours=1,seconds=solver.timeout) > utc.localize(datetime.datetime.now()):
+          vcpu_sum += solver.vcpus
+          print(vcpu_sum)
+    return vcpu_sum

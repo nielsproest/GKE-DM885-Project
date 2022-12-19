@@ -19,6 +19,8 @@ class SolverInstance(BaseModel):
     name: str
     result: str
     timeout: int = 60
+    vcpus: int = 10
+    ram: int = 10
     job_id: str
 
     class Config:
@@ -44,6 +46,7 @@ class Solver(BaseModel):
     id: str
     image: Union[str, None]
     vcpus: int = 1
+    timeout: int = 60
     ram: int = 1024
 
 class CreateJob(JobBase):
@@ -60,14 +63,14 @@ class CreateJob(JobBase):
                   {
                     "id": "213c7f36-dad8-4316-aaac-1a43a4f9062c",
                     "name": "Good Solver",
-                    "vcpus": 1,
-                    "ram": 1024
+                    "vcpus": 10,
+                    "ram": 10
                   },
                   {
                     "id": "f54aa3f0-85fd-46e5-afd3-b0d534b4ae44",
                     "name": "Another Good Solver",
-                    "vcpus": 1,
-                    "ram": 1024
+                    "vcpus": 10,
+                    "ram": 10
                   }
                 ]
             }
