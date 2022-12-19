@@ -137,6 +137,8 @@ jobs:
       run: |-
         envsubst < kubernetes/authservice.yaml | kubectl apply -f -
         envsubst < kubernetes/jobservice.yaml | kubectl apply -f -
+        envsubst < kubernetes/frontend.yaml | kubectl apply -f -
+        envsubst < kubernetes/solverservice.yaml | kubectl apply -f -
         envsubst < filestorage/DB/postgres-deployment.yaml | kubectl apply -f -
         envsubst < filestorage/fs-deployment.yaml | kubectl apply -f -
         kubectl rollout status deployment/auth-database
