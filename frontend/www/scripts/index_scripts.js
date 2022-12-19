@@ -15,6 +15,8 @@ function onLoad(){
       window.location.href = "login.html";
     }
 
+    welcome()
+
     // Find the available solvers and available models and load the check buttons for the available solvers
     getAvailableSolvers()
     getAvailableModels()
@@ -252,8 +254,10 @@ function getSolvedSolutions(){
     let wrapperDiv = document.getElementById("runningSolutionsWrapper");
     let wrapperFinishedJobs = document.getElementById("stoppedSolutionWrapper");
 
+    userId = parseJwt(localStorage.getItem("token")).uuid
+
     if (jobUrl != null) {
-      fetch(jobUrl + "job", {
+      fetch(jobUrl + userId + "/job", {
         method: 'GET',
         mode: 'cors',
         headers: {
@@ -547,7 +551,7 @@ function startJob(modelIds){
 
       if("detail" in result){
         warningDiv = document.getElementById("solverWarningDiv");
-        let warningString = '<div class="alert alert-danger" role="alert">'+ result.detail +'</div>  <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>'
+        let warningString = '<div class="alert alert-danger" role="alert">'+ result.detail +'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
 
         warningDiv.innerHTML = warningString;
       }
@@ -597,6 +601,14 @@ function parseJwt (token) {
   }).join(''));
 
   return JSON.parse(jsonPayload);
+}
+
+function welcome () {
+
+  username = parseJwt(localStorage.getItem("token")).user_id
+  welcomeDiv = document.getElementById("welcomeBox");
+  welcome.innerHTML = "Welcome " + username + "!"
+
 }
 
 function logout(){
