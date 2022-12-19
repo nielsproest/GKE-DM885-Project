@@ -21,7 +21,7 @@ def get_db():
     finally:
         db.close()
 
-app = FastAPI()
+app = FastAPI(root_path="/api/solver" if os.getenv('KUBERNETES_SERVICE_HOST') else "")
 
 # CHANGE FOR PRODUCTION
 origins = [
