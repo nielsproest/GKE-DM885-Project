@@ -108,7 +108,7 @@ def get_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer(
     permissions = decoded_token.get('permissions')
     user_from_job = crud.get_user_from_job(db, job_id)
 
-    if permissions.get('is_admin') or user_from_job == uuid:
+    if permissions.get('is_admin') or str(user_from_job) == str(uuid):
       return crud.get_solver_instances(db, job_id)
     else:
       raise HTTPException(status_code=401, detail="You do not have authorization to list this resource")
@@ -120,7 +120,7 @@ def delete_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBear
     permissions = decoded_token.get('permissions')
     user_from_job = crud.get_user_from_job(db, job_id)
 
-    if permissions.get('is_admin') or user_from_job == uuid:
+    if permissions.get('is_admin') or str(user_from_job) == str(uuid):
       return crud.delete_job(db, job_id)
     else:
       raise HTTPException(status_code=401, detail="You do not have authorization to delete this resource")
@@ -131,7 +131,7 @@ def delete_all_job(user_id: str, db: Session = Depends(get_db), token=Depends(JW
     uuid = decoded_token.get('uuid')
     permissions = decoded_token.get('permissions')
 
-    if permissions.get('is_admin') or user_id == uuid:
+    if permissions.get('is_admin') or str(user_id) == str(uuid):
       return crud.delete_all_jobs(db, user_id)
     else:
       raise HTTPException(status_code=401, detail="You do not have authorization to delete this resource")
@@ -143,7 +143,7 @@ def stop_solver(job_id: str, solver_id: str, db: Session = Depends(get_db), toke
     permissions = decoded_token.get('permissions')
     user_from_job = crud.get_user_from_job(db, job_id)
 
-    if permissions.get('is_admin') or user_from_job == uuid:
+    if permissions.get('is_admin') or str(user_from_job) == str(uuid):
       result = crud.stop_solver(db, job_id, solver_id, user_from_job)
       if crud.solvers_left(db, job_id) < 1:
           crud.delete_job(db, job_id)
@@ -157,7 +157,7 @@ def get_job_list(user_id: str, db: Session = Depends(get_db), token=Depends(JWTB
     uuid = decoded_token.get('uuid')
     permissions = decoded_token.get('permissions')
 
-    if permissions.get('is_admin') or user_id == uuid:
+    if permissions.get('is_admin') or str(user_id) == str(uuid):
       return crud.get_jobs(db, user_id)
     else:
       raise HTTPException(status_code=401, detail="You do not have authorization to list this resource")
