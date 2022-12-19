@@ -86,8 +86,12 @@ function getAllUsers(){
                 </div>
 
                 <p class="text-start lh-1 m-3" style="color:lightskyblue;">` + user.username + ` running solvers:</p>
+                <div class="accordion" id="running-` + accordionWrapperId + `">
 
-                <div class="accordion" id="` + accordionWrapperId + `">
+                </div>
+
+                <p class="text-start lh-1 m-3" style="color:lightskyblue;">stopped solvers:</p>
+                <div class="accordion" id="stopped-` + accordionWrapperId + `">
 
                 </div>
 
@@ -96,7 +100,7 @@ function getAllUsers(){
 
           userWrapper.append(userAppend.childNodes[0].childNodes[1].childNodes[0]);
 
-          getRunningSolvers(accordionWrapperId, user.uuid)
+          getSolvers("running-" + accordionWrapperId,"stopped-" + accordionWrapperId, user.uuid)
         })
 
         
@@ -157,7 +161,7 @@ function getAllUsers(){
 
 }
 
-function getRunningSolvers(wrapperId, userId){
+function getSolvers(runningwrapperId, stoppedwrapperId, userId){
 
   if (jobUrl != null) {
     fetch(jobUrl + "job", {
@@ -171,24 +175,25 @@ function getRunningSolvers(wrapperId, userId){
       .then((response) => response.json())
       .then((result) => {
 
-        runningSolversElement = document.getElementById(wrapperId)
-        let runningSolverParser = new DOMParser();
+        runningSolversElement = document.getElementById(runningwrapperId)
+        runningSolversElement = document.getElementById(stoppedwrapperId)
+        let solverParser = new DOMParser();
 
         result.forEach(job => {
           if(job.status == "running"){
 
-            runningSolvers = runningSolverParser.parseFromString(`
+            runningSolvers = solverParser.parseFromString(`
               <div class="accordion-item">
                 <h2 class="accordion-header" id="headingOne">
-                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
+                  <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#running-collapse-`+userId+`" aria-expanded="true" aria-controls="collapseOne">
                     Running job: ` + job.name + `. Started: ` + job.time_created + `
                   </button>
                 </h2>
-                <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div id="running-collapse-`+userId+`" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
                   <div class="accordion-body">
                     <div id="runningSolutionsWrapper">
                       <div id="runningSolution-` + job.id + `" class="runningSolution m-3 border rounded-2">
-                        <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Running job: ` + job.name + `. Started: ` + job.time_created + ` <button id="` + job.id + `" class="btn btn-outline-danger btn-sm" type="button" onclick="deleteRunningJob(this.id)">Delete job</button></p>
+                        <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Running job: ` + job.name + `. Started: ` + job.time_created + ` <button id="` + job.id + `" class="btn btn-outline-danger btn-sm m-3" type="button" onclick="deleteRunningJob(this.id)">Delete job</button></p>
                         <ul id="running-instance-list-` + job.id + `" class="list-group">
                         </ul>
                       </div>
@@ -200,6 +205,30 @@ function getRunningSolvers(wrapperId, userId){
 
             runningSolversElement.append(runningSolvers.childNodes[0].childNodes[1].childNodes[0]);
             getRunningInstances("running-instance-list-" + job.id, job.id);
+
+          } else {
+
+            stoppedSolvers = solverParser.parseFromString(`
+            <div class="accordion-item">
+              <h2 class="accordion-header" id="headingOne">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#stopped-collapse-`+userId+`" aria-expanded="true" aria-controls="collapseOne">
+                  Solution: ` + job.name + `. Started: ` + job.time_created + `
+                </button>
+              </h2>
+              <div id="stopped-collapse-`+userId+`" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+                <div class="accordion-body">
+                  <div id="runningSolutionsWrapper">
+                    <div id="runningSolution-` + job.id + `" class="runningSolution m-3 border rounded-2">
+                      <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Job: ` + job.name + `. Started: ` + job.time_created + ` <button id="` + job.id + `" class="btn btn-outline-danger btn-sm m-3" type="button" onclick="deleteRunningJob(this.id)">Delete job</button></p>
+                      <div>` + job.result.replace(/\n/g, '<br>') + `</div> 
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `, 'text/html');
+
+          runningSolversElement.append(stoppedSolvers.childNodes[0].childNodes[1].childNodes[0]);
 
           }
         })
@@ -226,6 +255,8 @@ function getRunningInstances(instanceWrapper, jobId){
 
         runningInstanceElement = document.getElementById(instanceWrapper)
         let instanceParser = new DOMParser();
+
+        runningInstanceElement.innerHTML = "";
 
         result.forEach(instance => {
 
@@ -402,7 +433,14 @@ function setPermissions(userId){
     fetch(authUrl + "users/modify" , {
       method: 'POST',
       mode: 'cors',
-      body: '{"uuid":"'+ userId +'","data":{"max_cpu":'+cpu+', "max_ram":'+ram+', "is_admin":'+admin+'}}',
+      body: JSON.stringify({
+        "uuid": userId,
+        "data": {
+            "max_cpu": cpu,
+            "max_ram": ram,
+            "is_admin": admin
+        }
+      }),
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Content-Type': 'application/json',
@@ -427,7 +465,7 @@ function deleteUser(userId){
     fetch(authUrl + "users/delete" , {
       method: 'POST',
       mode: 'cors',
-      body: '{"uuid":'+ userid +'}',
+      body: '{"uuid":'+ userId +'}',
       headers: {
         'Access-Control-Allow-Origin':'*',
         'Authorization':'Bearer ' + localStorage.getItem("token"),
