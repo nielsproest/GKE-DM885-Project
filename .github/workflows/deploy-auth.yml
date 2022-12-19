@@ -88,5 +88,6 @@ jobs:
     # Deploy the Docker image to the GKE cluster
     - name: Deploy
       run: |-
+        kubectl delete deployment auth-service-deployment
         envsubst < kubernetes/authservice.yaml | kubectl apply -f -
         kubectl rollout status deployment/auth-service-deployment

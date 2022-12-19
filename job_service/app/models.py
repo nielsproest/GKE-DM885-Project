@@ -36,6 +36,7 @@ class SolverInstance(Base):
     vcpus = Column(Integer)
     ram = Column(Integer)
     timeout = Column(Integer)
+    pod_name = Column(String)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
     job_id = Column(UUID(as_uuid=True), ForeignKey("jobs.id"))

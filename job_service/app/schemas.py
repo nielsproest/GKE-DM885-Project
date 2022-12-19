@@ -21,6 +21,7 @@ class SolverInstance(BaseModel):
     timeout: int = 60
     vcpus: int = 10
     ram: int = 10
+    pod_name: str = ""
     job_id: str
 
     class Config:
@@ -46,7 +47,7 @@ class Solver(BaseModel):
     id: str
     image: Union[str, None]
     vcpus: int = 1
-    timeout: int = 60
+    timeout: int = 180
     ram: int = 1024
 
 class CreateJob(JobBase):
