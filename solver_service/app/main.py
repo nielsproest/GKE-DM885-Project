@@ -4,6 +4,7 @@ import os
 import requests
 from urllib.parse import unquote
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Depends, APIRouter, HTTPException, status, Body
 from sqlalchemy.orm import Session
 
 from models import Solver
@@ -71,18 +72,24 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWT
     return {"success"}
 
 @app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
-def postSolver(name: str, image: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+def postSolver(name: str,
+    payload=Body(
+        {
+            "image": "some-image-here"
+        }
+    ),
+    db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
     #print(image)
     #image = unquote(image)
     #print(image)
 
     isAdmin(token)
-    isInDb(db, image)
+    isInDb(db, payload.get("image"))
     
-    response = verify_image(image)
+    response = verify_image(payload.get("image"))
     
-    cPostSolver(db, name, image)
+    cPostSolver(db, name, payload.get("image"))
 
     return {response}
 
