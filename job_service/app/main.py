@@ -45,6 +45,7 @@ output [
   "counts = ", show(counts), ";"
 ];'''
 
+
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL
 )
@@ -93,66 +94,130 @@ async def startup_event():
       print(data["message"])
       auth_handler.set_public_key(data["message"])
 
+class Detail(BaseModel):
+    detail: str = "error message"
 
-@app.get("/job/{job_id}", dependencies=[Depends(JWTBearer())])
+class Success(BaseModel):
+    success: str = "success message"
+
+'''
+Returns job with given job_id
+'''
+@app.get("/job/{job_id}", dependencies=[Depends(JWTBearer())], responses={
+        404: {"model": Detail, "description": "The job was not found"},
+        200: {"model": Job, "description": "Job with given job_id"},})
 def get_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
 
-    return crud.get_job(db, job_id, uuid)
+    job = crud.get_job(db, job_id, uuid)
+    if job == None:
+      raise HTTPException(status_code=404, detail="Job not found")
+    else:
+      return job
 
-@app.get("/job/{job_id}/solvers", dependencies=[Depends(JWTBearer())])
-def get_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+'''
+Returns the list of solvers belonging to the job with the given job_id
+'''
+@app.get("/job/{job_id}/solvers", dependencies=[Depends(JWTBearer())], responses={
+        404: {"model": Detail, "description": "The job was not found"},
+        401: {"model": Detail, "description": "User is not authorized to perform this action (due to not being admin, or not having enough available resources, etc.)"},
+        200: {"model": List[SolverInstance], "description": "List of solvers belonging to the job with the given job_id"},})
+def get_solvers_from_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
     permissions = decoded_token.get('permissions')
     user_from_job = crud.get_user_from_job(db, job_id)
 
     if permissions.get('is_admin') or str(user_from_job) == str(uuid):
-      return crud.get_solver_instances(db, job_id)
+      job = crud.get_solver_instances(db, job_id)
+      if job:
+        return job
+      else:
+        raise HTTPException(status_code=404, detail="Job not found")
     else:
       raise HTTPException(status_code=401, detail="You do not have authorization to list this resource")
 
-@app.delete("/job/{job_id}", dependencies=[Depends(JWTBearer())])
+'''
+Deletes the job
+This both deletes it from the database and also stops the pod if it is currently running
+'''
+@app.delete("/job/{job_id}", dependencies=[Depends(JWTBearer())], responses={
+        404: {"model": Detail, "description": "The job was not found"},
+        401: {"model": Detail, "description": "User is not authorized to perform this action (due to not being admin, or not having enough available resources, etc.)"},
+        200: {"model": Success, "description": "Deletes the job"},})
 def delete_job(job_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
     permissions = decoded_token.get('permissions')
     user_from_job = crud.get_user_from_job(db, job_id)
+    if user_from_job == None:
+      raise HTTPException(status_code=404, detail="Job not found")
 
     if permissions.get('is_admin') or str(user_from_job) == str(uuid):
-      return crud.delete_job(db, job_id)
+      job = crud.delete_job(db, job_id)
+      if job:
+        return {"success": "Job deleted successfully"}
+      else:
+        raise HTTPException(status_code=404, detail="Job not found")
     else:
       raise HTTPException(status_code=401, detail="You do not have authorization to delete this resource")
 
-@app.delete("/{user_id}/jobs", dependencies=[Depends(JWTBearer())])
-def delete_all_job(user_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+'''
+Deletes all of jobs belonging to the user
+This both deletes the jobs from the database and also stops the respective pods if they is currently running
+'''
+@app.delete("/{user_id}/jobs", dependencies=[Depends(JWTBearer())], responses={
+        404: {"model": Detail, "description": "The user was not found"},
+        401: {"model": Detail, "description": "User is not authorized to perform this action (due to not being admin, or not having enough available resources, etc.)"},
+        200: {"model": Success, "description": "Deletes all of jobs belonging to the user"},})
+def delete_all_jobs(user_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
     permissions = decoded_token.get('permissions')
 
     if permissions.get('is_admin') or str(user_id) == str(uuid):
-      return crud.delete_all_jobs(db, user_id)
+      job = crud.delete_all_jobs(db, user_id)
+      if job:
+        return {"success": "All of the users jobs where deleted successfully"}
+      else:
+        raise HTTPException(status_code=404, detail="User not found")
     else:
       raise HTTPException(status_code=401, detail="You do not have authorization to delete this resource")
 
-@app.delete("/job/{job_id}/{solver_id}", dependencies=[Depends(JWTBearer())])
+'''
+Stops the given solver from the given job.
+This both deletes it from the database and also stops the pod if it is currently running.
+If this solver is the last for the job, the job will also be deleted
+'''
+@app.delete("/job/{job_id}/{solver_id}", dependencies=[Depends(JWTBearer())], responses={
+        404: {"model": Detail, "description": "The job or solver was not found"},
+        401: {"model": Detail, "description": "User is not authorized to perform this action (due to not being admin, or not having enough available resources, etc.)"},
+        200: {"model": Success, "description": "Stops the given solver from the given job"},})
 def stop_solver(job_id: str, solver_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
     permissions = decoded_token.get('permissions')
     user_from_job = crud.get_user_from_job(db, job_id)
+    if user_from_job == None:
+      raise HTTPException(status_code=404, detail="Job not found")
 
     if permissions.get('is_admin') or str(user_from_job) == str(uuid):
-      result = crud.stop_solver(db, job_id, solver_id, user_from_job)
+      crud.stop_solver(db, job_id, solver_id, user_from_job)
       if crud.solvers_left(db, job_id) < 1:
           crud.delete_job(db, job_id)
-      return result
+      return {"success": "The solver was successfully deleted from the job"}
     else:
       raise HTTPException(status_code=401, detail="You do not have authorization to delete this resource")
 
-@app.get("/{user_id}/job", dependencies=[Depends(JWTBearer())])
-def get_job_list(user_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+'''
+Returns list of jobs belonging to the user with the given user_id.
+If user does not exist, it returns an empty list
+'''
+@app.get("/{user_id}/job", dependencies=[Depends(JWTBearer())], responses={
+        401: {"model": Detail, "description": "User is not authorized to perform this action (due to not being admin, or not having enough available resources, etc.)"},
+        200: {"model": List[Job], "description": "List of jobs belonging to the user with the given user_id"},})
+def list_users_jobs(user_id: str, db: Session = Depends(get_db), token=Depends(JWTBearer())):
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
     permissions = decoded_token.get('permissions')
@@ -162,15 +227,20 @@ def get_job_list(user_id: str, db: Session = Depends(get_db), token=Depends(JWTB
     else:
       raise HTTPException(status_code=401, detail="You do not have authorization to list this resource")
 
-
-@app.post("/job", dependencies=[Depends(JWTBearer())])
-def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), token=Depends(JWTBearer())):
+'''
+Creates a job with the parameters from the CreateJob object.
+The job is automatically started when first created
+'''
+@app.post("/job", dependencies=[Depends(JWTBearer())], responses={
+        404: {"model": Detail, "description": "One of the specified solvers or files do not exist in the system"},
+        401: {"model": Detail, "description": "User is not authorized to perform this action (due to not being admin, or not having enough available resources, etc.)"},
+        200: {"model": Job, "description": "Returns the newly created job"},})
+def start_job(create_job_request: CreateJob, db: Session = Depends(get_db), token=Depends(JWTBearer())):
 
     decoded_token = auth_handler.decodeJWT(token)
     uuid = decoded_token.get('uuid')
     permissions = decoded_token.get('permissions')
     print(decoded_token)
-
 
     #Check vcpu usage
     requested_vcpus = 0
@@ -190,43 +260,33 @@ def create_job(create_job_request: CreateJob, db: Session = Depends(get_db), tok
     if ram_in_use + requested_ram > int(permissions.get('ram')):
       raise HTTPException(status_code=401, detail="User using too much RAM")
 
-    #TODO: Check permissions for RAM
-
     for s in create_job_request.solver_list:
       s.image = get_solver_image(s.id, token)
 
-    # TODO: Verify that mzn file exists
     (mzn, dzn) = get_problem_files(create_job_request.mzn_id, create_job_request.dzn_id, uuid, token)
 
     new_job = crud.create_job(db, create_job_request, uuid)
-
     executor.execute_job(new_job, mzn, dzn, db)
-    #TODO: Check if successful
 
     return new_job
 
-
-
 def get_solver_image(solver_id, token):
-
-    #TODO: Implement call to solver service
     if os.getenv('KUBERNETES_SERVICE_HOST'):
       headers = {
         "Authorization": f"Bearer {token}",
         "Content-Type": "application/json"
       }
-      r = requests.get(url = solver_svc_url + f"/solver/{solver_id}", headers=headers)
-      data = r.json()
-      print(f"data: {data}")
-      solver_image = data["dockerImage"]
-      print(f"solver_image: {solver_image}")
-
-      # TODO: Do try-catch and return 400 if solver does not exist
+      try:
+        r = requests.get(url = solver_svc_url + f"/solver/{solver_id}", headers=headers)
+        data = r.json()
+        solver_image = data["dockerImage"]
+      except:
+        raise HTTPException(status_code=404, detail="One of the specified solver images does not exist on the solver servicer")
     else:
+      # default if running locally
       solver_image = "gkgange/geas-mznc2022"
 
     return solver_image
-    #"gkgange/geas-mznc2022", "hakankj/fzn-picat-sat", "laurentperron/or-tools-minizinc-challenge"
 
 def get_problem_files(mzn_id, dzn_id, uuid, token):
 
@@ -236,21 +296,21 @@ def get_problem_files(mzn_id, dzn_id, uuid, token):
     }
 
     if os.getenv('KUBERNETES_SERVICE_HOST'):
-      r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}", headers=headers)
-      mzn = r.text
-
-      # TODO: Handle file not existing.
+      try:
+        r = requests.get(url = fs_svc_url + f"/{uuid}/{mzn_id}", headers=headers)
+        mzn = r.text
+      except:
+        raise HTTPException(status_code=404, detail="The specified .mzn file does not exist on the file storage service")
     else:
+      # default if running locally
       mzn = test_mzn
 
     if dzn_id != None:
-      if os.getenv('KUBERNETES_SERVICE_HOST'):
+      try:
         r = requests.get(url = fs_svc_url + f"/{uuid}/{dzn_id}", headers=headers)
         dzn = r.text
-
-        # TODO: Handle file not existing.
-      else:
-        dzn = "max_per_block = [1, 2, 1, 2, 1]"
+      except:
+        raise HTTPException(status_code=404, detail="The specified .dzn file does not exist on the file storage service")
     else:
         dzn = None
 

@@ -21,7 +21,7 @@ def get_solver_instances(db: Session, job_id: str):
     if job:
       return list(job.solver_instances)
     else:
-      return []
+      return None
 
 def get_user_from_job(db: Session, job_id: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
@@ -42,19 +42,22 @@ def delete_job(db: Session, job_id: str):
           print(f"failed to stopped solver: {solver.id} (it was already stopped)")
       db.delete(job)
       db.commit()
-      return {"success"}
+      return job
     else:
-      return {"failure"}
+      return None
 
 def delete_all_jobs(db: Session, user_id: str):
     jobs = db.query(models.Job).filter(models.Job.user_id == user_id)
-    for job in jobs:
-      db.delete(job)
-    db.commit()
-    return {"success"}
+    if jobs:
+      for job in jobs:
+        db.delete(job)
+      db.commit()
+      return "success"
+    else:
+      return None
 
 def stop_solver(db: Session, job_id: str, solver_id: str, user_id: str):
-    job = db.query(models.Job).filter(models.Job.id == job_id).filter(models.Job.user_id == user_id).first()
+    job = db.query(models.Job).filter(models.Job.id == job_id).first()
     if job:
       print("attempting to stop solver")
       try:
@@ -66,7 +69,9 @@ def stop_solver(db: Session, job_id: str, solver_id: str, user_id: str):
         if str(solver.id) == str(solver_id):
           db.delete(solver)
           db.commit()
-      return {"success"}
+      return "success"
+    else:
+      return None
 
 def solvers_left(db, job_id: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()

@@ -64,14 +64,16 @@ class CreateJob(JobBase):
                   {
                     "id": "213c7f36-dad8-4316-aaac-1a43a4f9062c",
                     "name": "Good Solver",
-                    "vcpus": 10,
-                    "ram": 10
+                    "vcpus": 200,
+                    "ram": 512,
+                    "timeout": 120
                   },
                   {
                     "id": "f54aa3f0-85fd-46e5-afd3-b0d534b4ae44",
                     "name": "Another Good Solver",
-                    "vcpus": 10,
-                    "ram": 10
+                    "vcpus": 200,
+                    "ram": 512,
+                    "timeout": 120
                   }
                 ]
             }
