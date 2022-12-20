@@ -65,7 +65,6 @@ def get_db():
 
 app = FastAPI(root_path="/api/jobs" if os.getenv('KUBERNETES_SERVICE_HOST') else "")
 
-# CHANGE FOR PRODUCTION
 origins = [
     "http://localhost",
     "http://localhost:3000",
@@ -270,6 +269,10 @@ def start_job(create_job_request: CreateJob, db: Session = Depends(get_db), toke
 
     return new_job
 
+'''
+Function for getting the docker image associated with the given solver_id, from the solver service.
+Needs a valid token to communicate with the solver service
+'''
 def get_solver_image(solver_id, token):
     if os.getenv('KUBERNETES_SERVICE_HOST'):
       headers = {
@@ -288,6 +291,11 @@ def get_solver_image(solver_id, token):
 
     return solver_image
 
+
+'''
+Gets the content of the mzn and/or dzn file of the user with uuid, from the filestorage service.
+Needs a valid token to communicate with the solver service.
+'''
 def get_problem_files(mzn_id, dzn_id, uuid, token):
 
     headers = {

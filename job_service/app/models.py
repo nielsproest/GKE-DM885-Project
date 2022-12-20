@@ -20,6 +20,7 @@ class Job(Base):
     winning_solver = Column(String)
     timeout = Column(Integer)
     status = Column(String)
+    compute_time = Column(Integer)
     time_created = Column(DateTime(timezone=True), server_default=func.now())
     time_updated = Column(DateTime(timezone=True), onupdate=func.now())
 
