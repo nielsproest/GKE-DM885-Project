@@ -54,7 +54,7 @@ minikube delete && minikube start && eval $(minikube docker-env) && docker build
 
 Connect with gcloud
 ```
-gcloud container clusters get-credentials solveit-369711-gke --region=europe-west4
+gcloud container clusters get-credentials noted-flash-366811-gke --region=europe-west4
 ```
 
 http://postgres.default.svc.cluster.local:5432/
@@ -62,4 +62,4 @@ http://jobservice.default.svc.cluster.local:8080/
 http://auth-service.default.svc.cluster.local:5000
 http://fs-service.default.svc.cluster.local:9090
 
-export PROJECT_ID=solveit-369711
+export PROJECT_ID=noted-flash-366811
