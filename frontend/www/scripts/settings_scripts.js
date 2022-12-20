@@ -37,8 +37,8 @@ function loadSolvers(){
         let solverParser = new DOMParser();
 
         result.forEach(solver => {
-          let solverToAppend = solverParser.parseFromString('<li class="list-group-item d-flex w-100 justify-content-between">' + solver.name + '<button id="' + solver.id + '" type="button" class="btn btn-outline-danger btn-sm" onclick="deleteSolver(this.id)">Delete solver</button></li>', 'text/html')
-          solverList.append(solverToAppend.documentElement)
+          let solverToAppend = solverParser.parseFromString('<li class="list-group-item d-flex w-100 justify-content-between mb-1">' + solver.name + '<button id="' + solver.id + '" type="button" class="btn btn-outline-danger btn-sm" onclick="deleteSolver(this.id)">Delete solver</button></li>', 'text/html')
+          solverList.append(solverToAppend.childNodes[0].childNodes[1].childNodes[0])
         })
 
       })
@@ -374,12 +374,13 @@ function uploadNewSolver() {
 
         if(result.detail == "Success"){
           loadSolvers()
-          document.getElementById("addSolverModal").modal('hide')
+
         } else {
           warningDiv = document.getElementById("solverWarningDiv");
           let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'
 
           warningDiv.innerHTML = warningString;
+          loadSolvers()
         }
 
       })
