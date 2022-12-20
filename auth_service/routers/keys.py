@@ -19,8 +19,8 @@ class Message(BaseModel):
 @router.get(
     "/public_key",
     responses={
-        500: {"message": "Public key not found"},
-        405: {"message": "Method Not Allowed"},
+        500: {"message": "Public key not found", "model": Message},
+        405: {"message": "Method Not Allowed", "model": Message},
     },
 )
 async def get_public_key():
