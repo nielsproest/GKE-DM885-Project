@@ -372,12 +372,12 @@ function uploadNewSolver() {
       .then((result) => {
         console.log("Upload solver: ", result)
 
-        if(result == "Success"){
+        if(result.detail == "Success"){
           loadSolvers()
           document.getElementById("addSolverModal").modal('hide')
         } else {
           warningDiv = document.getElementById("solverWarningDiv");
-          let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"></button></div>'
+          let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'
 
           warningDiv.innerHTML = warningString;
         }
