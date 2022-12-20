@@ -371,7 +371,16 @@ function uploadNewSolver() {
       .then((response) => response.json())
       .then((result) => {
         console.log("Upload solver: ", result)
-        loadSolvers()
+
+        if(result == "success"){
+          loadSolvers()
+          $('#addSolverModal').modal('hide')
+        } else {
+          warningDiv = document.getElementById("solverWarningDiv");
+          let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
+
+          warningDiv.innerHTML = warningString;
+        }
 
       })
       .catch((error) => {
@@ -472,6 +481,7 @@ function setPermissions(userId){
 
         if("token" in result){
           localStorage.setItem("token", result.token)
+          $('#setPermissionsModal').modal('hide')
         }
 
       })
