@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from models import Solver
-from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver
+from crud import cGetAllSolvers, cPostSolver, cDeleteSolver, cGetSolver, cGetSolverByImage
 from database import engine, SessionLocal
 from auth_handler import JWTBearer
 from auth import setPublicKey, decode_jwt
@@ -42,8 +42,8 @@ auth_url = "http://auth-service.default.svc.cluster.local:5000"
 
 @app.on_event("startup")
 async def startup_event():
-    #Name and solver url for solvers to be added on startup if they do not exist
-    permSolvers = {"fzn-picat-sat": "hakankj/fzn-picat-sat", "geas": "gkgange/geas-mznc2022"}
+    #Name and solver url for solvers to be added on startup if they do not exist - VVV
+    permSolvers = {"fzn-picat-sat": "hakankj/fzn-picat-sat", "geas": "gkgange/geas-mznc2022", "sunny-cp": "jacopomauro/sunny-cp"}
 
     startupDbPrep(permSolvers)
     startupPkPrep()
@@ -72,7 +72,7 @@ def deleteSolver(solverId: str, db: Session = Depends(get_db), token=Depends(JWT
 
 @app.post("/solver/{name}", dependencies=[Depends(JWTBearer())])
 def postSolver(name: str, payload=Body({"image": "some-image-here"}), db: Session = Depends(get_db), token=Depends(JWTBearer())):
-
+    
     image = payload.get("image", None)
 
     isAdmin(token)
@@ -107,36 +107,35 @@ def verify_image(image: str) -> str:
     except:
         status = 400
 
-
+    #Is a docker hub URL
     if "hub.docker.com/r/" in image:
         splitString = image.index("/r/")
         image = image[splitString + 3:]
-
+        #Get name space and repository if it is a valid docker image - which requires excatly one /
         if "/" in image:
             splitString = image.split("/")
             namespace = splitString[0]
             repository = splitString[1]
-        else:
+        else: 
             raise HTTPException(status_code=400, detail="Not a valid docker hub image")
-
+        #Attempts to check tags of the docker image
         r = requests.get(f"https://hub.docker.com/v2/namespaces/{namespace}/repositories/{repository}/tags")
         if r.status_code == 404:
             raise HTTPException(status_code=404, detail="Docker image not found")
-
         return "success"
+    #Is not accessable URL, might still be docker image on docker hub    
     elif "/" in image and status == 400:
         splitString = image.split("/")
-        if len(splitString) == 2:
-            namespace = splitString[0]
-            repository = splitString[1]
-            r = requests.get(f"https://hub.docker.com/v2/namespaces/{namespace}/repositories/{repository}/tags")
-            if r.status_code == 200:
-                return "success"
-            elif r.status_code == 404:
-                raise HTTPException(status_code=404, detail="Docker image not found")
+        namespace = splitString[0]
+        repository = splitString[1]
+        r = requests.get(f"https://hub.docker.com/v2/namespaces/{namespace}/repositories/{repository}/tags")
+        if r.status_code == 200:
+            return "success"
+        elif r.status_code == 404:
+            raise HTTPException(status_code=404, detail="Docker image not found")
+    #Is URL not leading to docker hub, images from here may or may not work
     else:
         return "not on docker hub"
-    #Is not docker link
 
 def isAdmin(token: str):
     admin = decode_jwt(token).get('permissions').get('is_admin')
@@ -144,26 +143,25 @@ def isAdmin(token: str):
         raise HTTPException(status_code=401, detail="User is not admin")
 
 def isInDb(db: Session, image: str):
-    solvers = getAllSolvers(db)
-    solverURLs = []
+    if "hub.docker.com/r/" in image:
+        splitString = image.index("/r/")
+        image = image[splitString + 3:]
 
-    for solver in solvers:
-        solverURLs.append(solver.dockerImage)
+    db_solver = cGetSolverByImage(db, image)
+    if  db_solver == None:
+        return
 
-    if image in solverURLs:
+    db_dockerImage = db_solver.dockerImage
+
+    if image == db_dockerImage:
         raise HTTPException(status_code=409, detail="Image already exists in database")
 
 def startupDbPrep(permSolvers: dict):
     db = SessionLocal()
-    solvers = getAllSolvers(db)
-
-    solverURLs = []
-
-    for solver in solvers:
-        solverURLs.append(solver.dockerImage)
 
     for perm in permSolvers:
-        if not permSolvers.get(perm) in solverURLs:
+        tempSolver = cGetSolverByImage(db, permSolvers.get(perm))
+        if tempSolver == None:
             cPostSolver(db, perm, permSolvers.get(perm))
 
 def startupPkPrep():
@@ -173,6 +171,4 @@ def startupPkPrep():
         data = r.json()
         setPublicKey(data["message"])
     else:
-        setPublicKey('''-----BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvpAXDxizoN4MHs0qJrQ9J/Dc+95mLbT7o/haw2vXuB2LoSp855W/5hpPqyhAkPmKJEzICp6Ke72a2oUVeJb8lckM3km9dxFBvNsbMEpKEOO1/WhmWw8aDwBI7E0s7KAXHSdqCBncB4L3W37O9c6bQ2QrGpfrN82yFXez25tdv1ODc7bzfYFdD5LHNVymYl0E+dR/4P2P/+YxUX7omUI9Bqt6jdw6uERt2tcyT0PFT2DQwf3mtrXCufo68uMfxKP0TN5c1Zan4jwXeiJE4wHPzFgaWTzgKB6xayJqkgI9nhy5KaONIKe+ZCerrsBKztk9R8uH38GdI2rcwCPYi2AkkQIDAQAB
------END PUBLIC KEY-----''')
+        print("Could not get public key")

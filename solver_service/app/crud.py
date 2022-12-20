@@ -19,3 +19,6 @@ def cPostSolver(db: Session, name: str, dockerImage: str):
     db.add(db_solver)
     db.commit()
     return {"success"}
+
+def cGetSolverByImage(db: Session, dockerImage: str):
+    return db.query(Solver).filter(Solver.dockerImage == dockerImage).first()
