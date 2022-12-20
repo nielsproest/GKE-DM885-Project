@@ -4,7 +4,7 @@ const jobUrl = "/api/jobs/"
 const fileUrl = "/api/fs/"
 
 function loadChecker(){
-  
+
   if (localStorage.getItem("token") === null || localStorage.getItem("token") === "defined" || parseJwt(localStorage.getItem("token")).expiration > Date.now()) {
     localStorage.removeItem("token");
     window.location.href = "login.html";
@@ -79,7 +79,7 @@ function getAllUsers(){
                   <div class="list-group-item list-group-item-action" aria-current="true">
                     <div class="d-flex w-100 justify-content-between">
                       <h5 class="mb-1">` + user.username + `</h5>
-                      
+
                     </div>
                     <button type="button" class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#setPermissionsModal" data-bs-userId="` + user.uuid + `">Set permissions</button>
                     <button id="`+ user.uuid +`" type="button" class="btn btn-outline-danger btn-sm" onclick="deleteUser(this.id)">Delete user</button>
@@ -103,7 +103,7 @@ function getAllUsers(){
           getSolvers("running-" + accordionWrapperId,"stopped-" + accordionWrapperId, user.uuid)
         })
 
-        
+
 
       })
       .catch((error) => {
@@ -223,7 +223,7 @@ function getSolvers(runningwrapperId, stoppedwrapperId, userId){
                   <div id="stoppedSolutionsWrapper-`+ userId + counter + `">
                     <p class="text-start lh-1 m-2" style="color:lightskyblue;"> Job: ` + job.name + `. Started: ` + job.time_created + `</p>
                     <div id="runningSolution-` + job.id + `" class="runningSolution m-3 border rounded-2">
-                      
+
                       <div><span class="badge badge-primary m-1">Results:</span> ` + job.result.replace(/\n/g, '<br>') + `</div>
                       <button id="` + job.id + `" class="btn btn-outline-danger btn-sm m-3" type="button" onclick="deleteRunningJob(this.id)">Delete job</button>
                     </div>
@@ -371,7 +371,16 @@ function uploadNewSolver() {
       .then((response) => response.json())
       .then((result) => {
         console.log("Upload solver: ", result)
-        loadSolvers()
+
+        if(result == "success"){
+          loadSolvers()
+          document.getElementById("solverWarningDiv").modal('hide')
+        } else {
+          warningDiv = document.getElementById("solverWarningDiv");
+          let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
+
+          warningDiv.innerHTML = warningString;
+        }
 
       })
       .catch((error) => {
@@ -443,8 +452,8 @@ function setPermissions(userId){
   ram = document.getElementById("user_ram_input").value;
   admin = document.querySelector('#admin_checkbox').checked;
 
-  data.append("max_cpu", cpu)
-  data.append("max_ram", ram)
+  data.append("vcpu", cpu)
+  data.append("ram", ram)
   data.append("is_admin", admin)
 
   if(authUrl != null){
@@ -454,8 +463,8 @@ function setPermissions(userId){
       body: JSON.stringify({
         "uuid": userId,
         "data": {
-            "max_cpu": cpu,
-            "max_ram": ram,
+            "vcpu": cpu,
+            "ram": ram,
             "is_admin": admin
         }
       }),
@@ -472,6 +481,7 @@ function setPermissions(userId){
 
         if("token" in result){
           localStorage.setItem("token", result.token)
+          document.getElementById("solverWarningDiv").modal('hide')
         }
 
       })

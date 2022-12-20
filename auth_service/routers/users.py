@@ -158,7 +158,7 @@ async def modify_user(
     payload=Body(
         {
             "uuid": "some-uuid-here",
-            "data": {"max_ram": 8, "max_cpu": 4, "foo": "bar", "is_admin": True},
+            "data": {"ram": 2048, "vcpu": 600, "foo": "bar", "is_admin": True},
         }
     ),
     token=Depends(JWTBearer()),

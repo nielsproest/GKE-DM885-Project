@@ -21,7 +21,7 @@ def get_solver_instances(db: Session, job_id: str):
     if job:
       return list(job.solver_instances)
     else:
-      return []
+      return None
 
 def get_user_from_job(db: Session, job_id: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
@@ -42,19 +42,21 @@ def delete_job(db: Session, job_id: str):
           print(f"failed to stopped solver: {solver.id} (it was already stopped)")
       db.delete(job)
       db.commit()
-      return {"success"}
+      return job
     else:
-      return {"failure"}
+      return None
 
 def delete_all_jobs(db: Session, user_id: str):
     jobs = db.query(models.Job).filter(models.Job.user_id == user_id)
-    for job in jobs:
-      db.delete(job)
-    db.commit()
-    return {"success"}
+    if jobs:
+      for job in jobs:
+        delete_job(db, job.id)
+      return "success"
+    else:
+      return None
 
 def stop_solver(db: Session, job_id: str, solver_id: str, user_id: str):
-    job = db.query(models.Job).filter(models.Job.id == job_id).filter(models.Job.user_id == user_id).first()
+    job = db.query(models.Job).filter(models.Job.id == job_id).first()
     if job:
       print("attempting to stop solver")
       try:
@@ -66,7 +68,9 @@ def stop_solver(db: Session, job_id: str, solver_id: str, user_id: str):
         if str(solver.id) == str(solver_id):
           db.delete(solver)
           db.commit()
-      return {"success"}
+      return "success"
+    else:
+      return None
 
 def solvers_left(db, job_id: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
@@ -101,7 +105,6 @@ def create_job(db: Session, job: schemas.CreateJob, user_id: str):
           job_id=db_job.id
         )
         db_job.solver_instances.append(db_solver)
-
     db.commit()
     db.refresh(db_job)
     return db_job
@@ -118,8 +121,12 @@ def update_solver_instance_result(db: Session, job_id: str, solver_id: str, resu
 
 def found_result(db: Session, job_id: str, solver_id: str, result: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
-    job.status = "completed"
     job.result = result
+    if solver_id == None:
+      job.winning_solver = "None"
+      job.status = "failed"
+    else:
+      job.status = "completed"
     for solver in job.solver_instances:
       if str(solver.id) == str(solver_id):
         solver.status = "completed"
@@ -136,7 +143,7 @@ def num_vcpus_in_use(db, user_id: str):
     vcpu_sum = 0
     for job in jobs:
       for solver in job.solver_instances:
-        if solver.status == "running" and solver.time_created + datetime.timedelta(hours=1,seconds=solver.timeout) > utc.localize(datetime.datetime.now()):
+        if job.status == "running" and solver.time_created + datetime.timedelta(hours=1,seconds=solver.timeout) > utc.localize(datetime.datetime.now()):
           vcpu_sum += solver.vcpus
           print(vcpu_sum)
     return vcpu_sum
@@ -146,7 +153,7 @@ def ram_in_use(db, user_id: str):
     ram_sum = 0
     for job in jobs:
       for solver in job.solver_instances:
-        if solver.status == "running" and solver.time_created + datetime.timedelta(hours=1,seconds=solver.timeout) > utc.localize(datetime.datetime.now()):
+        if job.status == "running" and solver.time_created + datetime.timedelta(hours=1,seconds=solver.timeout) > utc.localize(datetime.datetime.now()):
           ram_sum += solver.ram
           print(ram_sum)
     return ram_sum

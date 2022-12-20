@@ -291,7 +291,7 @@ function getSolvedSolutions(){
 
 
               runningSolutionSpan = document.createElement("span");
-              runningSolutionSpan.textContent = "Name: missing, Started: " + element.time_created
+              runningSolutionSpan.textContent = "Id: " + element.id + "<br>Started: " + element.time_created
 
               runningSolutionP.appendChild(runningSolutionSpan)
 
@@ -551,7 +551,7 @@ function startJob(modelIds){
 
       if("detail" in result){
         warningDiv = document.getElementById("solverWarningDiv");
-        let warningString = '<div class="alert alert-danger" role="alert">'+ result.detail +'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
+        let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
 
         warningDiv.innerHTML = warningString;
       }
