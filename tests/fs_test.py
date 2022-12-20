@@ -1,6 +1,5 @@
-import requests, pytest, httpx
+import pytest, httpx
 from config import *
-from auth_test import get_token
 
 @pytest.fixture
 def test_create_file(get_token):

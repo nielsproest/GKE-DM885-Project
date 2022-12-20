@@ -1,18 +1,10 @@
-import requests, pytest, httpx
+import pytest, httpx
 from config import *
 
 test_user = "test123"
 test_pass = "above_8_chars"
 
 @pytest.fixture
-def get_token():
-	with requests.post(auth_url + "/users/login", json={
-		"username": "admin",
-		"password": "password"
-		}) as r:
-		return r.json()["token"]
-
-@pytest.fixture
 def test_create_user():
 	with httpx.Client() as client:
 		response = client.post(
@@ -23,11 +15,22 @@ def test_create_user():
 		assert response.json()["message"] == "OK"
 
 @pytest.fixture
-def test_create_user():
+def test_login_user(test_create_user):
 	with httpx.Client() as client:
 		response = client.post(
-			auth_url + "/users/signup",
+			auth_url + "/users/login",
 			json={"username": test_user, "password": test_pass}
 		)
 		assert response.status_code == 200
-		assert response.json()["message"] == "OK"
+		return response.json()["token"]
+
+@pytest.fixture
+def test_get_user_permissions(test_login_user):
+	with httpx.Client() as client:
+		response = client.post(
+			auth_url + "/users/get_my_permissions",
+			headers={"Authorization": f"Bearer {test_login_user}"}
+		)
+		assert response.status_code == 200
+		print(response.json())
+

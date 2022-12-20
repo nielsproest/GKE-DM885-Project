@@ -6,7 +6,7 @@ locals {
 
 resource "google_iam_workload_identity_pool" "github_pool_v2" {
   project                   = local.project_id
-  workload_identity_pool_id = "github-pool-v2"
+  workload_identity_pool_id = "github-pool-fffff-v2"
   display_name              = "GitHub pool v2"
   description               = "Identity pool for GitHub deployments"
 }
@@ -60,28 +60,8 @@ resource "google_project_iam_binding" "github_actions_kubernetes_dev" {
 }
 
 
-resource "google_project_iam_binding" "github_actions_artifact_writer" {
-  role = "roles/artifactregistry.admin"
-  project = local.project_id
-  members  = ["serviceAccount:${google_service_account.github_actions.email}"]
-}
-
-data "google_iam_policy" "admin" {
-  binding {
-    role = "roles/artifactregistry.admin"
-    members = ["serviceAccount:${google_service_account.github_actions.email}"]
-  }
-}
-
 resource "google_project_iam_binding" "github_actions_container_admin" {
   role = "roles/container.admin"
   project = local.project_id
   members  = ["serviceAccount:${google_service_account.github_actions.email}"]
-}
-
-resource "google_artifact_registry_repository_iam_policy" "policy" {
-  project = local.project_id
-  location = google_artifact_registry_repository.services-repository.location
-  repository = google_artifact_registry_repository.services-repository.name
-  policy_data = data.google_iam_policy.admin.policy_data
 }
