@@ -374,10 +374,10 @@ function uploadNewSolver() {
 
         if(result == "success"){
           loadSolvers()
-          $('#addSolverModal').modal('hide')
+          document.getElementById("solverWarningDiv").modal('hide')
         } else {
           warningDiv = document.getElementById("solverWarningDiv");
-          let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
+          let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
 
           warningDiv.innerHTML = warningString;
         }
@@ -481,7 +481,7 @@ function setPermissions(userId){
 
         if("token" in result){
           localStorage.setItem("token", result.token)
-          $('#setPermissionsModal').modal('hide')
+          document.getElementById("solverWarningDiv").modal('hide')
         }
 
       })
