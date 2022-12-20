@@ -5,7 +5,6 @@ from os.path import join
 from os import remove, getenv, mkdir
 from re import sub
 from pydantic import BaseModel
-from typing import List, Optional
 
 from . import crud, models
 from .database import SessionLocal, engine
@@ -119,9 +118,13 @@ class ItemList(BaseModel):
 	name: str
 	owner: str
 	size: int
+	class Config:
+		orm_mode = True
 
 class MessageWithList(Message):
-	lst: List[ItemList]
+	lst: list[ItemList]
+	class Config:
+		orm_mode = True
 
 @app.get("/{user_id}/list", 
 	response_model=MessageWithList,
