@@ -375,17 +375,12 @@ function uploadNewSolver() {
         if(result.detail == "Success"){
           loadSolvers()
 
-          var myModal = new bootstrap.Modal(document.getElementById('addSolverModal'), {
-            keyboard: false
-          })
-          
-          myModal.toggle()
-
         } else {
           warningDiv = document.getElementById("solverWarningDiv");
           let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>'
 
           warningDiv.innerHTML = warningString;
+          loadSolvers()
         }
 
       })
