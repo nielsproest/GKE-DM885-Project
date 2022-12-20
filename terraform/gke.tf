@@ -39,6 +39,14 @@ resource "google_container_node_pool" "primary_nodes" {
   cluster    = google_container_cluster.primary.name
   node_count = var.gke_num_nodes
 
+  #This is per zone, and by default there are 3 zones
+  #So 1 is 3 vcpus
+  #3 is 9 vcpus
+  #etc.
+  autoscaling {
+    min_node_count = 1
+    max_node_count = 3
+  }
   node_config {
     oauth_scopes = [
       "https://www.googleapis.com/auth/logging.write",

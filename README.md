@@ -31,3 +31,30 @@ After that, follow this guide to get kubectl working with the cluster:
 https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
 
 Change all instances of the project-id in the project (such as in workflows and the images in the kubernetes yaml files)
+
+# To setup
+Have a google cloud account
+
+Create a project
+
+Edit setup.sh with your PROJECT_ID and GAR_LOCATION
+
+Run it and follow its instructions
+
+Check the ip in the services section of kubernetes engine
+
+Hopefully it works :)
+
+(PS: You have a custom dashboard, but you can also just use google's dashboard)
+
+# Checkout the frontend
+http://35.204.80.245
+
+# API Docs
+http://35.204.80.245/api/auth/docs
+
+http://35.204.80.245/api/fs/docs
+
+http://35.204.80.245/api/jobs/docs
+
+http://35.204.80.245/api/solver/docs
