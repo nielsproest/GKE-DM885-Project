@@ -6,12 +6,21 @@ from decouple import config
 from internal import JWTBearer, sign_jwt, decode_jwt, hash_password, verify_password
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 router: APIRouter = APIRouter()
 
 from models import User, Base, engine, get_database
 
 Base.metadata.create_all(bind=engine)
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+class TokenResponse(BaseModel):
+    token: str
 
 
 @router.post(
@@ -25,6 +34,7 @@ Base.metadata.create_all(bind=engine)
         200: {"token": "signed_token"},
         405: {"message": "Method not allowed"},
     },
+    response_model=TokenResponse,
 )
 async def create_new_user(
     payload=Body({"username": "myusername", "password": "mypassword"}),
@@ -98,6 +108,7 @@ async def create_new_user(
         200: {"token": "signed_token"},
         405: {"message": "Method not allowed"},
     },
+    response_model=TokenResponse,
 )
 async def login_user(
     payload=Body({"username": "myusername", "password": "mypassword"}),
@@ -153,6 +164,7 @@ async def login_user(
         200: {"token": "signed_token"},
         405: {"message": "Method not allowed"},
     },
+    response_model=TokenResponse,
 )
 async def modify_user(
     payload=Body(
@@ -231,6 +243,7 @@ async def modify_user(
         200: {"message": "User deleted successfully"},
         405: {"message": "Method not allowed"},
     },
+    response_model=MessageResponse,
 )
 async def delete_user(
     payload=Body({"uuid": "some-uuid-here"}),
@@ -284,6 +297,7 @@ async def delete_user(
         200: {"message": "True/False"},
         405: {"message": "Method not allowed"},
     },
+    response_model=MessageResponse,
 )
 async def is_username_available(
     username: str,
@@ -313,6 +327,7 @@ async def is_username_available(
         200: {"message": [{"username": "some-username", "uuid": "some-uuid"}]},
         405: {"message": "Method not allowed"},
     },
+    response_model=MessageResponse,
 )
 async def list_users(
     token=Depends(JWTBearer()),
@@ -359,6 +374,7 @@ async def list_users(
         200: {"message": {"permission_a": "value_a"}},
         405: {"message": "Method not allowed"},
     },
+    response_model=MessageResponse,
 )
 async def get_my_permissions(
     token=Depends(JWTBearer()),
@@ -403,6 +419,7 @@ async def get_my_permissions(
         200: {"message": {"permission_a": "value_a"}},
         405: {"message": "Method not allowed"},
     },
+    response_model=MessageResponse,
 )
 async def get_permissions(
     uuid: str,
@@ -456,6 +473,7 @@ async def get_permissions(
         200: {"message": {"permission_a": "value_a"}},
         405: {"message": "Method not allowed"},
     },
+    response_model=MessageResponse,
 )
 async def _decode_jwt(
     token=Depends(JWTBearer()),
@@ -492,6 +510,7 @@ async def _decode_jwt(
         200: {"message": "Hello World"},
         405: {"message": "Method not allowed"},
     },
+    response_model=MessageResponse,
 )
 async def wave(token=Depends(JWTBearer())):
     return {"message": "Hello World"}
