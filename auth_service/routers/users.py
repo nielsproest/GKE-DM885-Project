@@ -69,7 +69,7 @@ async def create_new_user(
     if len(username) < config("USERNAME_MIN_LENGTH", cast=int, default=3):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username must be at least 3 characters",
+            detail=f"Username must be at least {config('USERNAME_MIN_LENGTH', cast=int, default=3)} characters",
         )
 
     if (password := payload.get("password", None)) is None:
