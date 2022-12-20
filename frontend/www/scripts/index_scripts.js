@@ -604,10 +604,12 @@ function parseJwt (token) {
 }
 
 function welcome () {
-
-  username = parseJwt(localStorage.getItem("token")).user_id
+  console.log("welcome!")
+  var username = parseJwt(localStorage.getItem("token")).user_id
+  var vcpu = parseJwt(localStorage.getItem("token")).permissions.vcpu
+  var ram = parseJwt(localStorage.getItem("token")).permissions.ram
   welcomeDiv = document.getElementById("welcomeBox");
-  welcome.innerHTML = "Welcome " + username + "!"
+  welcomeDiv.innerHTML = "Welcome " + username + "! You have access to " + vcpu + " Mili-VCPUS and " + ram + " RAM." 
 
 }
 
