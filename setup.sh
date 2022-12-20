@@ -3,7 +3,7 @@
 set -e
 
 #NOTICE: CHANGE THESE
-export PROJECT_ID=solveit-369711
+export PROJECT_ID=noted-flash-366811
 export GAR_LOCATION=europe-west4
 
 export JOB_SERVICE_IMAGE=jobservice
@@ -31,16 +31,20 @@ sed "s/POSTGRES_PASSWORD[^\"]*/POSTGRES_PASSWORD=${AUTH_DB_PASS}/" auth_service/
 sed "s/DEFAULT_ADMIN_USERNAME[^\"]*/DEFAULT_ADMIN_USERNAME=${AUTH_ADMIN_USER}/" auth_service/.env | tee auth_service/.env
 sed "s/DEFAULT_ADMIN_PASSWORD[^\"]*/DEFAULT_ADMIN_PASSWORD=${AUTH_ADMIN_PASS}/" auth_service/.env | tee auth_service/.env
 
+echo 
 echo Please run:
 echo
 echo To use with Ubuntu
-echo https://cloud.google.com/sdk/docs/install#linux
+echo Install gcloud: https://cloud.google.com/sdk/docs/install#linux
 echo Run these commands:
 echo gcloud auth login
 echo gcloud auth application-default login
 echo gcloud components update
+echo 
+echo Install kubectl v1.23, dont install a newer version
 echo sudo snap install kubectl --channel=1.23/stable --classic
 echo https://cloud.google.com/blog/products/containers-kubernetes/kubectl-auth-changes-in-gke
+echo 
 echo Install docker
 echo WARNING: Terraform may fail in svc-account.tf, you may need to change workload_identity_pool_id to something else
 echo Please follow these steps and press enter \(or ignore them if you\'ve done this before\)
@@ -59,6 +63,7 @@ terraform apply
 cd ..
 
 gcloud auth configure-docker
+echo 
 echo Please run:
 echo
 echo gcloud components install gke-gcloud-auth-plugin

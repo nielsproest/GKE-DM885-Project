@@ -8,11 +8,11 @@ on:
   workflow_dispatch:
 
 env:
-  PROJECT_ID: solveit-369711
+  PROJECT_ID: noted-flash-366811
   WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
   SERVICE_ACCOUNT: ${{ secrets.SERVICE_ACCOUNT }}
   GAR_LOCATION: europe-west4
-  GKE_CLUSTER: solveit-369711-gke
+  GKE_CLUSTER: noted-flash-366811-gke
   GKE_ZONE: europe-west4
   REPOSITORY: services-repository
   FRONTEND_IMAGE: frontend

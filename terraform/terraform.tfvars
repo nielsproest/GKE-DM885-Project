@@ -1,2 +1,2 @@
-project_id = "solveit-369711"
-region     = "europe-west4"
+project_id = "noted-flash-366811"
+region = "europe-west4"
