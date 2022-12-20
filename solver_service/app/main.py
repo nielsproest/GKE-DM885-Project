@@ -1,7 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, Body
-import uuid
-import os
-import requests
+import uuid, os,requests
 from pydantic import BaseModel
 from urllib.parse import unquote
 from fastapi.middleware.cors import CORSMiddleware
@@ -101,7 +99,7 @@ def Delete_Solver(solverId: str, db: Session = Depends(get_db), token=Depends(JW
     solver = cDeleteSolver(db, solverId)
     if solver is None:
         raise HTTPException(status_code=404, detail="Solver id not found")
-    return {"Success"}
+    return {"detail": "Success"}
 
 '''
 Adds a given solver URL to the database with the given name
@@ -130,7 +128,7 @@ def Post_Solver(name: str, payload=Body({"image": "some-image-here"}), db: Sessi
     if solver is None:
         raise HTTPException(status_code=404, detail="Solver id not found")
 
-    return response
+    return {"detail": response}
 
 '''
 Checks if a given id is a valid UUID
