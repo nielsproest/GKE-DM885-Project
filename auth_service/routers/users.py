@@ -5,6 +5,7 @@ from fastapi import Depends, APIRouter, HTTPException, status, Body
 from decouple import config
 from internal import JWTBearer, sign_jwt, decode_jwt, hash_password, verify_password
 from sqlalchemy.orm import Session
+from fastapi.responses import JSONResponse
 
 router: APIRouter = APIRouter()
 
@@ -15,6 +16,15 @@ Base.metadata.create_all(bind=engine)
 
 @router.post(
     "/signup",
+    responses={
+        400: {"message": "Payload does not fullfill requirements"},
+        409: {"message": "User already exists"},
+        415: {
+            "message": "Invalid content type, remember to set content-type to application/json"
+        },
+        200: {"token": "signed_token"},
+        405: {"message": "Method not allowed"},
+    },
 )
 async def create_new_user(
     payload=Body({"username": "myusername", "password": "mypassword"}),
@@ -28,7 +38,7 @@ async def create_new_user(
             )
     except AttributeError:
         raise HTTPException(
-            status_code=status.UnsupportedMediaType,
+            status_code=415,
             detail="Invalid content type, remember to set content-type to application/json",
         )
 
@@ -76,7 +86,19 @@ async def create_new_user(
     return {"token": sign_jwt(username, base_permissions, uuid=uuid)}
 
 
-@router.post("/login")
+@router.post(
+    "/login",
+    responses={
+        400: {"message": "Payload does not fullfill requirements"},
+        404: {"message": "User not found"},
+        401: {"message": "Invalid credentials"},
+        415: {
+            "message": "Invalid content type, remember to set content-type to application/json"
+        },
+        200: {"token": "signed_token"},
+        405: {"message": "Method not allowed"},
+    },
+)
 async def login_user(
     payload=Body({"username": "myusername", "password": "mypassword"}),
     db: Session = Depends(get_database),
@@ -89,7 +111,7 @@ async def login_user(
             )
     except AttributeError:
         raise HTTPException(
-            status_code=status.UnsupportedMediaType,
+            status_code=415,
             detail="Invalid content type, remember to set content-type to application/json",
         )
 
@@ -120,7 +142,18 @@ async def login_user(
     return {"token": sign_jwt(username, permissions, uuid=uuid)}
 
 
-@router.post("/modify")
+@router.post(
+    "/modify",
+    responses={
+        400: {"message": "Payload does not fullfill requirements"},
+        403: {"message": "Only administators can modify users"},
+        415: {
+            "message": "Invalid content type, remember to set content-type to application/json"
+        },
+        200: {"token": "signed_token"},
+        405: {"message": "Method not allowed"},
+    },
+)
 async def modify_user(
     payload=Body(
         {
@@ -136,7 +169,7 @@ async def modify_user(
         permissions = decode_jwt(token).get("permissions", None)
     except AttributeError:
         raise HTTPException(
-            status_code=status.UnsupportedMediaType,
+            status_code=415,
             detail="Invalid content type, remember to set content-type to application/json",
         )
 
@@ -185,7 +218,20 @@ async def modify_user(
     return {"token": sign_jwt(user.username, current_permissions, uuid=user.uuid)}
 
 
-@router.post("/delete", dependencies=[Depends(JWTBearer())])
+@router.post(
+    "/delete",
+    dependencies=[Depends(JWTBearer())],
+    responses={
+        400: {"message": "Payload does not fullfill requirements"},
+        403: {"message": "Only administators can delete users"},
+        415: {
+            "message": "Invalid content type, remember to set content-type to application/json"
+        },
+        404: {"message": "User not found"},
+        200: {"message": "User deleted successfully"},
+        405: {"message": "Method not allowed"},
+    },
+)
 async def delete_user(
     payload=Body({"uuid": "some-uuid-here"}),
     token=Depends(JWTBearer()),
@@ -196,7 +242,7 @@ async def delete_user(
         permissions = decode_jwt(token).get("permissions", None)
     except AttributeError:
         raise HTTPException(
-            status_code=status.UnsupportedMediaType,
+            status_code=415,
             detail="Invalid content type, remember to set content-type to application/json",
         )
 
@@ -231,8 +277,18 @@ async def delete_user(
     return {"message": "User deleted successfully"}
 
 
-@router.get("/is_username_available/{username}")
-async def is_username_available(username: str, db: Session = Depends(get_database)):
+@router.get(
+    "/is_username_available/{username}",
+    responses={
+        400: {"message": "Missing username"},
+        200: {"message": "True/False"},
+        405: {"message": "Method not allowed"},
+    },
+)
+async def is_username_available(
+    username: str,
+    db: Session = Depends(get_database),
+):
 
     if username is None:
         raise HTTPException(
@@ -246,14 +302,28 @@ async def is_username_available(username: str, db: Session = Depends(get_databas
     return {"message": False}
 
 
-@router.get("/list_users")
-async def list_users(token=Depends(JWTBearer()), db: Session = Depends(get_database)):
+@router.get(
+    "/list_users",
+    responses={
+        415: {
+            "message": "Invalid content type, remember to set content-type to application/json"
+        },
+        403: {"message": "Only administators can list users"},
+        400: {"message": "Missing permissions"},
+        200: {"message": [{"username": "some-username", "uuid": "some-uuid"}]},
+        405: {"message": "Method not allowed"},
+    },
+)
+async def list_users(
+    token=Depends(JWTBearer()),
+    db: Session = Depends(get_database),
+):
 
     try:
         permissions = decode_jwt(token).get("permissions", None)
     except AttributeError:
         raise HTTPException(
-            status_code=status.UnsupportedMediaType,
+            status_code=415,
             detail="Invalid content type, remember to set content-type to application/json",
         )
 
@@ -278,16 +348,28 @@ async def list_users(token=Depends(JWTBearer()), db: Session = Depends(get_datab
     }
 
 
-@router.get("/get_my_permissions")
+@router.get(
+    "/get_my_permissions",
+    responses={
+        415: {
+            "message": "Invalid content type, remember to set content-type to application/json"
+        },
+        400: {"message": "Can not find UUID inside JWT Token"},
+        404: {"message": "User not found"},
+        200: {"message": {"permission_a": "value_a"}},
+        405: {"message": "Method not allowed"},
+    },
+)
 async def get_my_permissions(
-    token=Depends(JWTBearer()), db: Session = Depends(get_database)
+    token=Depends(JWTBearer()),
+    db: Session = Depends(get_database),
 ):
 
     try:
         uuid = decode_jwt(token).get("uuid", None)
     except AttributeError:
         raise HTTPException(
-            status_code=status.UnsupportedMediaType,
+            status_code=415,
             detail="Invalid content type, remember to set content-type to application/json",
         )
 
@@ -309,15 +391,29 @@ async def get_my_permissions(
     return {"message": user.permissions}
 
 
-@router.get("/get_permissions/{uuid}")
+@router.get(
+    "/get_permissions/{uuid}",
+    responses={
+        415: {
+            "message": "Invalid content type, remember to set content-type to application/json"
+        },
+        403: {"message": "Only administators can get user permissions"},
+        400: {"message": "Missing permissions"},
+        404: {"message": "User not found"},
+        200: {"message": {"permission_a": "value_a"}},
+        405: {"message": "Method not allowed"},
+    },
+)
 async def get_permissions(
-    uuid: str, token=Depends(JWTBearer()), db: Session = Depends(get_database)
+    uuid: str,
+    token=Depends(JWTBearer()),
+    db: Session = Depends(get_database),
 ):
     try:
         permissions = decode_jwt(token).get("permissions", None)
     except AttributeError:
         raise HTTPException(
-            status_code=status.UnsupportedMediaType,
+            status_code=415,
             detail="Invalid content type, remember to set content-type to application/json",
         )
 
@@ -349,8 +445,21 @@ async def get_permissions(
     return {"message": user.permissions}
 
 
-@router.get("/decode_jwt")
-async def _decode_jwt(token=Depends(JWTBearer())):
+@router.get(
+    "/decode_jwt",
+    responses={
+        415: {
+            "message": "Invalid content type, remember to set content-type to application/json"
+        },
+        403: {"message": "Only administators can get user permissions"},
+        400: {"message": "Missing permissions"},
+        200: {"message": {"permission_a": "value_a"}},
+        405: {"message": "Method not allowed"},
+    },
+)
+async def _decode_jwt(
+    token=Depends(JWTBearer()),
+):
 
     decoded_token = decode_jwt(token)
 
@@ -358,7 +467,7 @@ async def _decode_jwt(token=Depends(JWTBearer())):
         permissions = decoded_token.get("permissions", None)
     except AttributeError:
         raise HTTPException(
-            status_code=status.UnsupportedMediaType,
+            status_code=415,
             detail="Invalid content type, remember to set content-type to application/json",
         )
 
@@ -377,6 +486,12 @@ async def _decode_jwt(token=Depends(JWTBearer())):
     return {"message": decoded_token}
 
 
-@router.get("/wave")
+@router.get(
+    "/wave",
+    responses={
+        200: {"message": "Hello World"},
+        405: {"message": "Method not allowed"},
+    },
+)
 async def wave(token=Depends(JWTBearer())):
     return {"message": "Hello World"}
