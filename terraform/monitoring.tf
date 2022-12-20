@@ -239,8 +239,7 @@ resource "google_monitoring_dashboard" "dashboard" {
         "yPos": 6
       }
     ]
-  },
-  "name": "projects/454703655446/dashboards/bd8d22ba-ddc3-4fda-a8ce-ed63b423a099"
+  }
 }
 EOF
 }
