@@ -50,8 +50,7 @@ def delete_all_jobs(db: Session, user_id: str):
     jobs = db.query(models.Job).filter(models.Job.user_id == user_id)
     if jobs:
       for job in jobs:
-        db.delete(job)
-      db.commit()
+        delete_job(db, job.id)
       return "success"
     else:
       return None
@@ -106,7 +105,6 @@ def create_job(db: Session, job: schemas.CreateJob, user_id: str):
           job_id=db_job.id
         )
         db_job.solver_instances.append(db_solver)
-
     db.commit()
     db.refresh(db_job)
     return db_job
@@ -123,8 +121,12 @@ def update_solver_instance_result(db: Session, job_id: str, solver_id: str, resu
 
 def found_result(db: Session, job_id: str, solver_id: str, result: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
-    job.status = "completed"
     job.result = result
+    if solver_id == None:
+      job.winning_solver = "None"
+      job.status = "failed"
+    else:
+      job.status = "completed"
     for solver in job.solver_instances:
       if str(solver.id) == str(solver_id):
         solver.status = "completed"

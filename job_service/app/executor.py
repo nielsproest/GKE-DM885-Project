@@ -196,6 +196,7 @@ class Kubernetes:
           # TODO: Clean up this code:
           # event.type: ADDED, MODIFIED, DELETED
           if event["type"] == "DELETED" or event["type"] == "Warning" or event["object"].status.phase == "Failed":
+              print(f"event['object'].status.conditions: {event['object'].status.conditions}")
               logging.info("Deleted before it started")
               w.stop()
               q.put((instance_id, None))
@@ -210,8 +211,6 @@ class Kubernetes:
       solver, result = q.get()
       print(f"Thread was: {solver}")
       print(f"Result was: {result}")
-      #TODO: Remove these comments
-      #TODO Delete temp file from storage
 
       if solver != None:
         if result != None:
