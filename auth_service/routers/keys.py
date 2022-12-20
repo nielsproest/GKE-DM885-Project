@@ -22,7 +22,6 @@ class Message(BaseModel):
         500: {"message": "Public key not found"},
         405: {"message": "Method Not Allowed"},
     },
-    response_model=Message,
 )
 async def get_public_key():
     """Expose the public key for external authentication."""
