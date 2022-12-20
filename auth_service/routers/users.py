@@ -15,26 +15,26 @@ from models import User, Base, engine, get_database
 Base.metadata.create_all(bind=engine)
 
 
-class MessageResponse(BaseModel):
+class Message(BaseModel):
     message: str
 
 
-class TokenResponse(BaseModel):
+class Token(BaseModel):
     token: str
 
 
 @router.post(
     "/signup",
     responses={
-        400: {"message": "Payload does not fullfill requirements"},
-        409: {"message": "User already exists"},
+        400: {"message": "Payload does not fullfill requirements", "model": Message},
+        409: {"message": "User already exists", "model": Message},
         415: {
-            "message": "Invalid content type, remember to set content-type to application/json"
+            "message": "Invalid content type, remember to set content-type to application/json",
+            "model": Message,
         },
-        200: {"token": "signed_token"},
-        405: {"message": "Method not allowed"},
+        200: {"token": "signed_token", "model": Token},
+        405: {"message": "Method not allowed", "model": Message},
     },
-    response_model=TokenResponse,
 )
 async def create_new_user(
     payload=Body({"username": "myusername", "password": "mypassword"}),
@@ -99,16 +99,16 @@ async def create_new_user(
 @router.post(
     "/login",
     responses={
-        400: {"message": "Payload does not fullfill requirements"},
-        404: {"message": "User not found"},
-        401: {"message": "Invalid credentials"},
+        400: {"message": "Payload does not fullfill requirements", "model": Message},
+        404: {"message": "User not found", "model": Message},
+        401: {"message": "Invalid credentials", "model": Message},
         415: {
-            "message": "Invalid content type, remember to set content-type to application/json"
+            "message": "Invalid content type, remember to set content-type to application/json",
+            "model": Message,
         },
-        200: {"token": "signed_token"},
-        405: {"message": "Method not allowed"},
+        200: {"token": "signed_token", "model": Token},
+        405: {"message": "Method not allowed", "model": Message},
     },
-    response_model=TokenResponse,
 )
 async def login_user(
     payload=Body({"username": "myusername", "password": "mypassword"}),
@@ -156,15 +156,15 @@ async def login_user(
 @router.post(
     "/modify",
     responses={
-        400: {"message": "Payload does not fullfill requirements"},
-        403: {"message": "Only administators can modify users"},
+        400: {"message": "Payload does not fullfill requirements", "model": Message},
+        403: {"message": "Only administators can modify users", "model": Message},
         415: {
-            "message": "Invalid content type, remember to set content-type to application/json"
+            "message": "Invalid content type, remember to set content-type to application/json",
+            "model": Message,
         },
-        200: {"token": "signed_token"},
-        405: {"message": "Method not allowed"},
+        200: {"token": "signed_token", "model": Token},
+        405: {"message": "Method not allowed", "model": Message},
     },
-    response_model=TokenResponse,
 )
 async def modify_user(
     payload=Body(
@@ -234,16 +234,16 @@ async def modify_user(
     "/delete",
     dependencies=[Depends(JWTBearer())],
     responses={
-        400: {"message": "Payload does not fullfill requirements"},
-        403: {"message": "Only administators can delete users"},
+        400: {"message": "Payload does not fullfill requirements", "model": Message},
+        403: {"message": "Only administators can delete users", "model": Message},
         415: {
-            "message": "Invalid content type, remember to set content-type to application/json"
+            "message": "Invalid content type, remember to set content-type to application/json",
+            "model": Message,
         },
-        404: {"message": "User not found"},
-        200: {"message": "User deleted successfully"},
-        405: {"message": "Method not allowed"},
+        404: {"message": "User not found", "model": Message},
+        200: {"message": "User deleted successfully", "model": Message},
+        405: {"message": "Method not allowed", "model": Message},
     },
-    response_model=MessageResponse,
 )
 async def delete_user(
     payload=Body({"uuid": "some-uuid-here"}),
@@ -297,7 +297,6 @@ async def delete_user(
         200: {"message": "True/False"},
         405: {"message": "Method not allowed"},
     },
-    response_model=MessageResponse,
 )
 async def is_username_available(
     username: str,
@@ -320,14 +319,17 @@ async def is_username_available(
     "/list_users",
     responses={
         415: {
-            "message": "Invalid content type, remember to set content-type to application/json"
+            "message": "Invalid content type, remember to set content-type to application/json",
+            "model": Message,
         },
-        403: {"message": "Only administators can list users"},
-        400: {"message": "Missing permissions"},
-        200: {"message": [{"username": "some-username", "uuid": "some-uuid"}]},
-        405: {"message": "Method not allowed"},
+        403: {"message": "Only administators can list users", "model": Message},
+        400: {"message": "Missing permissions", "model": Message},
+        200: {
+            "message": [{"username": "some-username", "uuid": "some-uuid"}],
+            "model": Message,
+        },
+        405: {"message": "Method not allowed", "model": Message},
     },
-    response_model=MessageResponse,
 )
 async def list_users(
     token=Depends(JWTBearer()),
@@ -367,14 +369,14 @@ async def list_users(
     "/get_my_permissions",
     responses={
         415: {
-            "message": "Invalid content type, remember to set content-type to application/json"
+            "message": "Invalid content type, remember to set content-type to application/json",
+            "model": Message,
         },
-        400: {"message": "Can not find UUID inside JWT Token"},
-        404: {"message": "User not found"},
-        200: {"message": {"permission_a": "value_a"}},
-        405: {"message": "Method not allowed"},
+        400: {"message": "Can not find UUID inside JWT Token", "model": Message},
+        404: {"message": "User not found", "model": Message},
+        200: {"message": {"permission_a": "value_a"}, "model": Message},
+        405: {"message": "Method not allowed", "model": Message},
     },
-    response_model=MessageResponse,
 )
 async def get_my_permissions(
     token=Depends(JWTBearer()),
@@ -404,22 +406,25 @@ async def get_my_permissions(
         )
 
     # Return the users permissions
-    return {"message": user.permissions}
+    return {"message": dict({"uuid": user.uuid}, **user.permissions)}
 
 
 @router.get(
     "/get_permissions/{uuid}",
     responses={
         415: {
-            "message": "Invalid content type, remember to set content-type to application/json"
+            "message": "Invalid content type, remember to set content-type to application/json",
+            "model": Message,
         },
-        403: {"message": "Only administators can get user permissions"},
-        400: {"message": "Missing permissions"},
-        404: {"message": "User not found"},
-        200: {"message": {"permission_a": "value_a"}},
-        405: {"message": "Method not allowed"},
+        403: {
+            "message": "Only administators can get user permissions",
+            "model": Message,
+        },
+        400: {"message": "Missing permissions", "model": Message},
+        404: {"message": "User not found", "model": Message},
+        200: {"message": {"permission_a": "value_a"}, "model": Message},
+        405: {"message": "Method not allowed", "model": Message},
     },
-    response_model=MessageResponse,
 )
 async def get_permissions(
     uuid: str,
@@ -459,21 +464,24 @@ async def get_permissions(
         )
 
     # Return the user's permissions
-    return {"message": user.permissions}
+    return {"message": dict({"uuid": user.uuid}, **user.permissions)}
 
 
 @router.get(
     "/decode_jwt",
     responses={
         415: {
-            "message": "Invalid content type, remember to set content-type to application/json"
+            "message": "Invalid content type, remember to set content-type to application/json",
+            "model": Message,
         },
-        403: {"message": "Only administators can get user permissions"},
-        400: {"message": "Missing permissions"},
-        200: {"message": {"permission_a": "value_a"}},
-        405: {"message": "Method not allowed"},
+        403: {
+            "message": "Only administators can get user permissions",
+            "model": Message,
+        },
+        400: {"message": "Missing permissions", "model": Message},
+        200: {"message": {"permission_a": "value_a"}, "model": Message},
+        405: {"message": "Method not allowed", "model": Message},
     },
-    response_model=MessageResponse,
 )
 async def _decode_jwt(
     token=Depends(JWTBearer()),
@@ -507,10 +515,9 @@ async def _decode_jwt(
 @router.get(
     "/wave",
     responses={
-        200: {"message": "Hello World"},
-        405: {"message": "Method not allowed"},
+        200: {"message": "Hello World", "model": Message},
+        405: {"message": "Method not allowed", "model": Message},
     },
-    response_model=MessageResponse,
 )
 async def wave(token=Depends(JWTBearer())):
     return {"message": "Hello World"}
