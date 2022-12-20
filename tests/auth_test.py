@@ -32,5 +32,17 @@ def test_get_user_permissions(test_login_user):
 			headers={"Authorization": f"Bearer {test_login_user}"}
 		)
 		assert response.status_code == 200
-		print(response.json())
+
+@pytest.fixture
+def test_modify_user_permissions(test_login_user):
+	return
+	with httpx.Client() as client:
+		response = client.post(
+			auth_url + "/users/modify",
+			json={
+				"uuid": uuid
+			},
+			headers={"Authorization": f"Bearer {get_token}"}
+		)
+		assert response.status_code == 200
 
