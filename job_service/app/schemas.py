@@ -47,7 +47,7 @@ class Solver(BaseModel):
     name: str
     id: str
     image: Union[str, None]
-    vcpus: int = 1
+    vcpus: int = 200
     timeout: int = 180
     ram: int = 1024
 

@@ -122,7 +122,7 @@ def update_solver_instance_result(db: Session, job_id: str, solver_id: str, resu
 def found_result(db: Session, job_id: str, solver_id: str, result: str):
     job = db.query(models.Job).filter(models.Job.id == job_id).first()
     job.result = result
-    job.compute_time = ((utc.localize(datetime.datetime.now()) - datetime.timedelta(hours=1)) - job.time_created).total_seconds()
+    job.compute_time = ((utc.localize(datetime.datetime.now())) - job.time_created).total_seconds()
     if solver_id == None:
       job.winning_solver = "None"
       job.status = "failed"
