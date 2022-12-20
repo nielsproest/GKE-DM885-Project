@@ -406,7 +406,7 @@ async def get_my_permissions(
         )
 
     # Return the users permissions
-    return {"message": user.permissions}
+    return {"message": dict({"uuid": user.uuid}, **user.permissions)}
 
 
 @router.get(
@@ -464,7 +464,7 @@ async def get_permissions(
         )
 
     # Return the user's permissions
-    return {"message": user.permissions}
+    return {"message": dict({"uuid": user.uuid}, **user.permissions)}
 
 
 @router.get(
