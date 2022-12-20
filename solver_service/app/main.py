@@ -58,18 +58,6 @@ class Detail(BaseModel):
 class Success(BaseModel):
     success: str = "success message"
 
-postSolverResponse = {
-                    200: {"description": "Success", "content": {"application/json": {"examples": {
-                    "success": {"summary": "Success", "value": {"message": "Success"}},
-                    "not on docker": {"summary": "Not on docker hub", "value": {"message": "Not on docker hub"}}}}}},
-                    400: {"model": Detail, "description": "Not a valid docker hub image"},
-                    401: {"model": Detail, "description": "User is not admin"},
-                    404: {"description": "Image or solver id not found", "content": {"application/json": {"examples": {
-                    "docker image": {"summary": "Docker image not found", "value": {"message": "Docker image not found"}},
-                    "solver id": {"summary": "Solver id not found", "value": {"message": "Solver id not found"}}}}}},
-                    409: {"model": Detail, "description": "Image already exists in database"}
-                    }
-
 '''
 Returns all solvers in the database
 '''
@@ -118,7 +106,17 @@ def Delete_Solver(solverId: str, db: Session = Depends(get_db), token=Depends(JW
 '''
 Adds a given solver URL to the database with the given name
 '''
-@app.post("/solver/{name}", dependencies=[Depends(JWTBearer())], responses=postSolverResponse)
+@app.post("/solver/{name}", dependencies=[Depends(JWTBearer())], responses={
+                    200: {"description": "Success", "content": {"application/json": {"examples": {
+                    "success": {"summary": "Success", "value": {"message": "Success"}},
+                    "not on docker": {"summary": "Not on docker hub", "value": {"message": "Not on docker hub"}}}}}},
+                    400: {"model": Detail, "description": "Not a valid docker hub image"},
+                    401: {"model": Detail, "description": "User is not admin"},
+                    404: {"description": "Image or solver id not found", "content": {"application/json": {"examples": {
+                    "docker image": {"summary": "Docker image not found", "value": {"message": "Docker image not found"}},
+                    "solver id": {"summary": "Solver id not found", "value": {"message": "Solver id not found"}}}}}},
+                    409: {"model": Detail, "description": "Image already exists in database"}
+                    })
 def Post_Solver(name: str, payload=Body({"image": "some-image-here"}), db: Session = Depends(get_db), token=Depends(JWTBearer())):
     
     image = payload.get("image", None)
