@@ -4,6 +4,8 @@ from sqlalchemy.orm import Session
 from os.path import join
 from os import remove, getenv, mkdir
 from re import sub
+from pydantic import BaseModel
+from typing import List, Optional
 
 from . import crud, models
 from .database import SessionLocal, engine
@@ -48,12 +50,36 @@ def generic_auth_handler(user_id, token):
 def sanitize(s):
 	return sub(r'[^A-Za-z0-9 ]+ _.-' , '', s)
 
-@app.put("/{user_id}")
+class Message(BaseModel):
+	message: str
+
+class MessageWithid(Message):
+	id: int
+
+@app.put("/{user_id}", 
+	response_model=MessageWithid,
+	responses={
+		413: {
+			"description": "Not enough space available"
+		},
+		500: {
+			"description": "Server error when creating file"
+		},
+		200: {
+			"content": {
+				"application/json": {
+					"message": "OK",
+					"id": "file_id"
+				}
+			}
+		}
+	}
+)
 async def write(
 		user_id: str,
 		file: UploadFile,
 		db: Session = Depends(get_db),
-		token=Depends(JWTBearer())
+		token=Depends(JWTBearer()),
 	):
 	"""
 		Writes a file as given user_id
@@ -87,7 +113,34 @@ async def write(
 		"id": qry.id
 	}
 
-@app.get("/{user_id}/list")
+
+class ItemList(BaseModel):
+	id: int
+	name: str
+	owner: str
+	size: int
+
+class MessageWithList(Message):
+	lst: List[ItemList]
+
+@app.get("/{user_id}/list", 
+	response_model=MessageWithList,
+	responses={
+		200: {
+			"content": {
+				"application/json": {
+					"message": "OK",
+					"lst": [{
+						"id": 0,
+						"name": "example.txt",
+						"owner": "1234-5678-9101-1121",
+						"size": 10,
+					}]
+				}
+			}
+		}
+	}
+)
 async def lst(
 		user_id: str,
 		db: Session = Depends(get_db),
@@ -108,7 +161,18 @@ async def lst(
 		"lst": qry
 	}
 
-@app.delete("/{user_id}/delete")
+@app.delete("/{user_id}/delete", 
+	response_model=Message,
+	responses={
+		200: {
+			"content": {
+				"application/json": {
+					"message": "OK",
+				}
+			}
+		}
+	}
+)
 async def delete_all(
 		user_id: str,
 		db: Session = Depends(get_db),
@@ -138,7 +202,21 @@ async def delete_all(
 		"message": "OK"
 	}
 
-@app.get("/{user_id}/{item_id}")
+class Item(BaseModel):
+	id: str
+	value: str
+@app.get("/{user_id}/{item_id}", 
+	response_model=Item,
+	responses={
+		200: {
+			"content": {"text/plain": {}},
+			"description": "Return the file.",
+		},
+		410: {
+			"description": "File not found.",
+		}
+	}
+)
 async def read(
 		user_id: str,
 		item_id: int,
@@ -157,7 +235,24 @@ async def read(
 
 	return FileResponse(join(OS_DIR, str(item_id)), filename=qry.name)
 
-@app.patch("/{user_id}/{item_id}")
+@app.patch("/{user_id}/{item_id}", 
+	response_model=Message,
+	responses={
+		200: {
+			"content": {
+				"application/json": {
+					"message": "OK",
+				}
+			}
+		},
+		410: {
+			"description": "File not found.",
+		},
+		413: {
+			"description": "Not enough space available"
+		},
+	}
+)
 async def update(
 		user_id: str,
 		item_id: int,
@@ -194,7 +289,21 @@ async def update(
 		"message": "OK"
 	}
 
-@app.delete("/{user_id}/{item_id}")
+@app.delete("/{user_id}/{item_id}", 
+	response_model=Message,
+	responses={
+		200: {
+			"content": {
+				"application/json": {
+					"message": "OK",
+				}
+			}
+		},
+		410: {
+			"description": "File not found.",
+		},
+	}
+)
 async def delete(
 		user_id: str,
 		item_id: int,

@@ -1,7 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, Body
-import uuid
-import os
-import requests
+import uuid, os,requests
 from pydantic import BaseModel
 from urllib.parse import unquote
 from fastapi.middleware.cors import CORSMiddleware
@@ -101,18 +99,22 @@ def Delete_Solver(solverId: str, db: Session = Depends(get_db), token=Depends(JW
     solver = cDeleteSolver(db, solverId)
     if solver is None:
         raise HTTPException(status_code=404, detail="Solver id not found")
-    return {"Success"}
+    return {"detail": "Success"}
 
 '''
 Adds a given solver URL to the database with the given name
 '''
 @app.post("/solver/{name}", dependencies=[Depends(JWTBearer())], responses={
-    200: {"model": Success, "description": "Success OR Not on docker hub"},
-    400: {"model": Detail, "description": "Not a valid docker hub image"},
-    401: {"model": Detail, "description": "User is not admin"},
-    404: {"model": Detail, "description": "Docker image not found OR Solver id not found"},
-    409: {"model": Detail, "description": "Image already exists in database"}
-})
+                    200: {"description": "Success", "content": {"application/json": {"examples": {
+                    "success": {"summary": "Success", "value": {"message": "Success"}},
+                    "not on docker": {"summary": "Not on docker hub", "value": {"message": "Not on docker hub"}}}}}},
+                    400: {"model": Detail, "description": "Not a valid docker hub image"},
+                    401: {"model": Detail, "description": "User is not admin"},
+                    404: {"description": "Image or solver id not found", "content": {"application/json": {"examples": {
+                    "docker image": {"summary": "Docker image not found", "value": {"message": "Docker image not found"}},
+                    "solver id": {"summary": "Solver id not found", "value": {"message": "Solver id not found"}}}}}},
+                    409: {"model": Detail, "description": "Image already exists in database"}
+                    })
 def Post_Solver(name: str, payload=Body({"image": "some-image-here"}), db: Session = Depends(get_db), token=Depends(JWTBearer())):
     
     image = payload.get("image", None)
@@ -126,7 +128,7 @@ def Post_Solver(name: str, payload=Body({"image": "some-image-here"}), db: Sessi
     if solver is None:
         raise HTTPException(status_code=404, detail="Solver id not found")
 
-    return response
+    return {"detail": response}
 
 '''
 Checks if a given id is a valid UUID

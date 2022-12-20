@@ -179,9 +179,9 @@ function getAvailableSolvers(){
                 <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
               </div>
               <span id="` + solver.id + `"  class="input-group-text solver-name-class">` + solver.name + `</span>
-              <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
-              <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
-              <input type="text" aria-label="timeout" placeholder="Timeout (Default: 60s)" class="form-control timeout-class">
+              <input type="text" aria-label="vcpu" placeholder="Mili-VCPU (Default: 200)" class="form-control vcpu-class">
+              <input type="text" aria-label="ram" placeholder="RAM (Default: 512)" class="form-control ram-class">
+              <input type="text" aria-label="timeout" placeholder="Timeout (Default: 120s)" class="form-control timeout-class">
             </div>
             `, 'text/html')
 
@@ -204,9 +204,9 @@ function getAvailableSolvers(){
                 <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
               </div>
               <span id="213c7f36-dad8-4316-aaac-1a43a4f9062c" class="input-group-text solver-name-class">fake-solver</span>
-              <input type="text" aria-label="vcpu" placeholder="VCPU (Default: 1)" class="form-control vcpu-class">
-              <input type="text" aria-label="ram" placeholder="RAM (Default: 1024)" class="form-control ram-class">
-              <input type="text" aria-label="timeout" placeholder="Timeout (Default: 60s)" class="form-control timeout-class">
+              <input type="text" aria-label="vcpu" placeholder="Mili-VCPU (Default: 200)" class="form-control vcpu-class">
+              <input type="text" aria-label="ram" placeholder="RAM (Default: 512)" class="form-control ram-class">
+              <input type="text" aria-label="timeout" placeholder="Timeout (Default: 120s)" class="form-control timeout-class">
             </div>
             `, 'text/html')
 
@@ -382,7 +382,7 @@ function getStoppedSolvers(stoppedJob){
   let itemstring = stoppedJobParser.parseFromString(`<div id="stoppedJobWrapper-`+ stoppedJob.id +`" class="accordion-item">
                       <h2 class="accordion-header">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-`+ stoppedJob.id +`" aria-expanded="false" aria-controls="collapseTwo">
-                          ` + "Solver: " + stoppedJob.winning_solver + " Create date: " + stoppedJob.time_created + " Status: " + stoppedJob.status + `
+                          ` + "Solver: " + stoppedJob.winning_solver + ", Create date: " + stoppedJob.time_created + ", Status: " + stoppedJob.status + ", Compute time: " + stoppedJob.compute_time + `
                         </button>
                       </h2>
                       <div id="collapse-` + stoppedJob.id + `" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
@@ -484,11 +484,11 @@ function startJob(modelIds){
     let timeout = x.querySelector(".timeout-class").value
 
     if(vcpu.length <= 0){
-      vcpu = 1
+      vcpu = 200
     }
 
     if(ram.length <= 0){
-      ram = 1024
+      ram = 512
     }
 
     if(timeout == null){
@@ -551,7 +551,7 @@ function startJob(modelIds){
 
       if("detail" in result){
         warningDiv = document.getElementById("solverWarningDiv");
-        let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button></div>'
+        let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"></button></div>'
 
         warningDiv.innerHTML = warningString;
       }

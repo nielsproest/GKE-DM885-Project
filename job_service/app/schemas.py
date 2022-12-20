@@ -35,6 +35,7 @@ class Job(JobBase):
     result: str
     winning_solver: str
     status: str
+    compute_time: int
     solver_instances: List[SolverInstance] = []
 
     class Config:
