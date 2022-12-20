@@ -374,7 +374,7 @@ function uploadNewSolver() {
 
         if(result == "Success"){
           loadSolvers()
-          document.getElementById("solverWarningDiv").modal('hide')
+          document.getElementById("addSolverModal").modal('hide')
         } else {
           warningDiv = document.getElementById("solverWarningDiv");
           let warningString = '<div class="alert alert-warning alert-dismissible fade show" role="alert">'+ result.detail +'<button type="button" class="btn-close" data-dismiss="alert" aria-label="Close"></button></div>'
