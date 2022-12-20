@@ -609,7 +609,7 @@ function welcome () {
   var vcpu = parseJwt(localStorage.getItem("token")).permissions.vcpu
   var ram = parseJwt(localStorage.getItem("token")).permissions.ram
   welcomeDiv = document.getElementById("welcomeBox");
-  welcome.innerHTML = "Welcome " + username + "! You have access to " + vcpu + " Mili-VCPUS and " + ram + " RAM." 
+  welcomeDiv.innerHTML = "Welcome " + username + "! You have access to " + vcpu + " Mili-VCPUS and " + ram + " RAM." 
 
 }
 
