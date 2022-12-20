@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, HTTPException, status
 from decouple import config
+from fastapi.responses import JSONResponse
 
 router: APIRouter = APIRouter()
 
@@ -12,6 +13,10 @@ Base.metadata.create_all(bind=engine)
 
 @router.get(
     "/public_key",
+    responses={
+        500: {"message": "Public key not found"},
+        405: {"message": "Method Not Allowed"},
+    },
 )
 async def get_public_key():
     """Expose the public key for external authentication."""

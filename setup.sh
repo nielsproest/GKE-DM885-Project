@@ -26,11 +26,13 @@ export AUTH_ADMIN_USER=admin
 export AUTH_ADMIN_PASS=password
 
 #Patch authservice
-sed -i "s/POSTGRES_USER[^\"]*/POSTGRES_USER=${AUTH_DB_USER}/" auth_service/.env
-sed -i "s/POSTGRES_PASSWORD[^\"]*/POSTGRES_PASSWORD=${AUTH_DB_PASS}/" auth_service/.env
-sed -i "s/DEFAULT_ADMIN_USERNAME[^\"]*/DEFAULT_ADMIN_USERNAME=${AUTH_ADMIN_USER}/" auth_service/.env
-sed -i "s/DEFAULT_ADMIN_PASSWORD[^\"]*/DEFAULT_ADMIN_PASSWORD=${AUTH_ADMIN_PASS}/" auth_service/.env
+sed "s/POSTGRES_USER[^\"]*/POSTGRES_USER=${AUTH_DB_USER}/" auth_service/.env | tee auth_service/.env
+sed "s/POSTGRES_PASSWORD[^\"]*/POSTGRES_PASSWORD=${AUTH_DB_PASS}/" auth_service/.env | tee auth_service/.env
+sed "s/DEFAULT_ADMIN_USERNAME[^\"]*/DEFAULT_ADMIN_USERNAME=${AUTH_ADMIN_USER}/" auth_service/.env | tee auth_service/.env
+sed "s/DEFAULT_ADMIN_PASSWORD[^\"]*/DEFAULT_ADMIN_PASSWORD=${AUTH_ADMIN_PASS}/" auth_service/.env | tee auth_service/.env
 
+echo Please run:
+echo
 echo To use with Ubuntu
 echo https://cloud.google.com/sdk/docs/install#linux
 echo Run these commands:
@@ -44,6 +46,9 @@ echo WARNING: Terraform may fail in svc-account.tf, you may need to change workl
 echo Please follow these steps and press enter \(or ignore them if you\'ve done this before\)
 read varname
 gcloud config set project ${PROJECT_ID}
+gcloud services enable compute.googleapis.com
+gcloud services enable containerregistry.googleapis.com
+gcloud services enable container.googleapis.com
 
 
 echo "Terraform apply"
@@ -54,6 +59,8 @@ terraform apply
 cd ..
 
 gcloud auth configure-docker
+echo Please run:
+echo
 echo gcloud components install gke-gcloud-auth-plugin
 echo Please follow these steps and press enter
 read varname
