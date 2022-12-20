@@ -7,6 +7,7 @@ from internal import JWTBearer, sign_jwt, decode_jwt, hash_password, verify_pass
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from typing import List
 
 router: APIRouter = APIRouter()
 
@@ -21,6 +22,19 @@ class Message(BaseModel):
 
 class Token(BaseModel):
     token: str
+
+
+class UserModel(BaseModel):
+    username: str
+    uuid: str
+
+
+class JsonMessage(BaseModel):
+    message: dict
+
+
+class ListOfUsers(BaseModel):
+    users: List["UserModel"]
 
 
 @router.post(
@@ -63,11 +77,10 @@ async def create_new_user(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Missing password"
         )
 
-    # TODO: Better password validation
     if len(password) < config("PASSWORD_MIN_LENGTH", cast=int, default=8):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Password must be at least 8 characters",
+            detail=f"Password must be at least {config('PASSWORD_MIN_LENGTH', cast=int, default=8)} characters",
         )
 
     if db.query(User).filter(User.username == username).first() is not None:
@@ -325,8 +338,7 @@ async def is_username_available(
         403: {"message": "Only administators can list users", "model": Message},
         400: {"message": "Missing permissions", "model": Message},
         200: {
-            "message": [{"username": "some-username", "uuid": "some-uuid"}],
-            "model": Message,
+            "model": ListOfUsers,
         },
         405: {"message": "Method not allowed", "model": Message},
     },
@@ -334,6 +346,7 @@ async def is_username_available(
 async def list_users(
     token=Depends(JWTBearer()),
     db: Session = Depends(get_database),
+    payload=Body({}),
 ):
 
     try:
@@ -374,7 +387,7 @@ async def list_users(
         },
         400: {"message": "Can not find UUID inside JWT Token", "model": Message},
         404: {"message": "User not found", "model": Message},
-        200: {"message": {"permission_a": "value_a"}, "model": Message},
+        200: {"model": JsonMessage},
         405: {"message": "Method not allowed", "model": Message},
     },
 )
@@ -422,7 +435,7 @@ async def get_my_permissions(
         },
         400: {"message": "Missing permissions", "model": Message},
         404: {"message": "User not found", "model": Message},
-        200: {"message": {"permission_a": "value_a"}, "model": Message},
+        200: {"model": JsonMessage},
         405: {"message": "Method not allowed", "model": Message},
     },
 )
@@ -479,7 +492,7 @@ async def get_permissions(
             "model": Message,
         },
         400: {"message": "Missing permissions", "model": Message},
-        200: {"message": {"permission_a": "value_a"}, "model": Message},
+        200: {"model": JsonMessage},
         405: {"message": "Method not allowed", "model": Message},
     },
 )
@@ -488,6 +501,8 @@ async def _decode_jwt(
 ):
 
     decoded_token = decode_jwt(token)
+
+    print(decoded_token)
 
     try:
         permissions = decoded_token.get("permissions", None)
