@@ -116,7 +116,7 @@ function getAvailableModels(){
 
       if(modelList.childElementCount == 0){
         let modelParser = new DOMParser();
-        let modelToAppend = modelParser.parseFromString('<h6 class="m-3">You have no running jobs</h4>', 'text/html');
+        let modelToAppend = modelParser.parseFromString('<h6 class="m-3">You have no uploaded models</h4>', 'text/html');
         modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
       }
     })
@@ -291,7 +291,7 @@ function getSolvedSolutions(){
 
 
               runningSolutionSpan = document.createElement("span");
-              runningSolutionSpan.textContent = "Id: " + element.id + "<br>Started: " + element.time_created
+              runningSolutionSpan.textContent = "Id: " + element.id + " Started: " + element.time_created
 
               runningSolutionP.appendChild(runningSolutionSpan)
 
@@ -429,7 +429,7 @@ function deleteStoppedJob(jobId){
   let childCount = wrapper.childElementCount;
   if (childCount == 0){
     console.log("Found running solutionWrapper to be empty")
-    wrapper.innerHTML = "<h4 class='m-3'>You have no running jobs</h4>"
+    wrapper.innerHTML = "<h4 class='m-3'>You have uploaded running jobs</h4>"
   }
 
 }
