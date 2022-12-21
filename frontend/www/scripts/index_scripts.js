@@ -116,7 +116,7 @@ function getAvailableModels(){
 
       if(modelList.childElementCount == 0){
         let modelParser = new DOMParser();
-        let modelToAppend = modelParser.parseFromString('<li class="list-group-item d-flex w-100 justify-content-between"><p>fake.mzn</p><button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-danger btn-sm m-1 float-right" onclick="deleteModel(this.id)" type="button">Delete</button><button id="28f458fb-7009-43e8-bea6-feec82a90aec" class="btn btn-outline-primary btn-sm m-1 float-right" onclick="startJob(this.id)" type="button">SolveIt!</button></li>', 'text/html');
+        let modelToAppend = modelParser.parseFromString('<h6 class="m-3">You have no running jobs</h4>', 'text/html');
         modelList.append(modelToAppend.childNodes[0].childNodes[1].childNodes[0]);
       }
     })
@@ -179,7 +179,7 @@ function getAvailableSolvers(){
                 <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
               </div>
               <span id="` + solver.id + `"  class="input-group-text solver-name-class">` + solver.name + `</span>
-              <input type="text" aria-label="vcpu" placeholder="Mili-VCPU (Default: 200)" class="form-control vcpu-class">
+              <input type="text" aria-label="vcpu" placeholder="Milli-VCPU (Default: 200)" class="form-control vcpu-class">
               <input type="text" aria-label="ram" placeholder="RAM (Default: 512)" class="form-control ram-class">
               <input type="text" aria-label="timeout" placeholder="Timeout (Default: 120s)" class="form-control timeout-class">
             </div>
@@ -204,7 +204,7 @@ function getAvailableSolvers(){
                 <input class="form-check-input mt-0" type="checkbox" value="" aria-label="Checkbox for following text input">
               </div>
               <span id="213c7f36-dad8-4316-aaac-1a43a4f9062c" class="input-group-text solver-name-class">fake-solver</span>
-              <input type="text" aria-label="vcpu" placeholder="Mili-VCPU (Default: 200)" class="form-control vcpu-class">
+              <input type="text" aria-label="vcpu" placeholder="Milli-VCPU (Default: 200)" class="form-control vcpu-class">
               <input type="text" aria-label="ram" placeholder="RAM (Default: 512)" class="form-control ram-class">
               <input type="text" aria-label="timeout" placeholder="Timeout (Default: 120s)" class="form-control timeout-class">
             </div>
@@ -491,7 +491,7 @@ function startJob(modelIds){
       ram = 512
     }
 
-    if(timeout == null){
+    if(timeout.length <= 0){
       timeout = 120
     }
 
@@ -609,7 +609,7 @@ function welcome () {
   var vcpu = parseJwt(localStorage.getItem("token")).permissions.vcpu
   var ram = parseJwt(localStorage.getItem("token")).permissions.ram
   welcomeDiv = document.getElementById("welcomeBox");
-  welcomeDiv.innerHTML = "Welcome " + username + "! You have access to " + vcpu + " Mili-VCPUS and " + ram + " RAM." 
+  welcomeDiv.innerHTML = "Welcome " + username + "! You have access to " + vcpu + " Milli-VCPUS and " + ram + " RAM." 
 
 }
 
