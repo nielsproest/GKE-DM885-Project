@@ -10,7 +10,7 @@ jobs:
       - name: Run Dastardly Action Step
         uses: PortSwigger/dastardly-github-action@main
         with:
-          target-url: 'http://34.90.15.75/'
+          target-url: 'http://34.90.15.75/' # Should be changed to current best IP
     
       # You can replace this next step with any JUnit XML parser of your choosing
       - name: Publish Test Report
