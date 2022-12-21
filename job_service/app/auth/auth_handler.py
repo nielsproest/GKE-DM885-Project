@@ -6,7 +6,6 @@ from decouple import config
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
-#TODO: Should be received from auth service
 PUBLIC_KEY = ""
 
 def set_public_key(pub_key):
