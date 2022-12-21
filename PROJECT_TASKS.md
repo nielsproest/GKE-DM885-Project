@@ -27,39 +27,39 @@ Available in the solver service via the web interface and the api.
   the timeout, maximal amount of memory that can be used, number of vCPUs to use.
   When the first solver terminates finding the optimal value, all the other solver in parallel
   must be terminated [COMPLETED]
-  
-  
+
+
 Available in the web interface and the job api.
 
 
-* monitor the termination state of the solver execution returning if one of the 
+* monitor the termination state of the solver execution returning if one of the
   solvers have found the optimum, if a solution has been found but the solvers are
   still trying to prove the optimality (i.e., no "==========" in the solution) or
   if the solvers are running but they did not even found a solution
   (i.e., no "----------" in the solution) [COMPLETED]
-  
-  
+
+
 Available in the web interface and the job api.
 
 
 * given a computaton request, retrieve its result if terminated, what solver
   manage to solve it first and the time it took to solve it [COMPLETED]
-  
-  
+
+
 Available in the web interface and the job api.
 
 
-* cancel the execution of a computation request (terminate all the solvers 
+* cancel the execution of a computation request (terminate all the solvers
   running for the request, delete the result otherwise) [COMPLETED]
-  
-  
+
+
 Available in the web interface and the job api.
 
 
 * stop a solver for a specific request  (e.g., if a request required to use solver
   A and B, you can stop to execute solver A letting B to continue) [COMPLETED]
-  
-  
+
+
 Available in the web interface and the job api.
 
 
@@ -105,11 +105,11 @@ To add new computing nodes you have to edit terraform to change the number of no
 * add or remove a solver. It is possible to assume that the solver to add
   satisfy the submission rules of the MiniZinc challenge (note also that you have to handle
   the case when a users asks to use a removed solver) [COMPLETED]
-  
-  
+
+
 Available in the web interface and in the solver api.
 
-## The User 
+## The User
 
 A user should have a maximal predefined amount of computational resources that
 he or she can use (e.g., 6 vCPUs). When this threashold is passed, requests
@@ -141,8 +141,8 @@ This is done with github actions and terraform.
 
 * scalable, supporting multiple users exploiting if needed more resources in the
   cloud (note: vcpus allocated to a run depending on the parameter "-p") [COMPLETED]
-  
-  
+
+
 You can do this by changing the number of nodes in terraform by editing gke.tf's node_count, be aware that this is node pr zone, usually 3, so its a multiplicative of 3.
 
 
@@ -154,11 +154,11 @@ There are tests, but they dont run automatically.
 
 * security (proper credential management and common standard security practices
   enforced) [PARTIALLY COMPLETED]
-  
-  
+
+
 All secrets are hidden as github secret's (so they are hidden).
 
-The way the auth service functions, a user is given a unrevokeable key that is valid until it expires, meaning a malicious user can be malicious within the expiration date is.
+The way the auth service functions, a user is given a unrevokeable key that is valid until it expires (after 1 hour), meaning a malicious user can be malicious within the expiration date is.
 
 The file service does not validate what the contents of each file, but it does limit how much data each user is allowed to store, the single file size is enforced by nginx.
 
@@ -182,6 +182,6 @@ See README.md
 * fairness: if the resources do not allow to run all the solvers at the same time
   the jobs should be delayed and executed fairly (e.g. FIFO).
   User should therefore not wait  indefinitely to run their jobs (optional). [NOT COMPLETED]
-  
-  
+
+
 This would also be solved by the job service queue as described previously.
