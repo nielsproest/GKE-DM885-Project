@@ -160,7 +160,11 @@ All secrets are hidden as github secret's (so they are hidden).
 
 The way the auth service functions, a user is given a unrevokeable key that is valid until it expires, meaning a malicious user can be malicious within the expiration date is.
 
-The file service does not validate what the contents of each file, but it does limit how much data each user is allowed to store, the single file size is enforced by nginx, and the fileid is an increasing integer, which means that if you find an exploit to steal files, you would be able to find them easily, as opposed to using an uuid.
+The file service does not validate what the contents of each file, but it does limit how much data each user is allowed to store, the single file size is enforced by nginx.
+
+The fileid in the file service is an increasing integer, which means that if you find an exploit to steal files, you would be able to find them easily, as opposed to using an uuid.
+
+Also the service is not running on https, because it would require a hostname, which costs more money.
 
 
 * provide user stories to explain how the system is intended to be use [COMPLETED]
