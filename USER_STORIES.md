@@ -32,7 +32,7 @@ Once on the settings page, they click the "add solver" button and give it a name
 
 They then go through the user list and click the "delete user" button. This delete all their uploaded files and all their solutions as well as their credentials.
 
-Finally, the admin finds the user he want to give increased permissions and clicks the "set permissions" button. In the pop up, the admin chooses the new maximum values of the user and submits them.
+Finally, the admin finds the user he wants to give increased resources and clicks the "set permissions" button. In the pop up, the admin chooses the new maximum values of the user and submits them.
 
 The admin then logs out via the burger menu.
 
@@ -48,4 +48,4 @@ The silly user then attempts to upload a .png file. Their .png does not appear s
 
 The silly user finally upload a ".mzn" file and attempts to solve it with 40 vcpus. They get an error message since their user isnt allowed to use that many vcpus.
 
-Finally, they leave their laptop for several hours. When they come back, they attempt to solve another model. Instead of it being solved, their are logged out of the system due to their token no longer being valid.
+Finally, they leave their laptop for several hours. When they come back, they attempt to solve another model. Instead of it being solved, they're logged out of the system due to their token no longer being valid.
