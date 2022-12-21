@@ -3,15 +3,19 @@
 [![CodeQL](https://github.com/TroelsLind/DM885-Project/workflows/CodeQL/badge.svg)](https://github.com/TroelsLind/DM885-Project/actions?query=workflow%3ADependency+Review)
 [![Dependency Review](https://github.com/TroelsLind/DM885-Project/workflows/Dependency%20Review/badge.svg)]()
 
-# DM885-Project
+# Mandatory DM885-Project
 
-A repository for the mandatory project in DM885
+A system allowing users to solve optimization problems using different solvers in parrallel.
 
 ## Checkout the frontend
 
 http://34.147.11.9
 
 ## API Docs
+
+Documentation for the endpoints can be found locally in the relevant pdf files.
+
+An interactive version of the documentation where the different endpoints can be accessed, can be found at the following addresses (make sure to get a token from the auth service, and authorize yourself with it in the GUI before you can test the other services):
 
 http://34.147.11.9/api/auth/docs
 
@@ -33,6 +37,8 @@ Run setup.sh and follow its instructions.
 Check the ip in the services section of kubernetes engine after a couple of minutes.
 
 The project should now be running in Google Cloud and be available on the ip.
+
+A default admin user can be accessed with username: "admin" and password: "password"
 
 Note that you have a custom dashboard, but you can also use google's dashboard if preferred.
 
