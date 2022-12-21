@@ -70,7 +70,7 @@ def Get_All_Solvers(db: Session = Depends(get_db)):
 Returns a solver with the given solverId if it exist
 '''
 @app.get("/solver/{solverId}", dependencies=[Depends(JWTBearer())], responses={
-    200: {"model": List[SolverSchema], "description": "All solvers in database returned"},
+    200: {"model": SolverSchema, "description": "All solvers in database returned"},
     400: {"model": Detail, "description": "Id not valid"},
     404: {"model": Detail, "description": "Solver id not found"}
 })

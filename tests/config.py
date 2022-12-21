@@ -5,7 +5,7 @@ username = "admin"
 password = "password"
 
 #Endpoints
-service_url = "http://35.204.110.143"
+service_url = "http://34.147.11.9"
 auth_url = f"{service_url}/api/auth"
 fs_url = f"{service_url}/api/fs"
 job_url = f"{service_url}/api/jobs"
