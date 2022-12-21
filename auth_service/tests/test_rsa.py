@@ -2,22 +2,27 @@
 
 import os
 import jwt
-from typing import *
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
+import base64
 import pytest
+from typing import *
 from decouple import config
 
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import serialization
 
 
-PRIVATE_KEY_FILE = config("PRIVATE_KEY_FILE")
+# Get key frm environtment variable
+PRIVATE_KEY_FILE = os.environ.get("AUTH_PRIVATE_KEY")
 PUBLIC_KEY_FILE = config("PUBLIC_KEY_FILE")
 NOT_MY_KEY_FILE = config("NOT_MY_KEY_FILE")
 
-with open(PRIVATE_KEY_FILE, "rb") as f:
-    PRIVATE_KEY = serialization.load_pem_private_key(
-        f.read(), password=None, backend=default_backend()
-    )
+
+# Base64 decode the key
+PRIVATE_KEY_FILE = base64.b64decode(PRIVATE_KEY_FILE)
+
+PRIVATE_KEY = serialization.load_pem_private_key(
+    PRIVATE_KEY_FILE, password=None, backend=default_backend()
+)
 
 with open(PUBLIC_KEY_FILE, "rb") as f:
     PUBLIC_KEY = serialization.load_pem_public_key(f.read(), backend=default_backend())

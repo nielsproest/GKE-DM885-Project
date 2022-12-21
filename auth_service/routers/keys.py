@@ -1,9 +1,11 @@
 """ Endpoints relating to external authentication. """
 
+import os
+import base64
 from fastapi import APIRouter, HTTPException, status
 from decouple import config
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from fastapi.responses import JSONResponse
 
 router: APIRouter = APIRouter()
 
