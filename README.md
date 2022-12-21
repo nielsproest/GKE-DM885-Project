@@ -1,6 +1,6 @@
 # Mandatory DM885-Project
 
-A system allowing users to solve optimization problems using different solvers in parrallel.
+A system allowing users to solve optimization problems using different solvers in parallel.
 
 ## Checkout the frontend
 
