@@ -1,7 +1,9 @@
 """ JWT Token Generation using RSA256 """
 
+import os
 import jwt
 import time
+import base64
 
 from fastapi import APIRouter
 from decouple import config
@@ -12,21 +14,23 @@ from cryptography.hazmat.primitives import serialization
 router: APIRouter = APIRouter()
 
 
-PRIVATE_KEY_FILE = config("PRIVATE_KEY_FILE")
+PRIVATE_KEY_FILE = os.environ.get("AUTH_PRIVATE_KEY")
 PUBLIC_KEY_FILE = config("PUBLIC_KEY_FILE")
 SESSION_TIME = config("SESSION_TIME", cast=int, default=3600)
 
-with open(PRIVATE_KEY_FILE, "rb") as f:
-    PRIVATE_KEY = serialization.load_pem_private_key(
-        f.read(), password=None, backend=default_backend()
-    )
+
+# Base64 decode the key
+PRIVATE_KEY_FILE = base64.b64decode(PRIVATE_KEY_FILE)
+
+PRIVATE_KEY = serialization.load_pem_private_key(
+    PRIVATE_KEY_FILE, password=None, backend=default_backend()
+)
 
 with open(PUBLIC_KEY_FILE, "rb") as f:
     PUBLIC_KEY = serialization.load_pem_public_key(f.read(), backend=default_backend())
 
 
-
-def sign_jwt(user_id: str, payload: dict = None, uuid = None) -> str:
+def sign_jwt(user_id: str, payload: dict = None, uuid=None) -> str:
     """Create and sign a JWT token using the secret private key
 
     Args:
@@ -43,7 +47,12 @@ def sign_jwt(user_id: str, payload: dict = None, uuid = None) -> str:
     if uuid is None:
         raise ValueError("UUID is required")
 
-    new_payload = {"user_id": user_id, "expiration": str(time.time() + SESSION_TIME), "permissions": payload or {}, "uuid": str(uuid)}
+    new_payload = {
+        "user_id": user_id,
+        "expiration": str(time.time() + SESSION_TIME),
+        "permissions": payload or {},
+        "uuid": str(uuid),
+    }
     token = jwt.encode(new_payload, PRIVATE_KEY, algorithm="RS256")
 
     return token
@@ -58,7 +67,6 @@ def decode_jwt(token: str) -> str:
     Returns:
         str: The decoded token
     """
-
 
     return jwt.decode(token, PUBLIC_KEY, algorithms=["RS256"])
 

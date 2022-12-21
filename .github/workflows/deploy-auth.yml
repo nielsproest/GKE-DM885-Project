@@ -20,6 +20,7 @@ env:
   AUTH_DB_PASS: ${{ secrets.AUTH_DB_PASS }}
   AUTH_ADMIN_USER: ${{ secrets.AUTH_ADMIN_USER }}
   AUTH_ADMIN_PASS: ${{ secrets.AUTH_ADMIN_PASS }}
+  AUTH_PRIVATE_KEY: ${{ secrets.AUTH_PRIVATE_KEY }}
 
 jobs:
   setup-build-publish-deploy:
@@ -69,6 +70,7 @@ jobs:
           --tag "eu.gcr.io/$PROJECT_ID/$AUTH_SERVICE_IMAGE" \
           --build-arg GITHUB_SHA="$GITHUB_SHA" \
           --build-arg GITHUB_REF="$GITHUB_REF" \
+          --build-arg AUTH_PRIVATE_KEY=${{ secrets.AUTH_PRIVATE_KEY }} \
           ./auth_service
 
     - name: Helper

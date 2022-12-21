@@ -81,8 +81,6 @@ class Kubernetes:
         pvc_name = "job-pvc"
         pvc = client.V1PersistentVolumeClaimVolumeSource(claim_name=pvc_name)
 
-
-        #TODO: Make sure to sanitize solver name to avoid command injection?
         container_list = []
         for solver in solver_instances:
           if has_dzn:
@@ -193,8 +191,6 @@ class Kubernetes:
               q.put((instance_id, None))
               return
 
-          # TODO: Clean up this code:
-          # event.type: ADDED, MODIFIED, DELETED
           if event["type"] == "DELETED" or event["type"] == "Warning" or event["object"].status.phase == "Failed":
               print(f"event['object'].status.conditions: {event['object'].status.conditions}")
               logging.info("Deleted before it started")
